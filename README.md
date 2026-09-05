@@ -1,19 +1,19 @@
-<h1 align="center">UMA-AD</h1>
+<h1 align="center">UAM-AD</h1>
 
 <p align="center">
-  <b>Unsupervised Multi-modal Adversarial learning for Anomaly Detection</b>
+  <b>UAM-AD: Unsupervised Adversarial Multi-modal approach for Anomaly Detection in microservices</b>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-%3E%3D3.7-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/PyTorch-1.11.0-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-  <img src="https://img.shields.io/github/last-commit/hirdo/UMA-AD" alt="Last Commit">
-  <img src="https://img.shields.io/github/repo-size/hirdo/UMA-AD" alt="Repo Size">
+  <img src="https://img.shields.io/github/last-commit/hirdo/UAM-AD" alt="Last Commit">
+  <img src="https://img.shields.io/github/repo-size/hirdo/UAM-AD" alt="Repo Size">
 </p>
 
 <p align="center">
-  This work is based on the inherited and enhanced source code for the paper "UAC-AD: Unsupervised Adversarial Contrastive Learning for Anomaly Detection on Multi-source Data". UMA-AD detects anomalies in cloud/microservice systems by jointly learning from three data modalities — <b>KPI metrics</b>, <b>logs</b>, and <b>traces</b> — without requiring labeled training data.
+  This work is based on the inherited and enhanced source code for the paper "UAC-AD: Unsupervised Adversarial Contrastive Learning for Anomaly Detection on Multi-source Data". UAM-AD detects anomalies in cloud/microservice systems by jointly learning from three data modalities — <b>KPI metrics</b>, <b>logs</b>, and <b>traces</b> — without requiring labeled training data.
 </p>
 
 ---
@@ -46,7 +46,7 @@
 ## Architecture Overview
 
 <p align="center">
-  <img src="./result/main_architecture.jpg" alt="UMA-AD Architecture" width="85%">
+  <img src="./result/main_architecture.jpg" alt="UAM-AD Architecture" width="85%">
 </p>
 
 The model encodes each modality independently, fuses them via multi-modal self-attention, and reconstructs the input using an adversarial autoencoder. Windows with high reconstruction error are flagged as anomalies.
@@ -73,8 +73,8 @@ The model encodes each modality independently, fuses them via multi-modal self-a
 ### Installation
 
 ```bash
-git clone https://github.com/hirdo/UMA-AD.git
-cd UMA-AD
+git clone https://github.com/hirdo/UAM-AD.git
+cd UAM-AD
 pip install -r requirements.txt
 ```
 
@@ -130,7 +130,7 @@ For preprocessing instructions, see the [Documentation](#documentation) section.
 
 ## Running Experiments
 
-Each dataset has a dedicated **per-scenario evaluation script** under `codes/common/`. These scripts iterate over all fault-type scenarios, run UMA-AD on each, and report aggregated F1 / Precision / Recall (mean +/- std).
+Each dataset has a dedicated **per-scenario evaluation script** under `codes/common/`. These scripts iterate over all fault-type scenarios, run UAM-AD on each, and report aggregated F1 / Precision / Recall (mean +/- std).
 
 ### SocialNetwork
 
@@ -269,7 +269,7 @@ data/<dataset>/result_per_scenario_fuse_{baseline|trace}/
 <summary><b>Click to expand</b></summary>
 
 ```
-UMA-AD/
+UAM-AD/
 ├── codes/
 │   ├── run.py                              # Main entry point
 │   ├── run_sequential.py                   # Memory-efficient sequential variant
@@ -332,10 +332,10 @@ UMA-AD/
 ## Citation
 
 ```bibtex
-@article{uma-ad,
-  title   = {UMA-AD: Unsupervised Multi-modal Adversarial learning for Anomaly Detection},
+@article{uam-ad,
+  title   = {UAM-AD: Unsupervised Adversarial Multi-modal approach for Anomaly Detection in microservices},
   author  = {Nguyen Huynh Tien},
   year    = {2026},
-  note    = {Source code: https://github.com/hirdo/UMA-AD}
+  note    = {Source code: https://github.com/hirdo/UAM-AD}
 }
 ```
