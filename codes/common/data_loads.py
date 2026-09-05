@@ -11,19 +11,13 @@ from tqdm import tqdm
 from sklearn.cluster import KMeans
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
-# from src.pc import pc
-# from src.utils import get_causal_chains, plot
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 def load_sessions(data_dir, **keywds):  # both log and kpi
     logging.info("Load from {}".format(data_dir))
     with open(os.path.join(data_dir, "train.pkl"), "rb") as fr:
         train = pickle.load(fr)
-    if keywds["dataset"] == "yzh":
-        unlabel = {}
-    else:
-        with open(os.path.join(data_dir, "unlabel.pkl"), "rb") as fr:
-            unlabel = pickle.load(fr)
+    with open(os.path.join(data_dir, "unlabel.pkl"), "rb") as fr:
+        unlabel = pickle.load(fr)
     # Allow --test_pkl override for per-scenario evaluation
     test_pkl_path = keywds.get("test_pkl") or os.path.join(data_dir, "test.pkl")
     with open(test_pkl_path, "rb") as fr:
@@ -176,13 +170,6 @@ def normalization(train_chunks, unlabel_chunks, test_chunks, val_chunks=None, **
     unlabel_features = get_features(unlabel_chunks)
     test_features    = get_features(test_chunks)
     val_features     = get_features(val_chunks) if val_chunks else None
-
-    if params["dataset"] == "original":
-        train_features["kpis"]   = np.mean(train_features["kpis"],   axis=-2)
-        unlabel_features["kpis"] = np.mean(unlabel_features["kpis"], axis=-2)
-        test_features["kpis"]    = np.mean(test_features["kpis"],    axis=-2)
-        if val_features:
-            val_features["kpis"] = np.mean(val_features["kpis"], axis=-2)
 
     if params["open_kpi_normalization"]:
         train_features["kpis"],   scaler = normalize_data(train_features["kpis"],   scaler=None)

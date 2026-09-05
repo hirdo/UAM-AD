@@ -117,6 +117,7 @@ python codes/common/eval_per_scenario_sn.py \
 | **SocialNetwork** | 12-service social network (DeathStarBench) | Resource & network faults | 12 | KPI, Logs, Traces | Done |
 | **RE2-OB** | Online Boutique (Google, 11 services) | Infrastructure faults (cpu, delay, disk, loss, mem, socket) | 30 | KPI, Logs, Traces | Done |
 | **RE3-OB** | Online Boutique (Google, 11 services) | Code-defect faults (f1-f5) | 5 | KPI, Logs, Traces | Done |
+| **MicroSS** | GAIA-DataSet MicroSS (10 microservices) | Resource & network faults | TBD | KPI, Logs, Traces | Done |
 | **RE2-TT** | TrainTicket (40+ services) | Infrastructure faults | TBD | KPI, Logs, Traces | Planned |
 | **RE3-TT** | TrainTicket (40+ services) | Code-defect faults | TBD | KPI, Logs, Traces | Planned |
 
@@ -187,6 +188,22 @@ python codes/common/eval_per_scenario_rcaeval_re3_ob.py \
 
 ---
 
+### MicroSS
+
+Runs baseline (`open_trace=False`) then trace (`open_trace=True`) sequentially in one process, to avoid
+CUDA OOM when running both back-to-back on the same GPU.
+
+```bash
+python codes/run_sequential.py
+```
+
+> [!NOTE]
+> Data paths and hyperparameters (epochs, batch size, `num_services`, `trace_c`, etc.) are hardcoded
+> at the top of `run_sequential.py` — edit that file directly to point at your preprocessed
+> `data/micross` directory.
+
+---
+
 ### TrainTicket — RE2-TT / RE3-TT
 
 > [!WARNING]
@@ -209,8 +226,8 @@ python codes/common/eval_per_scenario_sn.py --run_start 0 --run_end 5
 
 | Argument | Default | Description |
 |:---------|:--------|:------------|
-| `--data` | `../data/chunk_10` | Path to dataset directory |
-| `--dataset` | `original` | Dataset type: `sn`, `rcaeval_re2_ob`, `rcaeval_re3_ob` |
+| `--data` | *(required)* | Path to dataset directory |
+| `--dataset` | *(required)* | Dataset type: `micross`, `sn`, `rcaeval_re2_ob`, `rcaeval_re3_ob` |
 | `--data_type` | `kpi` | Modalities to use: `fuse` (log+KPI), `log`, `kpi` |
 | `--open_trace` | `False` | Enable trace branch (GAT; requires trace data) |
 | `--window_size` | `5` | Sliding window size |
@@ -227,7 +244,7 @@ python codes/common/eval_per_scenario_sn.py --run_start 0 --run_end 5
 | `--fuse_type` | `multi_modal_self_attn` | Fusion strategy: `multi_modal_self_attn`, `concat`, `cross_attn`, `sep_attn` |
 | `--criterion` | `l1` | Reconstruction loss: `l1` or `mse` |
 | `--val_percentile` | `None` | If set, use this percentile of normal losses as threshold (e.g. `95`) |
-| `--result_dir` | `../result21/` | Output directory for results and checkpoints |
+| `--result_dir` | `../result21/` | Output directory for results and checkpoints (all example commands above pass an explicit `--result_dir`) |
 
 </details>
 
@@ -242,6 +259,7 @@ Detailed per-dataset experiment results:
 | SocialNetwork | [Trace vs Baseline](docs/experiment_results_sn_trace_vs_baseline_en.md) |
 | RE2-OB (Online Boutique) | [Trace vs Baseline](docs/experiment_results_re2_ob_trace_vs_baseline_en.md) |
 | RE3-OB (Online Boutique) | [Trace vs Baseline](docs/experiment_results_re3_ob_trace_vs_baseline_en.md) |
+| MicroSS | [Trace vs Baseline](docs/experiment_results_micross_trace_vs_baseline_en.md) |
 
 <details>
 <summary><b>Output directory structure</b></summary>
@@ -272,14 +290,12 @@ data/<dataset>/result_per_scenario_fuse_{baseline|trace}/
 UAM-AD/
 ├── codes/
 │   ├── run.py                              # Main entry point
-│   ├── run_sequential.py                   # Memory-efficient sequential variant
-│   ├── gpu0.sh / gpu1.sh                   # Pre-configured experiment scripts
-│   ├── data_analysis.py                    # Data exploration utilities
+│   ├── run_sequential.py                   # Memory-efficient sequential variant (MicroSS)
 │   ├── common/
 │   │   ├── data_loads.py                   # Data loading & windowing
-│   │   ├── data_processing.py              # Dataset-specific preprocessing
 │   │   ├── data_processing_utils.py        # Feature normalization & visualization
 │   │   ├── semantics.py                    # Log feature extraction (Word2Vec, Drain3)
+│   │   ├── preprocess_micross.py           # MicroSS preprocessing
 │   │   ├── preprocess_sn.py                # SocialNetwork preprocessing
 │   │   ├── preprocess_rcaeval_re2_ob.py    # RE2-OB preprocessing
 │   │   ├── preprocess_rcaeval_re3_ob.py    # RE3-OB preprocessing
@@ -295,11 +311,11 @@ UAM-AD/
 │       ├── trace_model_v3.py               # Trace encoder (GAT, decomposed attention)
 │       └── utils.py                        # Shared modules (attention, embedders)
 ├── data/
+│   ├── micross/                            # MicroSS (after preprocessing)
 │   ├── sn/                                 # SocialNetwork (after preprocessing)
 │   ├── rcaeval_re2_ob/                     # RE2-OB (after preprocessing)
 │   └── rcaeval_re3_ob/                     # RE3-OB (after preprocessing)
 ├── docs/                                   # Architecture docs & experiment results
-├── result21/                               # Output directory
 └── requirements.txt
 ```
 
@@ -316,6 +332,7 @@ UAM-AD/
 | SocialNetwork | [preprocess_sn_en.md](docs/preprocess_sn_en.md) |
 | RE2-OB (Online Boutique) | [preprocess_re2_ob_en.md](docs/preprocess_re2_ob_en.md) |
 | RE3-OB (Online Boutique) | [preprocess_re3_ob_en.md](docs/preprocess_re3_ob_en.md) |
+| MicroSS | [preprocess_micross_en.md](docs/preprocess_micross_en.md) |
 
 ### Architecture & Analysis
 
@@ -326,6 +343,7 @@ UAM-AD/
 - [SocialNetwork — Trace vs Baseline](docs/experiment_results_sn_trace_vs_baseline_en.md)
 - [RE2-OB — Trace vs Baseline](docs/experiment_results_re2_ob_trace_vs_baseline_en.md)
 - [RE3-OB — Trace vs Baseline](docs/experiment_results_re3_ob_trace_vs_baseline_en.md)
+- [MicroSS — Trace vs Baseline](docs/experiment_results_micross_trace_vs_baseline_en.md)
 
 ---
 
