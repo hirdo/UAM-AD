@@ -1,5 +1,5 @@
 2026-05-01 01:06:04,459 P10308 INFO ^^^^^^^^^^ Current Model:hades, f9975edc ^^^^^^^^^^
-2026-05-01 01:06:04,459 P10308 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-01 01:06:04,459 P10308 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-01 01:06:13,211 P10308 INFO 40 unique log templates found.
 2026-05-01 01:06:13,229 P10308 INFO Transforming unlabel train data.
 2026-05-01 01:06:14,620 P10308 INFO Transforming test data.
@@ -32,7 +32,7 @@
 2026-05-01 01:32:44,739 P10308 INFO *** Best F1 {'f1': 0.8800115235031449, 'rc': 0.8833622517833044, 'pc': 0.8766861188175643}  of unsupervised traning
 2026-05-01 01:32:44,914 P10308 INFO Current hash id f9975edc
 2026-05-01 23:51:30,358 P10668 INFO ^^^^^^^^^^ Current Model:hades, f9975edc ^^^^^^^^^^
-2026-05-01 23:51:30,358 P10668 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-01 23:51:30,358 P10668 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-01 23:51:37,065 P10668 INFO 40 unique log templates found.
 2026-05-01 23:51:37,065 P10668 INFO Transforming unlabel train data.
 2026-05-01 23:51:37,926 P10668 INFO Transforming test data.

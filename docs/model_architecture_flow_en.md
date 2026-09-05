@@ -8,7 +8,7 @@
 ## 1. Project Architecture Overview
 
 ```
-UAC-AD/
+UAM-AD/
 ├── codes/
 │   ├── run.py                          ← Main entry point
 │   ├── run_sequential.py               ← Sequential run (avoids CUDA OOM)

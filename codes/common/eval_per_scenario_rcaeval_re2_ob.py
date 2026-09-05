@@ -1,7 +1,7 @@
 """
 Per-scenario evaluation for RCAEval OnlineBoutique (RE2-OB) dataset.
 
-Runs UAC-AD on 6 fault-type scenarios (cpu, delay, disk, loss, mem, socket)
+Runs UAM-AD on 6 fault-type scenarios (cpu, delay, disk, loss, mem, socket)
 and reports F1 / Precision / Recall per scenario plus mean±std.
 
 Run twice to compare baseline vs trace-enhanced:

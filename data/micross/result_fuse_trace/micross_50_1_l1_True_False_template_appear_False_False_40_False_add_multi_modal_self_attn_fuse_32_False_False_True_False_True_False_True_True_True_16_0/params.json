@@ -5,7 +5,7 @@
     "batch_size": 256,
     "confidence": 0.92,
     "criterion": "l1",
-    "data": "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/micross",
+    "data": "D:/UAM-AD/data/micross",
     "data_type": "fuse",
     "dataset": "micross",
     "epoches": [
@@ -43,7 +43,7 @@
     "patience": 5,
     "pre_model": null,
     "random_seed": 42,
-    "result_dir": "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/result_fuse_trace",
+    "result_dir": "D:/UAM-AD/data/micross/result_fuse_trace",
     "run_end": 3,
     "run_start": 0,
     "run_times": 0,

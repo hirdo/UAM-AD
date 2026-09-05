@@ -8,7 +8,7 @@
 ## 1. Tổng quan kiến trúc dự án
 
 ```
-UAC-AD/
+UAM-AD/
 ├── codes/
 │   ├── run.py                          ← Điểm vào chính
 │   ├── run_sequential.py               ← Chạy tuần tự (tránh CUDA OOM)

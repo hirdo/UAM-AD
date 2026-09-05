@@ -1,5 +1,5 @@
 r"""
-Preprocess the RCAEval OnlineBoutique (RE3-OB) dataset for use with UAC-AD.
+Preprocess the RCAEval OnlineBoutique (RE3-OB) dataset for use with UAM-AD.
 
 RE3-OB uses **code-level fault injection** (f1–f5) vs RE2-OB's infrastructure-level
 faults (cpu/mem/disk/…). It contains 10 scenarios across 4 services, 5 fault types,
@@ -584,7 +584,7 @@ class RCAEvalRE3OBPreprocessor:
 
 def main():
     p = argparse.ArgumentParser(
-        description="Preprocess RCAEval OnlineBoutique RE3-OB → UAC-AD pkl format"
+        description="Preprocess RCAEval OnlineBoutique RE3-OB → UAM-AD pkl format"
     )
     p.add_argument("--data_root",     required=True,
                    help="Root dir of RE3-OB (contains adservice_f3/, emailservice_f1/, ...)")

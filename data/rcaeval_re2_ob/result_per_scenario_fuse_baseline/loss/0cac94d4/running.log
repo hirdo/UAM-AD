@@ -1,5 +1,5 @@
 2026-05-04 00:26:17,197 P5900 INFO ^^^^^^^^^^ Current Model:hades, 0cac94d4 ^^^^^^^^^^
-2026-05-04 00:26:17,198 P5900 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-04 00:26:17,198 P5900 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-04 00:26:27,582 P5900 INFO 40 unique log templates found.
 2026-05-04 00:26:27,601 P5900 INFO Transforming unlabel train data.
 2026-05-04 00:26:28,716 P5900 INFO Transforming test data.

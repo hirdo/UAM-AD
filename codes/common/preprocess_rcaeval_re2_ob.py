@@ -1,5 +1,5 @@
 r"""
-Preprocess the RCAEval OnlineBoutique (RE2-OB) dataset for use with UAC-AD.
+Preprocess the RCAEval OnlineBoutique (RE2-OB) dataset for use with UAM-AD.
 
 Dataset facts (verified):
   - 30 scenarios: 5 services × 6 fault types
@@ -506,7 +506,7 @@ class RCAEvalOBPreprocessor:
 
 def main():
     p = argparse.ArgumentParser(
-        description="Preprocess RCAEval OnlineBoutique → UAC-AD pkl format"
+        description="Preprocess RCAEval OnlineBoutique → UAM-AD pkl format"
     )
     p.add_argument("--data_root",     required=True,
                    help="Root dir of RE2-OB (contains checkoutservice_cpu/, ...)")

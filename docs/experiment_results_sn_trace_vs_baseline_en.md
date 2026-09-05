@@ -48,7 +48,7 @@ where `val_losses` = reconstruction losses from the 8 unseen normal windows in `
 ### Baseline (`open_trace=False`)
 
 ```bash
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn \
     --dataset sn --data_type fuse \
@@ -62,7 +62,7 @@ python common/eval_per_scenario_sn.py \
 ### Trace (`open_trace=True`)
 
 ```bash
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn \
     --dataset sn --data_type fuse \
