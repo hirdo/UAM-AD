@@ -1,5 +1,5 @@
 r"""
-Preprocess the MicroSS dataset (GAIA-DataSet) for use with UAC-AD + Trace branch.
+Preprocess the MicroSS dataset (GAIA-DataSet) for use with UAM-AD + Trace branch.
 
 Expected input directory structure (after extracting the split archives):
   <micross_root>/
@@ -901,7 +901,7 @@ class MicroSSPreprocessor:
 
 def main():
     p = argparse.ArgumentParser(
-        description="Preprocess MicroSS (GAIA-DataSet) → UAC-AD pkl format"
+        description="Preprocess MicroSS (GAIA-DataSet) → UAM-AD pkl format"
     )
     p.add_argument("--trace_dir",    required=True,
                    help="Dir with extracted trace CSVs (e.g. .../trace/trace)")

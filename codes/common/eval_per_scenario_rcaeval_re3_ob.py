@@ -2,7 +2,7 @@
 Per-scenario evaluation for RCAEval OnlineBoutique RE3-OB dataset.
 
 RE3-OB uses code-level fault injection with 5 fault types (f1–f5).
-Runs UAC-AD on each fault-type test file and reports F1/P/R per scenario.
+Runs UAM-AD on each fault-type test file and reports F1/P/R per scenario.
 
 Run twice to compare baseline vs trace-enhanced:
 

@@ -141,7 +141,7 @@ The practitioner does not need to pick between "trace on" or "trace off" per dat
 
 ```bash
 # Preprocessing
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/preprocess_rcaeval_re3_ob.py \
     --data_root D:/RE3-OB/RE3-OB \
     --output_dir ../data/rcaeval_re3_ob

@@ -48,7 +48,7 @@ trong đó `val_losses` = loss tái tạo từ 8 cửa sổ bình thường chư
 ### Baseline (`open_trace=False`)
 
 ```bash
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn \
     --dataset sn --data_type fuse \
@@ -62,7 +62,7 @@ python common/eval_per_scenario_sn.py \
 ### Trace (`open_trace=True`)
 
 ```bash
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn \
     --dataset sn --data_type fuse \

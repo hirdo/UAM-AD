@@ -1,5 +1,5 @@
 2026-05-01 13:48:15,292 P6600 INFO ^^^^^^^^^^ Current Model:hades, ce335aad ^^^^^^^^^^
-2026-05-01 13:48:15,292 P6600 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-01 13:48:15,292 P6600 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-01 13:48:22,265 P6600 INFO 40 unique log templates found.
 2026-05-01 13:48:22,274 P6600 INFO Transforming unlabel train data.
 2026-05-01 13:48:23,112 P6600 INFO Transforming test data.

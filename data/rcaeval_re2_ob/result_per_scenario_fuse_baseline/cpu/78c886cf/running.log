@@ -1,5 +1,5 @@
 2026-04-30 23:15:40,533 P2488 INFO ^^^^^^^^^^ Current Model:hades, 78c886cf ^^^^^^^^^^
-2026-04-30 23:15:40,533 P2488 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-04-30 23:15:40,533 P2488 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-04-30 23:16:00,515 P2488 INFO 40 unique log templates found.
 2026-04-30 23:16:00,532 P2488 INFO Transforming unlabel train data.
 2026-04-30 23:16:01,791 P2488 INFO Transforming test data.
@@ -32,7 +32,7 @@
 2026-04-30 23:43:25,846 P2488 INFO *** Best F1 {'f1': 0.6267276713373368, 'rc': 0.6381636416577696, 'pc': 0.6156943534038768}  of unsupervised traning
 2026-04-30 23:43:26,024 P2488 INFO Current hash id 78c886cf
 2026-05-01 21:46:04,492 P19052 INFO ^^^^^^^^^^ Current Model:hades, 78c886cf ^^^^^^^^^^
-2026-05-01 21:46:04,493 P19052 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-01 21:46:04,493 P19052 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-01 21:46:18,360 P19052 INFO 40 unique log templates found.
 2026-05-01 21:46:18,376 P19052 INFO Transforming unlabel train data.
 2026-05-01 21:46:19,156 P19052 INFO Transforming test data.
@@ -66,7 +66,7 @@
 2026-05-01 22:19:53,686 P19052 INFO *** Best F1 {'f1': 0.5290310388812774, 'rc': 0.5434339512763273, 'pc': 0.5153718703976435}  of unsupervised traning
 2026-05-01 22:19:53,860 P19052 INFO Current hash id 78c886cf
 2026-05-03 23:31:07,223 P2204 INFO ^^^^^^^^^^ Current Model:hades, 78c886cf ^^^^^^^^^^
-2026-05-03 23:31:07,228 P2204 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-03 23:31:07,228 P2204 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-03 23:31:27,396 P2204 INFO 40 unique log templates found.
 2026-05-03 23:31:27,446 P2204 INFO Transforming unlabel train data.
 2026-05-03 23:31:28,784 P2204 INFO Transforming test data.

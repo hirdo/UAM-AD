@@ -1,5 +1,5 @@
 """
-Preprocess SocialNetwork (AnoMod) → UAC-AD pkl format.
+Preprocess SocialNetwork (AnoMod) → UAM-AD pkl format.
 
 Dataset layout expected under SN_DATA_ROOT/:
   log_data/    {scenario}_logs_{timestamp}/    *.log files per service
@@ -138,7 +138,7 @@ def _parse_log_ts(ts_str: str) -> Optional[datetime]:
 
 class SNPreprocessor:
     """
-    Preprocess SocialNetwork (AnoMod) dataset → UAC-AD pkl format.
+    Preprocess SocialNetwork (AnoMod) dataset → UAM-AD pkl format.
     """
 
     def __init__(
@@ -890,7 +890,7 @@ class SNPreprocessor:
 
 def main():
     p = argparse.ArgumentParser(
-        description="Preprocess SocialNetwork (AnoMod) → UAC-AD pkl format"
+        description="Preprocess SocialNetwork (AnoMod) → UAM-AD pkl format"
     )
     p.add_argument(
         "--sn_data_root",
@@ -899,7 +899,7 @@ def main():
     )
     p.add_argument(
         "--output_dir",
-        default=r"C:\Users\us\Desktop\UAC-AD\.claude\worktrees\affectionate-bell\data\sn",
+        default=r"D:\UAM-AD\data\sn",
         help="Output directory for pkl files",
     )
     p.add_argument("--window_sec",           default=30,  type=int,

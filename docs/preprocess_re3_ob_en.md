@@ -266,7 +266,7 @@ data/rcaeval_re3_ob/
 ## 7. Run Commands
 
 ```bash
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 
 python common/preprocess_rcaeval_re3_ob.py \
     --data_root D:/RE3-OB/RE3-OB \

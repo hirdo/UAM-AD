@@ -165,7 +165,7 @@ Dynamics lúc training:
 
 ```bash
 # Preprocessing (tạo data/rcaeval_re2_ob/ với TRACE_C=6)
-cd D:/UAC-AD/codes
+cd D:/UAM-AD/codes
 python common/preprocess_rcaeval_re2_ob.py \
     --data_root D:/RE2-OB/RE2-OB \
     --output_dir ../data/rcaeval_re2_ob

@@ -1,5 +1,5 @@
 2026-05-01 01:33:10,071 P14148 INFO ^^^^^^^^^^ Current Model:hades, ea545ef4 ^^^^^^^^^^
-2026-05-01 01:33:10,071 P14148 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-01 01:33:10,071 P14148 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-01 01:33:19,075 P14148 INFO 40 unique log templates found.
 2026-05-01 01:33:19,093 P14148 INFO Transforming unlabel train data.
 2026-05-01 01:33:20,112 P14148 INFO Transforming test data.
@@ -33,7 +33,7 @@
 2026-05-01 01:59:49,855 P14148 INFO *** Best F1 {'f1': 0.516217576284368, 'rc': 0.5217310893286481, 'pc': 0.5108193752829334}  of unsupervised traning
 2026-05-01 01:59:50,059 P14148 INFO Current hash id ea545ef4
 2026-05-02 00:14:47,473 P26052 INFO ^^^^^^^^^^ Current Model:hades, ea545ef4 ^^^^^^^^^^
-2026-05-02 00:14:47,473 P26052 INFO Load from D:\UAC-AD\data\rcaeval_re2_ob
+2026-05-02 00:14:47,473 P26052 INFO Load from D:\UAM-AD\data\rcaeval_re2_ob
 2026-05-02 00:14:54,143 P26052 INFO 40 unique log templates found.
 2026-05-02 00:14:54,159 P26052 INFO Transforming unlabel train data.
 2026-05-02 00:14:55,003 P26052 INFO Transforming test data.

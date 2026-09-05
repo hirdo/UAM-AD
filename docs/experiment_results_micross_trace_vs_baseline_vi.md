@@ -151,20 +151,20 @@
 ```bash
 # Baseline (log + metric)
 python codes/run.py \
-    --data "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/micross" \
+    --data "D:/UAM-AD/data/micross" \
     --dataset micross --data_type fuse \
     --open_trace False \
     --epoches 10 10 --batch_size 256 --patience 5 \
     --alpha 0.16 --open_gan_sep True --run_start 0 --run_end 3 \
-    --result_dir "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/result_fuse_baseline"
+    --result_dir "D:/UAM-AD/data/micross/result_fuse_baseline"
 
 # Trace-v3 (log + metric + trace)
 python codes/run.py \
-    --data "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/micross" \
+    --data "D:/UAM-AD/data/micross" \
     --dataset micross --data_type fuse \
     --open_trace True --num_services 4 --trace_c 5 \
     --epoches 10 10 --batch_size 256 --patience 5 \
     --alpha 0.16 --open_gan_sep True --run_start 0 --run_end 3 \
-    --result_dir "C:/Users/us/Desktop/UAC-AD/.claude/worktrees/data/result_fuse_trace"
+    --result_dir "D:/UAM-AD/data/micross/result_fuse_trace"
 ```
 
