@@ -1,7 +1,7 @@
-<h1 align="center">UAC-AD</h1>
+<h1 align="center">UMA-AD</h1>
 
 <p align="center">
-  <b>Unsupervised Adversarial Contrastive Learning for Anomaly Detection on Multi-source Data</b>
+  <b>Unsupervised Multi-modal Adversarial learning for Anomaly Detection</b>
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  UAC-AD detects anomalies in cloud/microservice systems by jointly learning from three data modalities — <b>KPI metrics</b>, <b>logs</b>, and <b>traces</b> — without requiring labeled training data.
+  This work is based on the inherited and enhanced source code for the paper "UAC-AD: Unsupervised Adversarial Contrastive Learning for Anomaly Detection on Multi-source Data". UMA-AD detects anomalies in cloud/microservice systems by jointly learning from three data modalities — <b>KPI metrics</b>, <b>logs</b>, and <b>traces</b> — without requiring labeled training data.
 </p>
 
 ---
@@ -46,7 +46,7 @@
 ## Architecture Overview
 
 <p align="center">
-  <img src="./result/main_architecture.jpg" alt="UAC-AD Architecture" width="85%">
+  <img src="./result/main_architecture.jpg" alt="UMA-AD Architecture" width="85%">
 </p>
 
 The model encodes each modality independently, fuses them via multi-modal self-attention, and reconstructs the input using an adversarial autoencoder. Windows with high reconstruction error are flagged as anomalies.
