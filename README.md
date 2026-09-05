@@ -8,8 +8,8 @@
   <img src="https://img.shields.io/badge/Python-%3E%3D3.7-blue?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/PyTorch-1.11.0-EE4C2C?logo=pytorch&logoColor=white" alt="PyTorch">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
-  <img src="https://img.shields.io/github/last-commit/Tienhuynh9258/UAC-AD" alt="Last Commit">
-  <img src="https://img.shields.io/github/repo-size/Tienhuynh9258/UAC-AD" alt="Repo Size">
+  <img src="https://img.shields.io/github/last-commit/hirdo/UMA-AD" alt="Last Commit">
+  <img src="https://img.shields.io/github/repo-size/hirdo/UMA-AD" alt="Repo Size">
 </p>
 
 <p align="center">
@@ -73,8 +73,8 @@ The model encodes each modality independently, fuses them via multi-modal self-a
 ### Installation
 
 ```bash
-git clone https://github.com/Tienhuynh9258/UAC-AD.git
-cd UAC-AD
+git clone https://github.com/hirdo/UMA-AD.git
+cd UMA-AD
 pip install -r requirements.txt
 ```
 
@@ -130,7 +130,7 @@ For preprocessing instructions, see the [Documentation](#documentation) section.
 
 ## Running Experiments
 
-Each dataset has a dedicated **per-scenario evaluation script** under `codes/common/`. These scripts iterate over all fault-type scenarios, run UAC-AD on each, and report aggregated F1 / Precision / Recall (mean +/- std).
+Each dataset has a dedicated **per-scenario evaluation script** under `codes/common/`. These scripts iterate over all fault-type scenarios, run UMA-AD on each, and report aggregated F1 / Precision / Recall (mean +/- std).
 
 ### SocialNetwork
 
@@ -269,7 +269,7 @@ data/<dataset>/result_per_scenario_fuse_{baseline|trace}/
 <summary><b>Click to expand</b></summary>
 
 ```
-UAC-AD/
+UMA-AD/
 ├── codes/
 │   ├── run.py                              # Main entry point
 │   ├── run_sequential.py                   # Memory-efficient sequential variant
@@ -332,10 +332,10 @@ UAC-AD/
 ## Citation
 
 ```bibtex
-@article{uac-ad,
-  title   = {UAC-AD: Unsupervised Adversarial Contrastive Learning for Anomaly Detection on Multi-source Data},
-  author  = {},
+@article{uma-ad,
+  title   = {UMA-AD: Unsupervised Multi-modal Adversarial learning for Anomaly Detection},
+  author  = {Nguyen Huynh Tien},
   year    = {2026},
-  note    = {Source code: https://github.com/Tienhuynh9258/UAC-AD}
+  note    = {Source code: https://github.com/hirdo/UMA-AD}
 }
 ```
