@@ -6,8 +6,6 @@ import logging
 from tqdm import tqdm
 from models.basev3 import BaseModel
 from common.data_processing_utils import *
-# from models.basev4 import BaseModel
-# from models.base import *
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -43,12 +41,9 @@ parser.add_argument("--open_min_max", default=False, type=str2bool)
 parser.add_argument("--open_position_embedding", default=False, type=str2bool)
 parser.add_argument("--sigma_matrix", default=False, type=str2bool)
 parser.add_argument("--feature_type", default="template_appear", type=str, choices=["word2vec", "sequential","template_count","template_appear"])
-parser.add_argument("--data", type=str, default="../data/chunk_10")
-# dataset choices: "original" | "yzh" | "zte" | "micross"
-parser.add_argument("--dataset", type=str, default="original")
-# parser.add_argument("--data", type=str, default="../data/data3")
-# parser.add_argument("--dataset", type=str, default="zte")
-# parser.add_argument("--data", type=str, default="../data/zte2")
+parser.add_argument("--data", type=str, required=True)
+parser.add_argument("--dataset", type=str, required=True,
+                    choices=["micross", "rcaeval_re2_ob", "rcaeval_re3_ob", "sn"])
 parser.add_argument("--open_kpi_normalization", default=True, type=str2bool)
 parser.add_argument("--open_log_normalization", default=False, type=str2bool)
 # parser.add_argument("--open_narrowing_modal_gap", default=False, type=str2bool) 
@@ -199,9 +194,7 @@ def main(var_nums):
 for run_times in range(params["run_start"], params["run_end"]):
     params["run_times"] = run_times
     seed_everything(params["random_seed"] + run_times)   # different seed per run
-    if params["dataset"] == 'yzh':
-        params["open_kpi_select"] = False
-    elif params["dataset"] == "rcaeval_re3_ob":
+    if params["dataset"] == "rcaeval_re3_ob":
         params["open_kpi_select"] = False
     elif params["dataset"] == "rcaeval_re2_ob":
         params["open_kpi_select"] = False

@@ -20,3 +20,6 @@ trained_wv/
 
 # Temp
 temp/
+
+# OS cruft
+.DS_Store
