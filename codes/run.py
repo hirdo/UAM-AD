@@ -43,7 +43,7 @@ parser.add_argument("--sigma_matrix", default=False, type=str2bool)
 parser.add_argument("--feature_type", default="template_appear", type=str, choices=["word2vec", "sequential","template_count","template_appear"])
 parser.add_argument("--data", type=str, required=True)
 parser.add_argument("--dataset", type=str, required=True,
-                    choices=["micross", "rcaeval_re2_ob", "rcaeval_re3_ob", "sn"])
+                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "sn"])
 parser.add_argument("--open_kpi_normalization", default=True, type=str2bool)
 parser.add_argument("--open_log_normalization", default=False, type=str2bool)
 # parser.add_argument("--open_narrowing_modal_gap", default=False, type=str2bool) 
@@ -115,7 +115,7 @@ parser.add_argument("--main_model", default="hades", choices=["hades", "join-had
 
 params = vars(parser.parse_args())
 
-# Auto-load metadata saved by preprocess_micross.py (num_services, trace_c, etc.)
+# Auto-load metadata saved by the preprocess_* scripts (num_services, trace_c, etc.)
 import pickle as _pkl
 _meta_path = os.path.join(params["data"], "meta.pkl")
 if os.path.exists(_meta_path):
