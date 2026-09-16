@@ -67,21 +67,7 @@ pass those on the command line so the architecture matches the saved
 weights — also pass `--num_services`/`--trace_c` explicitly regardless, the
 `meta.pkl` auto-load in `run.py` only fires when those flags are left at
 their CLI default, which for RE2-OB/RE3-OB/SN never matches the real
-value). **Verified working**: all 6 RE2-OB and all 5 RE3-OB checkpoints
-load cleanly with the current `GATLayer`. **All 24 SN checkpoints predate
-the decomposed-attention `GATLayer` refactor and fail to load**
-(`size mismatch`/`missing key` on `gat1.a_l`/`gat1.a_r`) — for SN, train a
-fresh (even short, e.g. `--epoches 3 3`) model instead until new
-checkpoints are committed.
-
-```bash
-python codes/run.py --data data/rcaeval_re2_ob --dataset rcaeval_re2_ob \
-    --data_type fuse --open_trace True --window_size 30 --hidden_size 32 \
-    --num_services 11 --trace_c 6 \
-    --pre_model data/rcaeval_re2_ob/result_per_scenario_fuse_trace/cpu/671af35f/model.ckpt \
-    --test_pkl data/rcaeval_re2_ob/test_cpu.pkl \
-    --enable_rca True --rca_top_k 3
-```
+value).
 
 **Full training path**: add `--enable_rca True --rca_top_k K` to a normal
 `run.py` training command (requires `--open_trace True`).
@@ -103,18 +89,3 @@ unless explicitly opted in.
   ```
 - `info_score.txt` gets an appended `* RCA -- hr1:.. hr3:.. hr5:.. mrr:.. n_scored:..`
   line whenever at least one record has a known `gt_service`.
-
-## 6. Known caveat — threshold protocol differs by dataset (out of scope here)
-
-`sn` has `val.pkl` (last 20% of `Normal_Baseline`, never used for
-training) so it can use the no-leak threshold protocol (`--val_percentile`,
-`threshold = percentile(val_losses, val_percentile)`).
-`rcaeval_re2_ob`/`rcaeval_re3_ob` don't produce a `val.pkl`, and their
-`test_<fault>.pkl` normal samples are randomly drawn from the *entire*
-normal pool without excluding ids already used in `train.pkl`/`unlabel.pkl`
-(`preprocess_rcaeval_re2_ob.py:440`) — i.e. there's train/test overlap for
-the normal class, beyond just the threshold. RCA itself still works
-correctly on these two datasets regardless of which threshold protocol
-picked the flagged windows, but the reported F1/precision/recall may be
-optimistic. Fixing this requires reprocessing raw data and retraining —
-tracked as a separate follow-up task, not part of this feature.

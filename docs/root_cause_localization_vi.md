@@ -67,21 +67,7 @@ truyền lại trên command line để khớp kiến trúc với weight đã l�
 truyền tường minh `--num_services`/`--trace_c` vì cơ chế auto-load từ
 `meta.pkl` trong `run.py` chỉ kích hoạt khi 2 flag này còn ở giá trị mặc
 định CLI, mà với RE2-OB/RE3-OB/SN giá trị mặc định đó không bao giờ khớp
-giá trị thật). **Đã kiểm chứng**: cả 6 checkpoint RE2-OB và cả 5 checkpoint
-RE3-OB load sạch với `GATLayer` hiện tại. **Cả 24 checkpoint của SN đều
-thuộc bản trước khi refactor decomposed-attention cho `GATLayer` nên load
-lỗi** (`size mismatch`/`missing key` ở `gat1.a_l`/`gat1.a_r`) — với SN, hãy
-train mới (kể cả train ngắn, vd `--epoches 3 3`) thay vì dùng checkpoint có
-sẵn, cho tới khi có checkpoint mới được commit.
-
-```bash
-python codes/run.py --data data/rcaeval_re2_ob --dataset rcaeval_re2_ob \
-    --data_type fuse --open_trace True --window_size 30 --hidden_size 32 \
-    --num_services 11 --trace_c 6 \
-    --pre_model data/rcaeval_re2_ob/result_per_scenario_fuse_trace/cpu/671af35f/model.ckpt \
-    --test_pkl data/rcaeval_re2_ob/test_cpu.pkl \
-    --enable_rca True --rca_top_k 3
-```
+giá trị thật).
 
 **Đường train từ đầu**: thêm `--enable_rca True --rca_top_k K` vào lệnh
 `run.py` train bình thường (yêu cầu `--open_trace True`).
@@ -105,18 +91,3 @@ khi chủ động bật.
 - `info_score.txt` được thêm dòng
   `* RCA -- hr1:.. hr3:.. hr5:.. mrr:.. n_scored:..` bất cứ khi nào có ít
   nhất 1 record biết `gt_service`.
-
-## 6. Lưu ý biết trước — protocol threshold khác nhau theo dataset (không thuộc phạm vi sửa ở đây)
-
-`sn` có `val.pkl` (20% cuối của `Normal_Baseline`, chưa từng dùng để
-train) nên dùng được protocol threshold không leak (`--val_percentile`,
-`threshold = percentile(val_losses, val_percentile)`).
-`rcaeval_re2_ob`/`rcaeval_re3_ob` không tạo `val.pkl`, và phần "normal"
-trong mỗi `test_<fault>.pkl` được random sample từ **toàn bộ** normal pool,
-không loại trừ id đã dùng trong `train.pkl`/`unlabel.pkl`
-(`preprocess_rcaeval_re2_ob.py:440`) — tức có leak giữa train và test cho
-lớp normal, không riêng threshold. RCA vẫn hoạt động đúng trên 2 dataset
-này bất kể threshold do protocol nào chọn ra các window bị gắn cờ, nhưng
-F1/precision/recall báo cáo có thể lạc quan hơn thực tế. Sửa triệt để cần
-chạy lại preprocessing trên raw data và train lại — đã tách thành task
-riêng, không thuộc phạm vi tính năng này.
