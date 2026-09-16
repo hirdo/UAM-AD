@@ -1,0 +1,44 @@
+2026-09-16 11:09:21,684 P2008 INFO ^^^^^^^^^^ Current Model:hades, 990f5379 ^^^^^^^^^^
+2026-09-16 11:09:21,684 P2008 INFO Load from D:\UAM-AD\data\sn
+2026-09-16 11:09:21,907 P2008 INFO 375 unique log templates found.
+2026-09-16 11:09:21,923 P2008 INFO Transforming unlabel train data.
+2026-09-16 11:09:21,955 P2008 INFO Transforming test data.
+2026-09-16 11:09:21,977 P2008 INFO 185 new templates show.
+2026-09-16 11:09:22,014 P2008 INFO Transforming val data.
+2026-09-16 11:09:22,014 P2008 INFO 77 new templates show.
+2026-09-16 11:09:22,019 P2008 INFO Data loaded done!
+2026-09-16 11:09:22,052 P2008 INFO Known word number: 375
+2026-09-16 11:09:22,236 P2008 INFO Epoch 0/10, train generator loss: 1.53327
+2026-09-16 11:09:22,336 P2008 INFO Epoch 0/10, train discriminator loss: 5.58667
+2026-09-16 11:09:22,479 P2008 INFO *** Test time is 0.14190959930419922
+2026-09-16 11:09:22,479 P2008 INFO Epoch 0/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.25s]
+2026-09-16 11:09:22,626 P2008 INFO Epoch 1/10, train generator loss: 1.42069
+2026-09-16 11:09:22,735 P2008 INFO Epoch 1/10, train discriminator loss: 4.97648
+2026-09-16 11:09:22,907 P2008 INFO *** Test time is 0.17203235626220703
+2026-09-16 11:09:22,907 P2008 INFO Epoch 1/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.24s]
+2026-09-16 11:09:22,907 P2008 INFO early stopping epoch 1/5
+2026-09-16 11:09:23,066 P2008 INFO Epoch 2/10, train generator loss: 1.40345
+2026-09-16 11:09:23,196 P2008 INFO Epoch 2/10, train discriminator loss: 4.57918
+2026-09-16 11:09:23,377 P2008 INFO *** Test time is 0.18020248413085938
+2026-09-16 11:09:23,377 P2008 INFO Epoch 2/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.29s]
+2026-09-16 11:09:23,377 P2008 INFO early stopping epoch 2/5
+2026-09-16 11:09:23,525 P2008 INFO Epoch 3/10, train generator loss: 1.42272
+2026-09-16 11:09:23,659 P2008 INFO Epoch 3/10, train discriminator loss: 4.30542
+2026-09-16 11:09:23,806 P2008 INFO *** Test time is 0.14763593673706055
+2026-09-16 11:09:23,806 P2008 INFO Epoch 3/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.28s]
+2026-09-16 11:09:23,808 P2008 INFO early stopping epoch 3/5
+2026-09-16 11:09:23,935 P2008 INFO Epoch 4/10, train generator loss: 1.46294
+2026-09-16 11:09:24,030 P2008 INFO Epoch 4/10, train discriminator loss: 4.11083
+2026-09-16 11:09:24,174 P2008 INFO *** Test time is 0.1439378261566162
+2026-09-16 11:09:24,174 P2008 INFO Epoch 4/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.22s]
+2026-09-16 11:09:24,174 P2008 INFO early stopping epoch 4/5
+2026-09-16 11:09:24,317 P2008 INFO Epoch 5/10, train generator loss: 1.50701
+2026-09-16 11:09:24,452 P2008 INFO Epoch 5/10, train discriminator loss: 3.98215
+2026-09-16 11:09:24,571 P2008 INFO *** Test time is 0.11904048919677734
+2026-09-16 11:09:24,571 P2008 INFO Epoch 5/10, test f1: 1.00000 rc: 1.00000 pc: 1.00000. [0.28s]
+2026-09-16 11:09:24,571 P2008 INFO early stopping epoch 5/5
+2026-09-16 11:09:24,571 P2008 INFO Early stopping
+2026-09-16 11:09:24,666 P2008 INFO Threshold (p=95.0, src=val): 1.748508
+2026-09-16 11:09:24,698 P2008 INFO *** Test F1 0.9231  of unsupervised traning
+2026-09-16 11:09:24,698 P2008 INFO *** Best F1 {'f1': 1.0, 'rc': 1.0, 'pc': 1.0, 'threshold': np.float64(1.89993040561676)}  of unsupervised traning
+2026-09-16 11:09:24,714 P2008 INFO Current hash id 990f5379

@@ -32,6 +32,7 @@ class myDataset(Dataset):
         self.data = []
         self.window=[]
         self.idx2id = {}
+        self.window_size = window_size
         self.test_flag = test_flag
         # Detect whether trace data is present in the dataset
         first_item = next(iter(sessions.values()))

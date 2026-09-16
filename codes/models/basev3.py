@@ -15,6 +15,8 @@ import numpy as np
 from models.fuse_v3 import MultiModel, Loss_fuse_model, MultiDiscriminator
 from models.log_model_v3 import LogModel, LogDiscriminator
 from models.kpi_model_v3 import KpiModel, KpiDiscriminator
+from models.rca import (rank_top_k_services, parse_injected_service,
+                         compute_hit_rate_at_k, scenario_from_test_pkl)
 from sklearn.metrics import f1_score
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import DBSCAN
@@ -274,12 +276,14 @@ class BaseModel(nn.Module):
                 "f1": f1_score(res["true"], pred, zero_division=0),
                 "rc": recall_score(res["true"], pred, zero_division=0),
                 "pc": precision_score(res["true"], pred, zero_division=0),
+                "threshold": threshold,
             }
         else:
             # Original sweep on test losses (backward compat for non-SN datasets)
             anomaly_ratio = range(1, self.anomaly_rate)
             best_res = {"f1": -1}
             best_pred = []
+            best_threshold = None
             for ano in anomaly_ratio:
                 threshold_i = np.percentile(res["loss"], 100 - ano)
                 pred = [1 if d > threshold_i else 0 for d in res["loss"]]
@@ -292,10 +296,60 @@ class BaseModel(nn.Module):
                 if eval_results["f1"] > best_res["f1"]:
                     best_res = eval_results
                     best_pred = pred
+                    best_threshold = threshold_i
+            best_res["threshold"] = best_threshold
                 
         # plot_labeled_2curve(kpi_outputs,kpi_inputs,best_pred,res["true"],f"test_kpi_pred_gt_label_{self.current_epoch}")
         # plot_labeled_2curve(log_outputs,log_inputs,best_pred,res["true"],f"test_log_pred_gt_label_{self.current_epoch}")
         return best_res,test_embeds
+
+    def localize_root_causes(self, test_loader, threshold, top_k=3):
+        """Root Cause Localization (TraceDAE §E): for every window/timestep
+        flagged anomalous (fusion_loss > threshold), rank service nodes by
+        their per-node reconstruction score and report the top-k candidates.
+        """
+        if not self.open_trace or threshold is None:
+            return []
+
+        dataset_name = self.kwargs.get("dataset")
+        # SN has no per-sample scenario metadata on disk (preprocess_sn.py's
+        # _to_dict strips it) — but every SN run points --test_pkl at one
+        # scenarios/test_<scenario_name>.pkl, so the scenario is unambiguous
+        # for the whole run.
+        scenario = scenario_from_test_pkl(self.kwargs.get("test_pkl"))
+        idx2id = test_loader.dataset.idx2id
+        window_size = test_loader.dataset.window_size
+        idx2service = {v: k for k, v in self.kwargs.get("service2idx", {}).items()}
+
+        records = []
+        self.model.eval()
+        with torch.no_grad():
+            for batch_i, batch_input in enumerate(test_loader):
+                result = self.model.forward(self.__input2device(batch_input))
+                node_scores = result.get("node_scores")
+                if node_scores is None:
+                    continue
+                node_scores = node_scores.cpu().numpy()             # [b, W, N]
+                fusion_loss = result["fusion_loss"].cpu().numpy()   # [b, W]
+                labels = batch_input["labels"].numpy()              # [b, W]
+                b = node_scores.shape[0]
+                for i in range(b):
+                    window_idx = batch_i * self.batch_size + i
+                    for t in range(window_size):
+                        if fusion_loss[i, t] <= threshold:
+                            continue
+                        flat_idx = window_idx * window_size + t
+                        sample_id = idx2id.get(flat_idx)
+                        true_label = int(labels[i, t])
+                        top = rank_top_k_services(node_scores[i, t], idx2service, k=top_k)
+                        records.append({
+                            "sample_id": sample_id,
+                            "true_label": true_label,
+                            "top_k_services": top,
+                            "gt_service": parse_injected_service(
+                                sample_id, dataset_name, scenario, true_label),
+                        })
+        return records
 
     def evaluate_sep(self, test_loader, datatype="Test"):
         self.model.eval()
@@ -605,11 +659,20 @@ class BaseModel(nn.Module):
             val_threshold = np.percentile(normal_losses, self.val_percentile)
             logging.info(f"Threshold (p={self.val_percentile}, src={source}): {val_threshold:.6f}")
             test_results, test_embeds = self.evaluate(test_loader, threshold=val_threshold)
+            final_threshold = val_threshold
         else:
             test_results, test_embeds = self.evaluate(test_loader)
+            final_threshold = test_results.get("threshold")
 
         logging.info("*** Test F1 {:.4f}  of unsupervised traning".format(test_results["f1"]))
         logging.info(f"*** Best F1 {best_test_scores}  of unsupervised traning")
+
+        if self.kwargs.get("enable_rca") and self.open_trace:
+            rca_records = self.localize_root_causes(
+                test_loader, threshold=final_threshold,
+                top_k=self.kwargs.get("rca_top_k", 3))
+            best_test_scores["rca_records"] = rca_records
+            best_test_scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
 
         return best_test_scores
     

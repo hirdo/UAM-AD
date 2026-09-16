@@ -1,0 +1,58 @@
+2026-09-16 11:09:29,798 P6160 INFO ^^^^^^^^^^ Current Model:hades, 1be7e382 ^^^^^^^^^^
+2026-09-16 11:09:29,798 P6160 INFO Load from D:\UAM-AD\data\sn
+2026-09-16 11:09:30,132 P6160 INFO 375 unique log templates found.
+2026-09-16 11:09:30,148 P6160 INFO Transforming unlabel train data.
+2026-09-16 11:09:30,180 P6160 INFO Transforming test data.
+2026-09-16 11:09:30,213 P6160 INFO 193 new templates show.
+2026-09-16 11:09:30,243 P6160 INFO Transforming val data.
+2026-09-16 11:09:30,243 P6160 INFO 77 new templates show.
+2026-09-16 11:09:30,243 P6160 INFO Data loaded done!
+2026-09-16 11:09:30,275 P6160 INFO Known word number: 375
+2026-09-16 11:09:32,215 P6160 INFO Epoch 0/10, train generator loss: 1.52914
+2026-09-16 11:09:32,394 P6160 INFO Epoch 0/10, train discriminator loss: 5.68543
+2026-09-16 11:09:32,551 P6160 INFO *** Test time is 0.1566295623779297
+2026-09-16 11:09:32,551 P6160 INFO Epoch 0/10, test f1: 0.80000 rc: 1.00000 pc: 0.66667. [0.74s]
+2026-09-16 11:09:32,702 P6160 INFO Epoch 1/10, train generator loss: 1.39925
+2026-09-16 11:09:32,844 P6160 INFO Epoch 1/10, train discriminator loss: 5.01528
+2026-09-16 11:09:32,993 P6160 INFO *** Test time is 0.14921045303344727
+2026-09-16 11:09:32,993 P6160 INFO Epoch 1/10, test f1: 0.80000 rc: 1.00000 pc: 0.66667. [0.28s]
+2026-09-16 11:09:32,993 P6160 INFO early stopping epoch 1/5
+2026-09-16 11:09:33,141 P6160 INFO Epoch 2/10, train generator loss: 1.37929
+2026-09-16 11:09:33,215 P6160 INFO Epoch 2/10, train discriminator loss: 4.57987
+2026-09-16 11:09:33,369 P6160 INFO *** Test time is 0.15395665168762207
+2026-09-16 11:09:33,371 P6160 INFO Epoch 2/10, test f1: 0.80000 rc: 1.00000 pc: 0.66667. [0.22s]
+2026-09-16 11:09:33,371 P6160 INFO early stopping epoch 2/5
+2026-09-16 11:09:33,506 P6160 INFO Epoch 3/10, train generator loss: 1.38818
+2026-09-16 11:09:33,578 P6160 INFO Epoch 3/10, train discriminator loss: 4.29476
+2026-09-16 11:09:33,740 P6160 INFO *** Test time is 0.16151189804077148
+2026-09-16 11:09:33,740 P6160 INFO Epoch 3/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.21s]
+2026-09-16 11:09:33,893 P6160 INFO Epoch 4/10, train generator loss: 1.41671
+2026-09-16 11:09:33,987 P6160 INFO Epoch 4/10, train discriminator loss: 4.11855
+2026-09-16 11:09:34,129 P6160 INFO *** Test time is 0.14184999465942383
+2026-09-16 11:09:34,129 P6160 INFO Epoch 4/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.23s]
+2026-09-16 11:09:34,129 P6160 INFO early stopping epoch 1/5
+2026-09-16 11:09:34,270 P6160 INFO Epoch 5/10, train generator loss: 1.44853
+2026-09-16 11:09:34,411 P6160 INFO Epoch 5/10, train discriminator loss: 4.01848
+2026-09-16 11:09:34,625 P6160 INFO *** Test time is 0.21284174919128418
+2026-09-16 11:09:34,625 P6160 INFO Epoch 5/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.28s]
+2026-09-16 11:09:34,625 P6160 INFO early stopping epoch 2/5
+2026-09-16 11:09:34,823 P6160 INFO Epoch 6/10, train generator loss: 1.47884
+2026-09-16 11:09:34,993 P6160 INFO Epoch 6/10, train discriminator loss: 3.95945
+2026-09-16 11:09:35,243 P6160 INFO *** Test time is 0.24990296363830566
+2026-09-16 11:09:35,243 P6160 INFO Epoch 6/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.37s]
+2026-09-16 11:09:35,243 P6160 INFO early stopping epoch 3/5
+2026-09-16 11:09:35,458 P6160 INFO Epoch 7/10, train generator loss: 1.50545
+2026-09-16 11:09:35,625 P6160 INFO Epoch 7/10, train discriminator loss: 3.93805
+2026-09-16 11:09:35,872 P6160 INFO *** Test time is 0.24659466743469238
+2026-09-16 11:09:35,872 P6160 INFO Epoch 7/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.38s]
+2026-09-16 11:09:35,872 P6160 INFO early stopping epoch 4/5
+2026-09-16 11:09:36,068 P6160 INFO Epoch 8/10, train generator loss: 1.52149
+2026-09-16 11:09:36,220 P6160 INFO Epoch 8/10, train discriminator loss: 3.93605
+2026-09-16 11:09:36,412 P6160 INFO *** Test time is 0.1927344799041748
+2026-09-16 11:09:36,412 P6160 INFO Epoch 8/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.35s]
+2026-09-16 11:09:36,412 P6160 INFO early stopping epoch 5/5
+2026-09-16 11:09:36,412 P6160 INFO Early stopping
+2026-09-16 11:09:36,600 P6160 INFO Threshold (p=95.0, src=val): 1.726193
+2026-09-16 11:09:36,648 P6160 INFO *** Test F1 0.8000  of unsupervised traning
+2026-09-16 11:09:36,648 P6160 INFO *** Best F1 {'f1': 0.8333333333333334, 'rc': 0.8333333333333334, 'pc': 0.8333333333333334, 'threshold': np.float64(1.8720948553085328)}  of unsupervised traning
+2026-09-16 11:09:36,664 P6160 INFO Current hash id 1be7e382

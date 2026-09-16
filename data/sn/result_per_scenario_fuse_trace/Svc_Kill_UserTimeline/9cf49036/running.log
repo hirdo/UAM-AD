@@ -1,0 +1,48 @@
+2026-09-16 11:11:15,215 P8096 INFO ^^^^^^^^^^ Current Model:hades, 9cf49036 ^^^^^^^^^^
+2026-09-16 11:11:15,215 P8096 INFO Load from D:\UAM-AD\data\sn
+2026-09-16 11:11:15,482 P8096 INFO 375 unique log templates found.
+2026-09-16 11:11:15,487 P8096 INFO Transforming unlabel train data.
+2026-09-16 11:11:15,501 P8096 INFO Transforming test data.
+2026-09-16 11:11:15,545 P8096 INFO 185 new templates show.
+2026-09-16 11:11:15,580 P8096 INFO Transforming val data.
+2026-09-16 11:11:15,580 P8096 INFO 77 new templates show.
+2026-09-16 11:11:15,582 P8096 INFO Data loaded done!
+2026-09-16 11:11:15,643 P8096 INFO Known word number: 375
+2026-09-16 11:11:15,928 P8096 INFO Epoch 0/10, train generator loss: 1.51458
+2026-09-16 11:11:16,082 P8096 INFO Epoch 0/10, train discriminator loss: 5.66054
+2026-09-16 11:11:16,290 P8096 INFO *** Test time is 0.20759963989257812
+2026-09-16 11:11:16,290 P8096 INFO Epoch 0/10, test f1: 0.83333 rc: 1.00000 pc: 0.71429. [0.38s]
+2026-09-16 11:11:16,484 P8096 INFO Epoch 1/10, train generator loss: 1.42085
+2026-09-16 11:11:16,636 P8096 INFO Epoch 1/10, train discriminator loss: 5.11436
+2026-09-16 11:11:16,840 P8096 INFO *** Test time is 0.20405912399291992
+2026-09-16 11:11:16,840 P8096 INFO Epoch 1/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.32s]
+2026-09-16 11:11:16,994 P8096 INFO Epoch 2/10, train generator loss: 1.38752
+2026-09-16 11:11:17,079 P8096 INFO Epoch 2/10, train discriminator loss: 4.74800
+2026-09-16 11:11:17,227 P8096 INFO *** Test time is 0.14803767204284668
+2026-09-16 11:11:17,227 P8096 INFO Epoch 2/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.22s]
+2026-09-16 11:11:17,227 P8096 INFO early stopping epoch 1/5
+2026-09-16 11:11:17,359 P8096 INFO Epoch 3/10, train generator loss: 1.39399
+2026-09-16 11:11:17,443 P8096 INFO Epoch 3/10, train discriminator loss: 4.42569
+2026-09-16 11:11:17,569 P8096 INFO *** Test time is 0.12639546394348145
+2026-09-16 11:11:17,569 P8096 INFO Epoch 3/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.21s]
+2026-09-16 11:11:17,569 P8096 INFO early stopping epoch 2/5
+2026-09-16 11:11:17,688 P8096 INFO Epoch 4/10, train generator loss: 1.42104
+2026-09-16 11:11:17,808 P8096 INFO Epoch 4/10, train discriminator loss: 4.21549
+2026-09-16 11:11:17,942 P8096 INFO *** Test time is 0.13370132446289062
+2026-09-16 11:11:17,942 P8096 INFO Epoch 4/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.24s]
+2026-09-16 11:11:17,942 P8096 INFO early stopping epoch 3/5
+2026-09-16 11:11:18,066 P8096 INFO Epoch 5/10, train generator loss: 1.45638
+2026-09-16 11:11:18,174 P8096 INFO Epoch 5/10, train discriminator loss: 4.09130
+2026-09-16 11:11:18,296 P8096 INFO *** Test time is 0.12148284912109375
+2026-09-16 11:11:18,296 P8096 INFO Epoch 5/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.23s]
+2026-09-16 11:11:18,296 P8096 INFO early stopping epoch 4/5
+2026-09-16 11:11:18,436 P8096 INFO Epoch 6/10, train generator loss: 1.49027
+2026-09-16 11:11:18,548 P8096 INFO Epoch 6/10, train discriminator loss: 4.02044
+2026-09-16 11:11:18,706 P8096 INFO *** Test time is 0.1571805477142334
+2026-09-16 11:11:18,706 P8096 INFO Epoch 6/10, test f1: 0.90909 rc: 1.00000 pc: 0.83333. [0.25s]
+2026-09-16 11:11:18,706 P8096 INFO early stopping epoch 5/5
+2026-09-16 11:11:18,706 P8096 INFO Early stopping
+2026-09-16 11:11:18,833 P8096 INFO Threshold (p=95.0, src=val): 1.700987
+2026-09-16 11:11:18,865 P8096 INFO *** Test F1 0.8333  of unsupervised traning
+2026-09-16 11:11:18,865 P8096 INFO *** Best F1 {'f1': 0.9090909090909091, 'rc': 1.0, 'pc': 0.8333333333333334, 'threshold': np.float64(1.7161913776397706)}  of unsupervised traning
+2026-09-16 11:11:18,881 P8096 INFO Current hash id 9cf49036
