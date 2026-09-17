@@ -8,83 +8,96 @@
   "per_scenario": [
     {
       "scenario": "Code_Stop_MediaService_20251104_024819",
-      "f1": 0.8889,
+      "f1": 0.8611,
       "precision": 1.0,
-      "recall": 0.8
+      "recall": 0.7561,
+      "elapsed_sec": 30.2580178000062
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
-      "f1": 0.6667,
-      "precision": 0.6667,
-      "recall": 0.6667
+      "f1": 0.8571,
+      "precision": 0.9545,
+      "recall": 0.7778,
+      "elapsed_sec": 24.560717800006387
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
-      "f1": 1.0,
+      "f1": 0.902,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.8214,
+      "elapsed_sec": 23.296153200004483
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
-      "f1": 1.0,
+      "f1": 0.8462,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.7333,
+      "elapsed_sec": 22.422249499999452
     },
     {
       "scenario": "DB_Redis_CacheLimit_SocialGraph_20251104_013615",
-      "f1": 1.0,
+      "f1": 0.875,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.7778,
+      "elapsed_sec": 22.23604139999952
     },
     {
       "scenario": "DB_Redis_CacheLimit_UserTimeline_20251104_011238",
-      "f1": 1.0,
+      "f1": 0.8085,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.6786,
+      "elapsed_sec": 24.491357100007008
     },
     {
       "scenario": "Perf_CPU_Contention_20251103_222601",
-      "f1": 0.8333,
-      "precision": 0.8333,
-      "recall": 0.8333
+      "f1": 0.766,
+      "precision": 1.0,
+      "recall": 0.6207,
+      "elapsed_sec": 22.150655499994173
     },
     {
       "scenario": "Perf_Disk_IO_Stress_20251103_231335",
-      "f1": 0.8333,
-      "precision": 0.7143,
-      "recall": 1.0
+      "f1": 0.875,
+      "precision": 1.0,
+      "recall": 0.7778,
+      "elapsed_sec": 21.698454199999105
     },
     {
       "scenario": "Perf_Network_Loss_20251103_224954",
-      "f1": 0.9231,
-      "precision": 0.8571,
-      "recall": 1.0
+      "f1": 0.8936,
+      "precision": 1.0,
+      "recall": 0.8077,
+      "elapsed_sec": 23.83753340000112
     },
     {
       "scenario": "Svc_Kill_Media_20251104_000111",
-      "f1": 1.0,
+      "f1": 0.8444,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.7308,
+      "elapsed_sec": 25.00524349999614
     },
     {
       "scenario": "Svc_Kill_SocialGraph_20251104_002506",
-      "f1": 1.0,
+      "f1": 0.902,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 0.8214,
+      "elapsed_sec": 24.038025100002415
     },
     {
       "scenario": "Svc_Kill_UserTimeline_20251103_233717",
-      "f1": 0.9091,
-      "precision": 0.8333,
-      "recall": 1.0
+      "f1": 0.8936,
+      "precision": 1.0,
+      "recall": 0.8077,
+      "elapsed_sec": 21.740395600005286
     }
   ],
   "aggregate": {
-    "f1_mean": 0.9212000000000001,
-    "f1_std": 0.09944555461826002,
-    "precision_mean": 0.908725,
-    "precision_std": 0.11858121777218066,
-    "recall_mean": 0.9416666666666668,
-    "recall_std": 0.1072553210283242
+    "f1_mean": 0.8603749999999999,
+    "f1_std": 0.03890790675856686,
+    "precision_mean": 0.9962083333333333,
+    "precision_std": 0.012575535663430885,
+    "recall_mean": 0.7592583333333334,
+    "recall_std": 0.05819909017520997,
+    "total_elapsed_sec": 286.3853795999894
   }
 }

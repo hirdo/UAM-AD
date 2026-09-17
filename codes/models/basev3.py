@@ -177,6 +177,7 @@ class BaseModel(nn.Module):
         self.open_trace = kwargs.get("open_trace", False)
         self.num_services = kwargs.get("num_services", 0)
         self.trace_c = kwargs.get("trace_c", 0)
+        self.gate_delta_lr_mult = float(kwargs.get("gate_delta_lr_mult", 1.0))
         self.kwargs = kwargs
 
         self.model_save_dir = os.path.join(kwargs["result_dir"], kwargs["hash_id"])
@@ -519,7 +520,24 @@ class BaseModel(nn.Module):
         return best_test_scores
 
     def unsupervised_fit(self, unlabel_loader, test_loader, val_loader=None):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.open_trace and self.gate_delta_lr_mult != 1.0 and hasattr(self.model, "trace_gate"):
+            # Residual-gated trace fusion (fuse_v3.py CHANGE 8) has both gate and
+            # delta_head's last layer zero-initialized: d(loss)/d(gate_weight) is
+            # scaled by delta (~0 at init), and d(loss)/d(delta_weight) is scaled
+            # by gate_g (~0.12, small by design) — a multiplicative bottleneck that
+            # makes both escape the near-zero regime very slowly under one shared
+            # learning rate. --gate_delta_lr_mult compensates with a higher LR for
+            # just these two submodules; everything else (and other datasets, where
+            # this defaults to 1.0) is unaffected.
+            gate_delta_params = list(self.model.trace_gate.parameters()) + list(self.model.delta_head.parameters())
+            gate_delta_ids = {id(p) for p in gate_delta_params}
+            base_params = [p for p in self.model.parameters() if id(p) not in gate_delta_ids]
+            optimizer = torch.optim.Adam([
+                {"params": base_params, "lr": self.learning_rate},
+                {"params": gate_delta_params, "lr": self.learning_rate * self.gate_delta_lr_mult},
+            ])
+        else:
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         optimizer2 = torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate)
         best_res = {"f1":-1}
         best_state, best_test_scores = None, None

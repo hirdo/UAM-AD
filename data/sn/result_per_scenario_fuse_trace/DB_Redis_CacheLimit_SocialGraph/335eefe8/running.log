@@ -1,0 +1,94 @@
+2026-09-17 14:56:50,317 P6416 INFO ^^^^^^^^^^ Current Model:hades, 335eefe8 ^^^^^^^^^^
+2026-09-17 14:56:50,317 P6416 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 14:56:50,524 P6416 INFO 375 unique log templates found.
+2026-09-17 14:56:50,524 P6416 INFO Transforming unlabel train data.
+2026-09-17 14:56:50,557 P6416 INFO Transforming test data.
+2026-09-17 14:56:50,590 P6416 INFO 729 new templates show.
+2026-09-17 14:56:50,623 P6416 INFO Transforming val data.
+2026-09-17 14:56:50,623 P6416 INFO 77 new templates show.
+2026-09-17 14:56:50,623 P6416 INFO Data loaded done!
+2026-09-17 14:56:50,655 P6416 INFO Known word number: 375
+2026-09-17 14:56:50,847 P6416 INFO Epoch 0/50, train generator loss: 1.61336
+2026-09-17 14:56:50,941 P6416 INFO Epoch 0/50, train discriminator loss: 5.27723
+2026-09-17 14:56:51,082 P6416 INFO *** Test time is 0.1309957504272461
+2026-09-17 14:56:51,082 P6416 INFO Epoch 0/50, test f1: 0.80851 rc: 0.70370 pc: 0.95000. [0.23s]
+2026-09-17 14:56:51,260 P6416 INFO Epoch 1/50, train generator loss: 1.39597
+2026-09-17 14:56:51,379 P6416 INFO Epoch 1/50, train discriminator loss: 4.75478
+2026-09-17 14:56:51,509 P6416 INFO *** Test time is 0.13087010383605957
+2026-09-17 14:56:51,509 P6416 INFO Epoch 1/50, test f1: 0.80851 rc: 0.70370 pc: 0.95000. [0.28s]
+2026-09-17 14:56:51,509 P6416 INFO early stopping epoch 1/15
+2026-09-17 14:56:51,635 P6416 INFO Epoch 2/50, train generator loss: 1.31607
+2026-09-17 14:56:51,763 P6416 INFO Epoch 2/50, train discriminator loss: 4.74446
+2026-09-17 14:56:51,916 P6416 INFO *** Test time is 0.15087628364562988
+2026-09-17 14:56:51,916 P6416 INFO Epoch 2/50, test f1: 0.80851 rc: 0.70370 pc: 0.95000. [0.26s]
+2026-09-17 14:56:51,916 P6416 INFO early stopping epoch 2/15
+2026-09-17 14:56:52,037 P6416 INFO Epoch 3/50, train generator loss: 1.21847
+2026-09-17 14:56:52,122 P6416 INFO Epoch 3/50, train discriminator loss: 5.42875
+2026-09-17 14:56:52,280 P6416 INFO *** Test time is 0.15770840644836426
+2026-09-17 14:56:52,280 P6416 INFO Epoch 3/50, test f1: 0.80851 rc: 0.70370 pc: 0.95000. [0.21s]
+2026-09-17 14:56:52,280 P6416 INFO early stopping epoch 3/15
+2026-09-17 14:56:52,429 P6416 INFO Epoch 4/50, train generator loss: 1.09892
+2026-09-17 14:56:52,570 P6416 INFO Epoch 4/50, train discriminator loss: 6.78868
+2026-09-17 14:56:52,721 P6416 INFO *** Test time is 0.15059113502502441
+2026-09-17 14:56:52,721 P6416 INFO Epoch 4/50, test f1: 0.80851 rc: 0.70370 pc: 0.95000. [0.29s]
+2026-09-17 14:56:52,721 P6416 INFO early stopping epoch 4/15
+2026-09-17 14:56:52,860 P6416 INFO Epoch 5/50, train generator loss: 0.94452
+2026-09-17 14:56:52,964 P6416 INFO Epoch 5/50, train discriminator loss: 8.00152
+2026-09-17 14:56:53,116 P6416 INFO *** Test time is 0.1367495059967041
+2026-09-17 14:56:53,116 P6416 INFO Epoch 5/50, test f1: 0.53333 rc: 0.44444 pc: 0.66667. [0.24s]
+2026-09-17 14:56:53,116 P6416 INFO early stopping epoch 5/15
+2026-09-17 14:56:53,285 P6416 INFO Epoch 6/50, train generator loss: 0.76253
+2026-09-17 14:56:53,434 P6416 INFO Epoch 6/50, train discriminator loss: 8.62586
+2026-09-17 14:56:53,641 P6416 INFO *** Test time is 0.20657134056091309
+2026-09-17 14:56:53,641 P6416 INFO Epoch 6/50, test f1: 0.35000 rc: 0.25926 pc: 0.53846. [0.32s]
+2026-09-17 14:56:53,641 P6416 INFO early stopping epoch 6/15
+2026-09-17 14:56:53,828 P6416 INFO Epoch 7/50, train generator loss: 0.62223
+2026-09-17 14:56:53,971 P6416 INFO Epoch 7/50, train discriminator loss: 8.11910
+2026-09-17 14:56:54,184 P6416 INFO *** Test time is 0.21078824996948242
+2026-09-17 14:56:54,184 P6416 INFO Epoch 7/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.33s]
+2026-09-17 14:56:54,184 P6416 INFO early stopping epoch 7/15
+2026-09-17 14:56:54,322 P6416 INFO Epoch 8/50, train generator loss: 0.66261
+2026-09-17 14:56:54,479 P6416 INFO Epoch 8/50, train discriminator loss: 6.75386
+2026-09-17 14:56:54,716 P6416 INFO *** Test time is 0.23745512962341309
+2026-09-17 14:56:54,716 P6416 INFO Epoch 8/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.29s]
+2026-09-17 14:56:54,720 P6416 INFO early stopping epoch 8/15
+2026-09-17 14:56:54,875 P6416 INFO Epoch 9/50, train generator loss: 0.56604
+2026-09-17 14:56:55,017 P6416 INFO Epoch 9/50, train discriminator loss: 5.78578
+2026-09-17 14:56:55,235 P6416 INFO *** Test time is 0.21840786933898926
+2026-09-17 14:56:55,235 P6416 INFO Epoch 9/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.30s]
+2026-09-17 14:56:55,235 P6416 INFO early stopping epoch 9/15
+2026-09-17 14:56:55,368 P6416 INFO Epoch 10/50, train generator loss: 0.47048
+2026-09-17 14:56:55,513 P6416 INFO Epoch 10/50, train discriminator loss: 5.45255
+2026-09-17 14:56:55,732 P6416 INFO *** Test time is 0.21922898292541504
+2026-09-17 14:56:55,732 P6416 INFO Epoch 10/50, test f1: 0.45455 rc: 0.37037 pc: 0.58824. [0.28s]
+2026-09-17 14:56:55,732 P6416 INFO early stopping epoch 10/15
+2026-09-17 14:56:55,894 P6416 INFO Epoch 11/50, train generator loss: 0.53865
+2026-09-17 14:56:55,983 P6416 INFO Epoch 11/50, train discriminator loss: 5.50008
+2026-09-17 14:56:56,131 P6416 INFO *** Test time is 0.14784026145935059
+2026-09-17 14:56:56,131 P6416 INFO Epoch 11/50, test f1: 0.45455 rc: 0.37037 pc: 0.58824. [0.25s]
+2026-09-17 14:56:56,131 P6416 INFO early stopping epoch 11/15
+2026-09-17 14:56:56,245 P6416 INFO Epoch 12/50, train generator loss: 0.54488
+2026-09-17 14:56:56,351 P6416 INFO Epoch 12/50, train discriminator loss: 5.60917
+2026-09-17 14:56:56,505 P6416 INFO *** Test time is 0.15387558937072754
+2026-09-17 14:56:56,505 P6416 INFO Epoch 12/50, test f1: 0.35897 rc: 0.25926 pc: 0.58333. [0.22s]
+2026-09-17 14:56:56,505 P6416 INFO early stopping epoch 12/15
+2026-09-17 14:56:56,624 P6416 INFO Epoch 13/50, train generator loss: 0.50138
+2026-09-17 14:56:56,728 P6416 INFO Epoch 13/50, train discriminator loss: 5.65103
+2026-09-17 14:56:56,887 P6416 INFO *** Test time is 0.15923833847045898
+2026-09-17 14:56:56,887 P6416 INFO Epoch 13/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.22s]
+2026-09-17 14:56:56,887 P6416 INFO early stopping epoch 13/15
+2026-09-17 14:56:56,985 P6416 INFO Epoch 14/50, train generator loss: 0.50574
+2026-09-17 14:56:57,092 P6416 INFO Epoch 14/50, train discriminator loss: 5.63295
+2026-09-17 14:56:57,252 P6416 INFO *** Test time is 0.15948009490966797
+2026-09-17 14:56:57,252 P6416 INFO Epoch 14/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.20s]
+2026-09-17 14:56:57,252 P6416 INFO early stopping epoch 14/15
+2026-09-17 14:56:57,351 P6416 INFO Epoch 15/50, train generator loss: 0.50029
+2026-09-17 14:56:57,451 P6416 INFO Epoch 15/50, train discriminator loss: 5.61923
+2026-09-17 14:56:57,598 P6416 INFO *** Test time is 0.14700722694396973
+2026-09-17 14:56:57,598 P6416 INFO Epoch 15/50, test f1: 0.34146 rc: 0.25926 pc: 0.50000. [0.20s]
+2026-09-17 14:56:57,598 P6416 INFO early stopping epoch 15/15
+2026-09-17 14:56:57,598 P6416 INFO Early stopping
+2026-09-17 14:56:57,707 P6416 INFO Threshold (p=95.0, src=val): 1.735566
+2026-09-17 14:56:57,741 P6416 INFO *** Test F1 0.9153  of unsupervised traning
+2026-09-17 14:56:57,741 P6416 INFO *** Best F1 {'f1': 0.8085106382978723, 'rc': 0.7037037037037037, 'pc': 0.95, 'threshold': np.float64(1.9157725477218628)}  of unsupervised traning
+2026-09-17 14:56:57,747 P6416 INFO Current hash id 335eefe8

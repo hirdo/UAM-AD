@@ -1,0 +1,4 @@
+Experiment ad5342b7: 2026/09/17-22:57:30
+Train time/epoch 0.2609
+* Test -- f1:0.8333	rc:0.7143	pc:1.0000	threshold:1.3472
+

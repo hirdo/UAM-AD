@@ -1,0 +1,4 @@
+Experiment e15741cc: 2026/09/17-23:01:58
+Train time/epoch 0.2643
+* Test -- f1:0.8800	rc:0.7857	pc:1.0000	threshold:1.8258
+

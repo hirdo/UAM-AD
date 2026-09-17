@@ -1,0 +1,48 @@
+2026-09-17 11:44:23,851 P9760 INFO ^^^^^^^^^^ Current Model:hades, b5eae1bd ^^^^^^^^^^
+2026-09-17 11:44:23,851 P9760 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:44:24,171 P9760 INFO 375 unique log templates found.
+2026-09-17 11:44:24,185 P9760 INFO Transforming unlabel train data.
+2026-09-17 11:44:24,201 P9760 INFO Transforming test data.
+2026-09-17 11:44:24,232 P9760 INFO 733 new templates show.
+2026-09-17 11:44:24,280 P9760 INFO Transforming val data.
+2026-09-17 11:44:24,280 P9760 INFO 77 new templates show.
+2026-09-17 11:44:24,280 P9760 INFO Data loaded done!
+2026-09-17 11:44:24,311 P9760 INFO Known word number: 375
+2026-09-17 11:44:24,476 P9760 INFO Epoch 0/10, train generator loss: 1.37741
+2026-09-17 11:44:24,562 P9760 INFO Epoch 0/10, train discriminator loss: 2.78728
+2026-09-17 11:44:24,706 P9760 INFO *** Test time is 0.1368093490600586
+2026-09-17 11:44:24,706 P9760 INFO Epoch 0/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.24s]
+2026-09-17 11:44:24,839 P9760 INFO Epoch 1/10, train generator loss: 1.37068
+2026-09-17 11:44:24,928 P9760 INFO Epoch 1/10, train discriminator loss: 2.07949
+2026-09-17 11:44:25,069 P9760 INFO *** Test time is 0.14163494110107422
+2026-09-17 11:44:25,069 P9760 INFO Epoch 1/10, test f1: 0.84444 rc: 0.73077 pc: 1.00000. [0.21s]
+2026-09-17 11:44:25,203 P9760 INFO Epoch 2/10, train generator loss: 1.31745
+2026-09-17 11:44:25,283 P9760 INFO Epoch 2/10, train discriminator loss: 1.69076
+2026-09-17 11:44:25,449 P9760 INFO *** Test time is 0.1633610725402832
+2026-09-17 11:44:25,449 P9760 INFO Epoch 2/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.18s]
+2026-09-17 11:44:25,449 P9760 INFO early stopping epoch 1/5
+2026-09-17 11:44:25,561 P9760 INFO Epoch 3/10, train generator loss: 1.31047
+2026-09-17 11:44:25,638 P9760 INFO Epoch 3/10, train discriminator loss: 1.50397
+2026-09-17 11:44:25,785 P9760 INFO *** Test time is 0.14776873588562012
+2026-09-17 11:44:25,785 P9760 INFO Epoch 3/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.19s]
+2026-09-17 11:44:25,785 P9760 INFO early stopping epoch 2/5
+2026-09-17 11:44:25,885 P9760 INFO Epoch 4/10, train generator loss: 1.34652
+2026-09-17 11:44:25,957 P9760 INFO Epoch 4/10, train discriminator loss: 1.31400
+2026-09-17 11:44:26,096 P9760 INFO *** Test time is 0.13834738731384277
+2026-09-17 11:44:26,096 P9760 INFO Epoch 4/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.17s]
+2026-09-17 11:44:26,096 P9760 INFO early stopping epoch 3/5
+2026-09-17 11:44:26,208 P9760 INFO Epoch 5/10, train generator loss: 1.41015
+2026-09-17 11:44:26,305 P9760 INFO Epoch 5/10, train discriminator loss: 1.19650
+2026-09-17 11:44:26,451 P9760 INFO *** Test time is 0.14587044715881348
+2026-09-17 11:44:26,451 P9760 INFO Epoch 5/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.21s]
+2026-09-17 11:44:26,451 P9760 INFO early stopping epoch 4/5
+2026-09-17 11:44:26,546 P9760 INFO Epoch 6/10, train generator loss: 1.46706
+2026-09-17 11:44:26,651 P9760 INFO Epoch 6/10, train discriminator loss: 1.15140
+2026-09-17 11:44:26,807 P9760 INFO *** Test time is 0.15616464614868164
+2026-09-17 11:44:26,807 P9760 INFO Epoch 6/10, test f1: 0.76190 rc: 0.61538 pc: 1.00000. [0.20s]
+2026-09-17 11:44:26,807 P9760 INFO early stopping epoch 5/5
+2026-09-17 11:44:26,807 P9760 INFO Early stopping
+2026-09-17 11:44:26,887 P9760 INFO Threshold (p=95.0, src=val): 1.320223
+2026-09-17 11:44:26,913 P9760 INFO *** Test F1 0.8125  of unsupervised traning
+2026-09-17 11:44:26,913 P9760 INFO *** Best F1 {'f1': 0.8444444444444444, 'rc': 0.7307692307692307, 'pc': 1.0, 'threshold': np.float64(1.4756865501403809)}  of unsupervised traning
+2026-09-17 11:44:26,915 P9760 INFO Current hash id b5eae1bd

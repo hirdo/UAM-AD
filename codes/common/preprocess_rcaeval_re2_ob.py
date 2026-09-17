@@ -295,8 +295,13 @@ class RCAEvalOBPreprocessor:
             pre_fault_idx = max(int(np.searchsorted(timestamps, inject_time, side='left')), 1)
             baseline_avg = node_feats[:pre_fault_idx, :, 1].mean(axis=0)  # [N]
             baseline_std = node_feats[:pre_fault_idx, :, 1].std(axis=0) + 1e-6  # [N]
-            node_feats[:, :, 5] = (node_feats[:, :, 1] - baseline_avg[np.newaxis, :]) \
-                                   / baseline_std[np.newaxis, :]
+            # Clipped defensively: avg_dur (col 1) is already [0,1]-normalized above
+            # so this is far less likely to explode than an unbounded raw value, but
+            # a near-zero baseline_std for a low-variance service could still produce
+            # an extreme z-score that dominates the reconstruction loss for that node.
+            node_feats[:, :, 5] = np.clip(
+                (node_feats[:, :, 1] - baseline_avg[np.newaxis, :]) / baseline_std[np.newaxis, :],
+                -10.0, 10.0)
 
             # ── Adjacency (parent → child edges, vectorised) ──────────────
             # Build spanID → (si, wi) lookup via merge

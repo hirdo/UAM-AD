@@ -1,0 +1,60 @@
+2026-09-17 11:41:11,528 P3144 INFO ^^^^^^^^^^ Current Model:hades, 8ddf6abb ^^^^^^^^^^
+2026-09-17 11:41:11,528 P3144 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:41:11,862 P3144 INFO 375 unique log templates found.
+2026-09-17 11:41:11,882 P3144 INFO Transforming unlabel train data.
+2026-09-17 11:41:11,893 P3144 INFO Transforming test data.
+2026-09-17 11:41:11,924 P3144 INFO 406 new templates show.
+2026-09-17 11:41:11,956 P3144 INFO Transforming val data.
+2026-09-17 11:41:11,956 P3144 INFO 77 new templates show.
+2026-09-17 11:41:11,956 P3144 INFO Data loaded done!
+2026-09-17 11:41:11,988 P3144 INFO Known word number: 375
+2026-09-17 11:41:14,180 P3144 INFO Epoch 0/10, train generator loss: 1.26114
+2026-09-17 11:41:14,287 P3144 INFO Epoch 0/10, train discriminator loss: 2.78854
+2026-09-17 11:41:14,448 P3144 INFO *** Test time is 0.1574404239654541
+2026-09-17 11:41:14,448 P3144 INFO Epoch 0/10, test f1: 0.00000 rc: 0.00000 pc: 0.00000. [0.63s]
+2026-09-17 11:41:14,545 P3144 INFO Epoch 1/10, train generator loss: 1.24966
+2026-09-17 11:41:14,623 P3144 INFO Epoch 1/10, train discriminator loss: 2.27067
+2026-09-17 11:41:14,792 P3144 INFO *** Test time is 0.1650981903076172
+2026-09-17 11:41:14,792 P3144 INFO Epoch 1/10, test f1: 0.00000 rc: 0.00000 pc: 0.00000. [0.18s]
+2026-09-17 11:41:14,792 P3144 INFO early stopping epoch 1/5
+2026-09-17 11:41:14,919 P3144 INFO Epoch 2/10, train generator loss: 1.23434
+2026-09-17 11:41:14,998 P3144 INFO Epoch 2/10, train discriminator loss: 1.90703
+2026-09-17 11:41:15,156 P3144 INFO *** Test time is 0.15752720832824707
+2026-09-17 11:41:15,156 P3144 INFO Epoch 2/10, test f1: 0.00000 rc: 0.00000 pc: 0.00000. [0.21s]
+2026-09-17 11:41:15,156 P3144 INFO early stopping epoch 2/5
+2026-09-17 11:41:15,260 P3144 INFO Epoch 3/10, train generator loss: 1.28619
+2026-09-17 11:41:15,330 P3144 INFO Epoch 3/10, train discriminator loss: 1.61420
+2026-09-17 11:41:15,472 P3144 INFO *** Test time is 0.1419355869293213
+2026-09-17 11:41:15,472 P3144 INFO Epoch 3/10, test f1: 0.37209 rc: 0.29630 pc: 0.50000. [0.17s]
+2026-09-17 11:41:15,585 P3144 INFO Epoch 4/10, train generator loss: 1.36789
+2026-09-17 11:41:15,662 P3144 INFO Epoch 4/10, train discriminator loss: 1.39457
+2026-09-17 11:41:15,801 P3144 INFO *** Test time is 0.13936495780944824
+2026-09-17 11:41:15,801 P3144 INFO Epoch 4/10, test f1: 0.40000 rc: 0.29630 pc: 0.61538. [0.18s]
+2026-09-17 11:41:15,925 P3144 INFO Epoch 5/10, train generator loss: 1.46645
+2026-09-17 11:41:16,000 P3144 INFO Epoch 5/10, train discriminator loss: 1.24363
+2026-09-17 11:41:16,154 P3144 INFO *** Test time is 0.1547565460205078
+2026-09-17 11:41:16,156 P3144 INFO Epoch 5/10, test f1: 0.38095 rc: 0.29630 pc: 0.53333. [0.19s]
+2026-09-17 11:41:16,156 P3144 INFO early stopping epoch 1/5
+2026-09-17 11:41:16,328 P3144 INFO Epoch 6/10, train generator loss: 1.56738
+2026-09-17 11:41:16,441 P3144 INFO Epoch 6/10, train discriminator loss: 1.14455
+2026-09-17 11:41:16,642 P3144 INFO *** Test time is 0.20069503784179688
+2026-09-17 11:41:16,642 P3144 INFO Epoch 6/10, test f1: 0.36364 rc: 0.29630 pc: 0.47059. [0.28s]
+2026-09-17 11:41:16,642 P3144 INFO early stopping epoch 2/5
+2026-09-17 11:41:16,836 P3144 INFO Epoch 7/10, train generator loss: 1.65594
+2026-09-17 11:41:16,942 P3144 INFO Epoch 7/10, train discriminator loss: 1.07929
+2026-09-17 11:41:17,163 P3144 INFO *** Test time is 0.22077488899230957
+2026-09-17 11:41:17,163 P3144 INFO Epoch 7/10, test f1: 0.37209 rc: 0.29630 pc: 0.50000. [0.30s]
+2026-09-17 11:41:17,163 P3144 INFO early stopping epoch 3/5
+2026-09-17 11:41:17,339 P3144 INFO Epoch 8/10, train generator loss: 1.74220
+2026-09-17 11:41:17,440 P3144 INFO Epoch 8/10, train discriminator loss: 1.02536
+2026-09-17 11:41:17,588 P3144 INFO *** Test time is 0.14812397956848145
+2026-09-17 11:41:17,588 P3144 INFO Epoch 8/10, test f1: 0.40000 rc: 0.29630 pc: 0.61538. [0.28s]
+2026-09-17 11:41:17,588 P3144 INFO early stopping epoch 4/5
+2026-09-17 11:41:17,702 P3144 INFO Epoch 9/10, train generator loss: 1.83288
+2026-09-17 11:41:17,765 P3144 INFO Epoch 9/10, train discriminator loss: 0.95121
+2026-09-17 11:41:17,911 P3144 INFO *** Test time is 0.1459794044494629
+2026-09-17 11:41:17,911 P3144 INFO Epoch 9/10, test f1: 0.73469 rc: 0.66667 pc: 0.81818. [0.18s]
+2026-09-17 11:41:18,020 P3144 INFO Threshold (p=95.0, src=val): 1.416743
+2026-09-17 11:41:18,047 P3144 INFO *** Test F1 0.2286  of unsupervised traning
+2026-09-17 11:41:18,047 P3144 INFO *** Best F1 {'f1': 0.7346938775510204, 'rc': 0.6666666666666666, 'pc': 0.8181818181818182, 'threshold': np.float64(1.4141714096069335)}  of unsupervised traning
+2026-09-17 11:41:18,047 P3144 INFO Current hash id 8ddf6abb

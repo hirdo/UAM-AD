@@ -531,10 +531,18 @@ class SNPreprocessor:
         result[:, :, 1] = result[:, :, 1] / 1e6
         result[:, :, 2] = result[:, :, 2] / 1e6
 
-        # col 5: latency_dev = z-score of avg_dur vs Normal_Baseline per service
+        # col 5: latency_dev = z-score of avg_dur vs Normal_Baseline per service.
+        # Clipped to [-10, 10] — bl_std is estimated from only ~40 Normal_Baseline
+        # windows, so for a low-variance service (e.g. a reverse proxy with a very
+        # stable baseline latency) it can be near-zero, and a genuine latency spike
+        # during a real anomaly then produces a z-score in the thousands (observed:
+        # nginx-web-server hit ~5000 during Code_Stop_* scenarios), which dominates
+        # the MSE-based reconstruction loss for that node and drowns out every other
+        # service's signal. ±10 comfortably covers the natural range seen on
+        # scenarios without this pathology (observed max ~14).
         if self._latency_baseline is not None:
             bl_mean, bl_std = self._latency_baseline
-            result[:, :, 5] = (result[:, :, 1] - bl_mean) / bl_std
+            result[:, :, 5] = np.clip((result[:, :, 1] - bl_mean) / bl_std, -10.0, 10.0)
 
         return result
 

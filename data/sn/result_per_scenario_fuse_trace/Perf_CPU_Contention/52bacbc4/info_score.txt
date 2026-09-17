@@ -1,0 +1,4 @@
+Experiment 52bacbc4: 2026/09/17-22:58:27
+Train time/epoch 0.2563
+* Test -- f1:0.7755	rc:0.6552	pc:0.9500	threshold:1.9952
+

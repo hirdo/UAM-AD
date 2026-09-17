@@ -1,0 +1,4 @@
+Experiment cbe9051d: 2026/09/17-19:42:36
+Train time/epoch 0.2370
+* Test -- f1:0.8750	rc:0.7778	pc:1.0000	threshold:1.5957
+

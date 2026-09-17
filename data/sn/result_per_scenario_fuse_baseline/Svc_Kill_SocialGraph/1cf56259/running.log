@@ -1,0 +1,44 @@
+2026-09-17 11:44:41,750 P26940 INFO ^^^^^^^^^^ Current Model:hades, 1cf56259 ^^^^^^^^^^
+2026-09-17 11:44:41,750 P26940 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:44:42,140 P26940 INFO 375 unique log templates found.
+2026-09-17 11:44:42,146 P26940 INFO Transforming unlabel train data.
+2026-09-17 11:44:42,189 P26940 INFO Transforming test data.
+2026-09-17 11:44:42,231 P26940 INFO 733 new templates show.
+2026-09-17 11:44:42,283 P26940 INFO Transforming val data.
+2026-09-17 11:44:42,285 P26940 INFO 77 new templates show.
+2026-09-17 11:44:42,287 P26940 INFO Data loaded done!
+2026-09-17 11:44:42,348 P26940 INFO Known word number: 375
+2026-09-17 11:44:44,454 P26940 INFO Epoch 0/10, train generator loss: 1.27032
+2026-09-17 11:44:44,551 P26940 INFO Epoch 0/10, train discriminator loss: 2.77878
+2026-09-17 11:44:44,716 P26940 INFO *** Test time is 0.16500210762023926
+2026-09-17 11:44:44,716 P26940 INFO Epoch 0/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.66s]
+2026-09-17 11:44:44,864 P26940 INFO Epoch 1/10, train generator loss: 1.20865
+2026-09-17 11:44:44,949 P26940 INFO Epoch 1/10, train discriminator loss: 2.27514
+2026-09-17 11:44:45,132 P26940 INFO *** Test time is 0.18349528312683105
+2026-09-17 11:44:45,132 P26940 INFO Epoch 1/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.22s]
+2026-09-17 11:44:45,132 P26940 INFO early stopping epoch 1/5
+2026-09-17 11:44:45,255 P26940 INFO Epoch 2/10, train generator loss: 1.22718
+2026-09-17 11:44:45,326 P26940 INFO Epoch 2/10, train discriminator loss: 1.87918
+2026-09-17 11:44:45,583 P26940 INFO *** Test time is 0.21134591102600098
+2026-09-17 11:44:45,583 P26940 INFO Epoch 2/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.24s]
+2026-09-17 11:44:45,583 P26940 INFO early stopping epoch 2/5
+2026-09-17 11:44:45,714 P26940 INFO Epoch 3/10, train generator loss: 1.28975
+2026-09-17 11:44:45,805 P26940 INFO Epoch 3/10, train discriminator loss: 1.58621
+2026-09-17 11:44:45,948 P26940 INFO *** Test time is 0.14298009872436523
+2026-09-17 11:44:45,950 P26940 INFO Epoch 3/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.22s]
+2026-09-17 11:44:45,950 P26940 INFO early stopping epoch 3/5
+2026-09-17 11:44:46,056 P26940 INFO Epoch 4/10, train generator loss: 1.37221
+2026-09-17 11:44:46,149 P26940 INFO Epoch 4/10, train discriminator loss: 1.37106
+2026-09-17 11:44:46,309 P26940 INFO *** Test time is 0.16043758392333984
+2026-09-17 11:44:46,309 P26940 INFO Epoch 4/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.20s]
+2026-09-17 11:44:46,309 P26940 INFO early stopping epoch 4/5
+2026-09-17 11:44:46,433 P26940 INFO Epoch 5/10, train generator loss: 1.46901
+2026-09-17 11:44:46,554 P26940 INFO Epoch 5/10, train discriminator loss: 1.22133
+2026-09-17 11:44:46,762 P26940 INFO *** Test time is 0.20811820030212402
+2026-09-17 11:44:46,762 P26940 INFO Epoch 5/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.24s]
+2026-09-17 11:44:46,762 P26940 INFO early stopping epoch 5/5
+2026-09-17 11:44:46,762 P26940 INFO Early stopping
+2026-09-17 11:44:46,894 P26940 INFO Threshold (p=95.0, src=val): 1.391881
+2026-09-17 11:44:46,951 P26940 INFO *** Test F1 0.8358  of unsupervised traning
+2026-09-17 11:44:46,951 P26940 INFO *** Best F1 {'f1': 0.9019607843137255, 'rc': 0.8214285714285714, 'pc': 1.0, 'threshold': np.float64(1.5483568048477172)}  of unsupervised traning
+2026-09-17 11:44:46,968 P26940 INFO Current hash id 1cf56259

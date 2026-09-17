@@ -1,0 +1,44 @@
+2026-09-17 11:43:38,936 P23128 INFO ^^^^^^^^^^ Current Model:hades, 27c206ec ^^^^^^^^^^
+2026-09-17 11:43:38,936 P23128 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:43:39,175 P23128 INFO 375 unique log templates found.
+2026-09-17 11:43:39,194 P23128 INFO Transforming unlabel train data.
+2026-09-17 11:43:39,207 P23128 INFO Transforming test data.
+2026-09-17 11:43:39,250 P23128 INFO 729 new templates show.
+2026-09-17 11:43:39,287 P23128 INFO Transforming val data.
+2026-09-17 11:43:39,287 P23128 INFO 77 new templates show.
+2026-09-17 11:43:39,289 P23128 INFO Data loaded done!
+2026-09-17 11:43:39,325 P23128 INFO Known word number: 375
+2026-09-17 11:43:39,475 P23128 INFO Epoch 0/10, train generator loss: 1.31287
+2026-09-17 11:43:39,559 P23128 INFO Epoch 0/10, train discriminator loss: 2.68197
+2026-09-17 11:43:39,700 P23128 INFO *** Test time is 0.14165711402893066
+2026-09-17 11:43:39,700 P23128 INFO Epoch 0/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.19s]
+2026-09-17 11:43:39,837 P23128 INFO Epoch 1/10, train generator loss: 1.20061
+2026-09-17 11:43:39,920 P23128 INFO Epoch 1/10, train discriminator loss: 2.10626
+2026-09-17 11:43:40,078 P23128 INFO *** Test time is 0.15792632102966309
+2026-09-17 11:43:40,078 P23128 INFO Epoch 1/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.20s]
+2026-09-17 11:43:40,078 P23128 INFO early stopping epoch 1/5
+2026-09-17 11:43:40,172 P23128 INFO Epoch 2/10, train generator loss: 1.21095
+2026-09-17 11:43:40,240 P23128 INFO Epoch 2/10, train discriminator loss: 1.74438
+2026-09-17 11:43:40,410 P23128 INFO *** Test time is 0.16990351676940918
+2026-09-17 11:43:40,410 P23128 INFO Epoch 2/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.16s]
+2026-09-17 11:43:40,410 P23128 INFO early stopping epoch 2/5
+2026-09-17 11:43:40,511 P23128 INFO Epoch 3/10, train generator loss: 1.24680
+2026-09-17 11:43:40,588 P23128 INFO Epoch 3/10, train discriminator loss: 1.48419
+2026-09-17 11:43:40,727 P23128 INFO *** Test time is 0.13883304595947266
+2026-09-17 11:43:40,727 P23128 INFO Epoch 3/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.18s]
+2026-09-17 11:43:40,727 P23128 INFO early stopping epoch 3/5
+2026-09-17 11:43:40,844 P23128 INFO Epoch 4/10, train generator loss: 1.28971
+2026-09-17 11:43:40,932 P23128 INFO Epoch 4/10, train discriminator loss: 1.32575
+2026-09-17 11:43:41,070 P23128 INFO *** Test time is 0.13824129104614258
+2026-09-17 11:43:41,070 P23128 INFO Epoch 4/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.21s]
+2026-09-17 11:43:41,070 P23128 INFO early stopping epoch 4/5
+2026-09-17 11:43:41,185 P23128 INFO Epoch 5/10, train generator loss: 1.34364
+2026-09-17 11:43:41,311 P23128 INFO Epoch 5/10, train discriminator loss: 1.21947
+2026-09-17 11:43:41,519 P23128 INFO *** Test time is 0.20766305923461914
+2026-09-17 11:43:41,519 P23128 INFO Epoch 5/10, test f1: 0.83333 rc: 0.74074 pc: 0.95238. [0.24s]
+2026-09-17 11:43:41,519 P23128 INFO early stopping epoch 5/5
+2026-09-17 11:43:41,519 P23128 INFO Early stopping
+2026-09-17 11:43:41,630 P23128 INFO Threshold (p=95.0, src=val): 1.319399
+2026-09-17 11:43:41,675 P23128 INFO *** Test F1 0.8667  of unsupervised traning
+2026-09-17 11:43:41,675 P23128 INFO *** Best F1 {'f1': 0.8333333333333334, 'rc': 0.7407407407407407, 'pc': 0.9523809523809523, 'threshold': np.float64(1.3922955894470215)}  of unsupervised traning
+2026-09-17 11:43:41,690 P23128 INFO Current hash id 27c206ec

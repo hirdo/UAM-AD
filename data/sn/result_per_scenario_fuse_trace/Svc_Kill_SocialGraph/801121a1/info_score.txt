@@ -1,0 +1,4 @@
+Experiment 801121a1: 2026/09/17-23:02:06
+Train time/epoch 0.2650
+* Test -- f1:0.8800	rc:0.7857	pc:1.0000	threshold:1.6349
+

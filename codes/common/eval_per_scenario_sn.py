@@ -152,6 +152,12 @@ def main():
     p.add_argument("--run_end",       default=1,    type=int)
     p.add_argument("--gate_lambda",   default=0.01, type=float,
                    help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+    p.add_argument("--gate_delta_lr_mult", default=1.0, type=float,
+                   help="Learning rate multiplier for trace_gate/delta_head params. 1.0 = no-op (default).")
+    p.add_argument("--gate_extra_feats", default="False",
+                   help="Add max-based latency_dev feature to the gate's input. False = no-op (default).")
+    p.add_argument("--trace_pool", default="mean", choices=["mean", "max"],
+                   help="How to pool per-node trace embeddings into ZV. 'mean' = no-op (default).")
     p.add_argument("--result_dir",    default=None,
                    help="Base result dir; each scenario gets its own subdir. "
                         "Defaults to {data}/result_per_scenario_{data_type}_{trace|baseline}")
@@ -224,6 +230,9 @@ def main():
             "--test_pkl",          test_pkl,
             "--result_dir",        sc_result_dir,
             "--gate_lambda",       str(args.gate_lambda),
+            "--gate_delta_lr_mult", str(args.gate_delta_lr_mult),
+            "--gate_extra_feats",  str(args.gate_extra_feats),
+            "--trace_pool",        str(args.trace_pool),
         ]
 
         sc_start = time.perf_counter()

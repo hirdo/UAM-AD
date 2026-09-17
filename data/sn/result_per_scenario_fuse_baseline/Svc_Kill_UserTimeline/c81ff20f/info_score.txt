@@ -1,0 +1,4 @@
+Experiment c81ff20f: 2026/09/17-19:45:16
+Train time/epoch 0.1875
+* Test -- f1:0.7907	rc:0.6538	pc:1.0000	threshold:1.4645
+

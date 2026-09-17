@@ -1,0 +1,4 @@
+Experiment ee89ff55: 2026/09/17-22:58:35
+Train time/epoch 0.2588
+* Test -- f1:0.7917	rc:0.6552	pc:1.0000	threshold:2.0558
+

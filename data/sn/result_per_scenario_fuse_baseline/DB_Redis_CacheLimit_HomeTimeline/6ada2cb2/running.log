@@ -1,0 +1,44 @@
+2026-09-17 11:41:59,867 P26260 INFO ^^^^^^^^^^ Current Model:hades, 6ada2cb2 ^^^^^^^^^^
+2026-09-17 11:41:59,867 P26260 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:42:00,247 P26260 INFO 375 unique log templates found.
+2026-09-17 11:42:00,263 P26260 INFO Transforming unlabel train data.
+2026-09-17 11:42:00,278 P26260 INFO Transforming test data.
+2026-09-17 11:42:00,320 P26260 INFO 721 new templates show.
+2026-09-17 11:42:00,342 P26260 INFO Transforming val data.
+2026-09-17 11:42:00,342 P26260 INFO 77 new templates show.
+2026-09-17 11:42:00,342 P26260 INFO Data loaded done!
+2026-09-17 11:42:00,385 P26260 INFO Known word number: 375
+2026-09-17 11:42:02,292 P26260 INFO Epoch 0/10, train generator loss: 1.30393
+2026-09-17 11:42:02,387 P26260 INFO Epoch 0/10, train discriminator loss: 2.84555
+2026-09-17 11:42:02,538 P26260 INFO *** Test time is 0.15097951889038086
+2026-09-17 11:42:02,538 P26260 INFO Epoch 0/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.56s]
+2026-09-17 11:42:02,662 P26260 INFO Epoch 1/10, train generator loss: 1.19425
+2026-09-17 11:42:02,753 P26260 INFO Epoch 1/10, train discriminator loss: 2.31837
+2026-09-17 11:42:02,909 P26260 INFO *** Test time is 0.15643787384033203
+2026-09-17 11:42:02,909 P26260 INFO Epoch 1/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.21s]
+2026-09-17 11:42:02,909 P26260 INFO early stopping epoch 1/5
+2026-09-17 11:42:03,010 P26260 INFO Epoch 2/10, train generator loss: 1.21170
+2026-09-17 11:42:03,082 P26260 INFO Epoch 2/10, train discriminator loss: 1.91630
+2026-09-17 11:42:03,252 P26260 INFO *** Test time is 0.1696462631225586
+2026-09-17 11:42:03,252 P26260 INFO Epoch 2/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.17s]
+2026-09-17 11:42:03,254 P26260 INFO early stopping epoch 2/5
+2026-09-17 11:42:03,378 P26260 INFO Epoch 3/10, train generator loss: 1.27722
+2026-09-17 11:42:03,506 P26260 INFO Epoch 3/10, train discriminator loss: 1.60021
+2026-09-17 11:42:03,716 P26260 INFO *** Test time is 0.20665216445922852
+2026-09-17 11:42:03,716 P26260 INFO Epoch 3/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.26s]
+2026-09-17 11:42:03,716 P26260 INFO early stopping epoch 3/5
+2026-09-17 11:42:03,866 P26260 INFO Epoch 4/10, train generator loss: 1.35223
+2026-09-17 11:42:03,980 P26260 INFO Epoch 4/10, train discriminator loss: 1.38394
+2026-09-17 11:42:04,200 P26260 INFO *** Test time is 0.22000670433044434
+2026-09-17 11:42:04,200 P26260 INFO Epoch 4/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.26s]
+2026-09-17 11:42:04,200 P26260 INFO early stopping epoch 4/5
+2026-09-17 11:42:04,345 P26260 INFO Epoch 5/10, train generator loss: 1.44130
+2026-09-17 11:42:04,467 P26260 INFO Epoch 5/10, train discriminator loss: 1.24526
+2026-09-17 11:42:04,646 P26260 INFO *** Test time is 0.17986321449279785
+2026-09-17 11:42:04,646 P26260 INFO Epoch 5/10, test f1: 0.84615 rc: 0.73333 pc: 1.00000. [0.27s]
+2026-09-17 11:42:04,646 P26260 INFO early stopping epoch 5/5
+2026-09-17 11:42:04,646 P26260 INFO Early stopping
+2026-09-17 11:42:04,744 P26260 INFO Threshold (p=95.0, src=val): 1.412022
+2026-09-17 11:42:04,778 P26260 INFO *** Test F1 0.9375  of unsupervised traning
+2026-09-17 11:42:04,778 P26260 INFO *** Best F1 {'f1': 0.8461538461538461, 'rc': 0.7333333333333333, 'pc': 1.0, 'threshold': np.float64(1.6320212173461914)}  of unsupervised traning
+2026-09-17 11:42:04,778 P26260 INFO Current hash id 6ada2cb2

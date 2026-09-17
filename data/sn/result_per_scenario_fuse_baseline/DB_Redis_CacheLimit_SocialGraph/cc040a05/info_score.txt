@@ -1,0 +1,4 @@
+Experiment cc040a05: 2026/09/17-19:42:32
+Train time/epoch 0.1836
+* Test -- f1:0.8511	rc:0.7407	pc:1.0000	threshold:1.5871
+

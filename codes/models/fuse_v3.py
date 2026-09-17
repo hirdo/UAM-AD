@@ -8,6 +8,20 @@ from models.log_model_v3 import LogEncoder, LogEncoder_low
 from models.utils import MultiHeadAttention
 from models.trace_model_v3 import TraceEncoder, TraceEncoder_low, TraceModel
 
+def _pool_trace_nodes(trace_z, pool_type="mean"):
+    """Pool per-node trace embeddings [*, N, H] -> [*, H].
+
+    "mean" (default, original behavior) dilutes a single extreme node's
+    embedding across all N nodes. "max" takes the most extreme node's
+    signal directly, undiluted by however many other nodes still look
+    normal — relevant for a single-service ("leaf") kill where only 1 of N
+    nodes carries the anomaly signature.
+    """
+    if pool_type == "max":
+        return trace_z.max(dim=1).values
+    return trace_z.mean(dim=1)
+
+
 class AddAttention(nn.Module): #k=V
     def __init__(self, dimensions,windows_lens=100):
         super(AddAttention, self).__init__()
@@ -70,6 +84,7 @@ class MultiEncoder(nn.Module):
         self.feature_type = kwargs["feature_type"]
         self.fuse_type = fuse_type
         self.open_trace = kwargs.get("open_trace", False)
+        self.trace_pool = kwargs.get("trace_pool", "mean")
         if self.open_trace:
             self.trace_encoder = TraceEncoder(device, **kwargs)
         if self.fuse_type == "cross_attn" or self.fuse_type == "sep_attn":
@@ -99,7 +114,7 @@ class MultiEncoder(nn.Module):
                 trace_nodes.reshape(B * W, N, C),
                 trace_adj.reshape(B * W, N, N)
             )  # [B*W, N, H]
-            ZV = trace_z.mean(dim=1).reshape(B, W, self.hidden_size)  # [B, W, H]
+            ZV = _pool_trace_nodes(trace_z, self.trace_pool).reshape(B, W, self.hidden_size)  # [B, W, H]
 
         # Fusion: chỉ log + KPI
         fused_modal = None
@@ -396,6 +411,7 @@ class MultiModel(nn.Module):
         self.unmatch_k = kwargs["unmatch_k"] * 0.01
 
         self.open_trace = kwargs.get("open_trace", False)
+        self.trace_pool = kwargs.get("trace_pool", "mean")
 
         # Base decoder: log+KPI only (fused_modal 2H → H → kpi_c+log_c)
         # Khi open_trace=True, nhánh trace được cộng qua residual-gated head (CHANGE 8).
@@ -426,6 +442,7 @@ class MultiModel(nn.Module):
         # Δ-head zero-init + L1 trên g → khởi điểm chính xác bằng baseline log+KPI;
         # gate chỉ mở khi có gradient ủng hộ (trace thực sự giảm reconstruction loss).
         self.gate_lambda = float(kwargs.get("gate_lambda", 0.01))
+        self.gate_extra_feats = bool(kwargs.get("gate_extra_feats", False))
         if self.open_trace:
             # Δ-head: nhận cat([fm, ZV]) = 3H, zero-init lớp cuối để khởi điểm Δ≈0
             self.delta_head = nn.Sequential(
@@ -434,21 +451,24 @@ class MultiModel(nn.Module):
             )
             nn.init.zeros_(self.delta_head[-1].weight)
             nn.init.zeros_(self.delta_head[-1].bias)
-            # Gate MLP: 6 trace-quality features → g ∈ [0,1]
+            # Gate MLP: 6 (hoặc 7 nếu gate_extra_feats) trace-quality features → g ∈ [0,1]
+            gate_in_dim = 7 if self.gate_extra_feats else 6
             self.trace_gate = nn.Sequential(
-                nn.Linear(6, 16), nn.ReLU(),
+                nn.Linear(gate_in_dim, 16), nn.ReLU(),
                 nn.Linear(16, 1),
             )
-            # Bias âm để g khởi điểm ≈ 0.12 (gate đóng) — chỉ mở khi có gradient ủng hộ
+            # Bias âm để g khởi điểm gần 0 (gate đóng) — chỉ mở khi có gradient ủng hộ.
+            # Mặc định -2.0 (g≈0.12); có thể nới lỏng qua --gate_bias_init khi gradient
+            # trên tập nhỏ quá yếu để tự mở gate trong vài chục epoch.
+            gate_bias_init = float(kwargs.get("gate_bias_init", -2.0))
             nn.init.zeros_(self.trace_gate[-1].weight)
-            nn.init.constant_(self.trace_gate[-1].bias, -2.0)
+            nn.init.constant_(self.trace_gate[-1].bias, gate_bias_init)
 
-    @staticmethod
-    def _trace_quality_feats(trace_nodes, trace_adj):
-        """Compute 6 per-(B,W) scalar features describing trace quality / informativeness.
+    def _trace_quality_feats(self, trace_nodes, trace_adj):
+        """Compute per-(B,W) scalar features describing trace quality / informativeness.
         trace_nodes: [B,W,N,C>=6] — cols: [0]call_count, [3]error_rate, [5]latency_dev
         trace_adj:   [B,W,N,N]
-        Returns: [B, W, 6]
+        Returns: [B, W, 6] (or [B, W, 7] if self.gate_extra_feats)
         """
         B, W, N, C = trace_nodes.shape
         call_count   = trace_nodes[..., 0]                          # [B,W,N]
@@ -475,6 +495,17 @@ class MultiModel(nn.Module):
             feats[..., 4],
             torch.log1p(feats[..., 5]),
         ], dim=-1)
+        if self.gate_extra_feats:
+            # max_abs_lat_dev: "node lệch nặng nhất lệch bao nhiêu" — mean() ở trên
+            # pha loãng tín hiệu của 1 node chết duy nhất (leaf-kill) giữa 11 node
+            # bình thường còn lại; max giữ nguyên tín hiệu đó không bị pha loãng.
+            # latency_dev đã clip [-10,10] (preprocess_sn.py) nên an toàn, không cần
+            # log1p thêm.
+            if C > 5:
+                max_abs_lat_dev = trace_nodes[..., 5].abs().max(dim=-1).values  # [B,W]
+            else:
+                max_abs_lat_dev = torch.zeros_like(mean_calls)
+            feats = torch.cat([feats, max_abs_lat_dev.unsqueeze(-1)], dim=-1)  # [B,W,7]
         return feats
 
     def forward(self, input_dict, flag=False):
@@ -494,7 +525,7 @@ class MultiModel(nn.Module):
                 trace_nodes.reshape(B_t * W_t, N_t, C_t),
                 trace_adj.reshape(B_t * W_t, N_t, N_t)
             )
-            cached_ZV = trace_z.mean(dim=1).reshape(B_t, W_t, self.hidden_size)
+            cached_ZV = _pool_trace_nodes(trace_z, self.trace_pool).reshape(B_t, W_t, self.hidden_size)
 
         fused_kpi, fused_log, fused_modal, ZV = self.encoder(
             input_dict["log_features"], input_dict["kpi_features"],

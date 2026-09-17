@@ -1,0 +1,4 @@
+Experiment e4c370ef: 2026/09/17-22:55:49
+Train time/epoch 0.2564
+* Test -- f1:0.8077	rc:0.7000	pc:0.9545	threshold:1.4042
+

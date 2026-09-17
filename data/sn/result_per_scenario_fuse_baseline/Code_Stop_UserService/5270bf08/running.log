@@ -1,0 +1,44 @@
+2026-09-17 11:41:48,679 P11364 INFO ^^^^^^^^^^ Current Model:hades, 5270bf08 ^^^^^^^^^^
+2026-09-17 11:41:48,679 P11364 INFO Load from D:\UAM-AD\data\sn
+2026-09-17 11:41:48,869 P11364 INFO 375 unique log templates found.
+2026-09-17 11:41:48,885 P11364 INFO Transforming unlabel train data.
+2026-09-17 11:41:48,901 P11364 INFO Transforming test data.
+2026-09-17 11:41:48,933 P11364 INFO 734 new templates show.
+2026-09-17 11:41:48,965 P11364 INFO Transforming val data.
+2026-09-17 11:41:48,965 P11364 INFO 77 new templates show.
+2026-09-17 11:41:48,965 P11364 INFO Data loaded done!
+2026-09-17 11:41:48,997 P11364 INFO Known word number: 375
+2026-09-17 11:41:49,172 P11364 INFO Epoch 0/10, train generator loss: 1.24001
+2026-09-17 11:41:49,267 P11364 INFO Epoch 0/10, train discriminator loss: 2.58858
+2026-09-17 11:41:49,424 P11364 INFO *** Test time is 0.1572279930114746
+2026-09-17 11:41:49,424 P11364 INFO Epoch 0/10, test f1: 0.90196 rc: 0.82143 pc: 1.00000. [0.21s]
+2026-09-17 11:41:49,543 P11364 INFO Epoch 1/10, train generator loss: 1.14735
+2026-09-17 11:41:49,623 P11364 INFO Epoch 1/10, train discriminator loss: 2.00539
+2026-09-17 11:41:49,758 P11364 INFO *** Test time is 0.13488173484802246
+2026-09-17 11:41:49,758 P11364 INFO Epoch 1/10, test f1: 0.88000 rc: 0.78571 pc: 1.00000. [0.18s]
+2026-09-17 11:41:49,758 P11364 INFO early stopping epoch 1/5
+2026-09-17 11:41:49,861 P11364 INFO Epoch 2/10, train generator loss: 1.13810
+2026-09-17 11:41:49,947 P11364 INFO Epoch 2/10, train discriminator loss: 1.62831
+2026-09-17 11:41:50,089 P11364 INFO *** Test time is 0.14225411415100098
+2026-09-17 11:41:50,089 P11364 INFO Epoch 2/10, test f1: 0.85714 rc: 0.75000 pc: 1.00000. [0.19s]
+2026-09-17 11:41:50,089 P11364 INFO early stopping epoch 2/5
+2026-09-17 11:41:50,202 P11364 INFO Epoch 3/10, train generator loss: 1.15434
+2026-09-17 11:41:50,292 P11364 INFO Epoch 3/10, train discriminator loss: 1.38394
+2026-09-17 11:41:50,444 P11364 INFO *** Test time is 0.15131378173828125
+2026-09-17 11:41:50,444 P11364 INFO Epoch 3/10, test f1: 0.84000 rc: 0.75000 pc: 0.95455. [0.20s]
+2026-09-17 11:41:50,444 P11364 INFO early stopping epoch 3/5
+2026-09-17 11:41:50,570 P11364 INFO Epoch 4/10, train generator loss: 1.16542
+2026-09-17 11:41:50,688 P11364 INFO Epoch 4/10, train discriminator loss: 1.20864
+2026-09-17 11:41:50,888 P11364 INFO *** Test time is 0.19958186149597168
+2026-09-17 11:41:50,888 P11364 INFO Epoch 4/10, test f1: 0.84000 rc: 0.75000 pc: 0.95455. [0.24s]
+2026-09-17 11:41:50,890 P11364 INFO early stopping epoch 4/5
+2026-09-17 11:41:51,030 P11364 INFO Epoch 5/10, train generator loss: 1.19358
+2026-09-17 11:41:51,173 P11364 INFO Epoch 5/10, train discriminator loss: 1.08227
+2026-09-17 11:41:51,398 P11364 INFO *** Test time is 0.2254626750946045
+2026-09-17 11:41:51,398 P11364 INFO Epoch 5/10, test f1: 0.84000 rc: 0.75000 pc: 0.95455. [0.28s]
+2026-09-17 11:41:51,398 P11364 INFO early stopping epoch 5/5
+2026-09-17 11:41:51,398 P11364 INFO Early stopping
+2026-09-17 11:41:51,513 P11364 INFO Threshold (p=95.0, src=val): 1.360321
+2026-09-17 11:41:51,554 P11364 INFO *** Test F1 0.9333  of unsupervised traning
+2026-09-17 11:41:51,554 P11364 INFO *** Best F1 {'f1': 0.9019607843137255, 'rc': 0.8214285714285714, 'pc': 1.0, 'threshold': np.float64(1.4213632249832153)}  of unsupervised traning
+2026-09-17 11:41:51,554 P11364 INFO Current hash id 5270bf08

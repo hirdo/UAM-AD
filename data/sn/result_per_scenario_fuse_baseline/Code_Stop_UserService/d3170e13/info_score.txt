@@ -1,0 +1,4 @@
+Experiment d3170e13: 2026/09/17-19:41:45
+Train time/epoch 0.1923
+* Test -- f1:0.8333	rc:0.7143	pc:1.0000	threshold:1.4555
+
