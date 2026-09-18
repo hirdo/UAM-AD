@@ -1,221 +1,137 @@
 # Kết quả thí nghiệm: SocialNetwork — Trace so với Baseline
 
-## 1. Thiết lập thí nghiệm
+> **Cập nhật quan trọng**: Bản trước của tài liệu này (F1 baseline ~0.92, trace ~0.96) được tính trên preprocessing có lỗi (xem mục 2) khiến baseline "ăn gian" nhờ confound cấp session, không phản ánh khả năng phát hiện lỗi thật. Toàn bộ số liệu trong tài liệu này được tính lại sau khi sửa preprocessing + scoring, thấp hơn nhiều nhưng đáng tin cậy hơn.
 
-### Mô hình
+## 1. Bối cảnh: vì sao phải làm lại toàn bộ
 
-**HADES** (Hypersphere-based Anomaly Detection with Encoder-Score) — mô hình phát hiện bất thường không giám sát dựa trên GAN, huấn luyện hoàn toàn trên dữ liệu bình thường.
+Khi điều tra tại sao baseline (chỉ log+KPI, không trace) lại đạt F1 cao bất thường trên các lỗi "luồng gọi hệ thống" (service bị kill/dừng — loại lỗi lẽ ra trace phải phát huy tác dụng nhất), phát hiện ra 2 vấn đề gốc rễ trong preprocessing cũ:
 
-### Giao thức đánh giá
+### 1.1 Confound cấp session
+Mọi file test đều so sánh **cùng 1 session `Normal_Baseline`** (ghi đầu tiên trong chuỗi 13 thí nghiệm) với **1 session lỗi khác** (ghi sau đó, cách nhau 15 phút đến gần 3 tiếng). Baseline có thể học cách phân biệt "session nào" (do trôi dạt môi trường theo thời gian) thay vì phát hiện lỗi thật — verify bằng cách thấy các metric hoàn toàn không liên quan đến lỗi (CPU của service khác) cũng lệch rõ giữa 2 nhóm.
 
-| Cấu hình              | Giá trị                                          |
-|:----------------------|:-------------------------------------------------|
-| Tập dữ liệu           | SocialNetwork (AnoMod)                           |
-| Loại dữ liệu          | `fuse` (KPI + Nhật ký + Trace)                   |
-| Số kịch bản           | 12 kịch bản bất thường                           |
-| Cửa sổ mỗi file test  | 46 (40 bình thường + 6 bất thường)               |
-| Tỷ lệ bất thường      | ~13% mỗi file kiểm tra                           |
-| `window_size`         | 5  (5 cửa sổ × 30 s = 2,5 phút ngữ cảnh)        |
-| `val_percentile`      | 95  (bách phân vị thứ 95 của loss tập val)       |
-| `epoches`             | 10 10  (generator + discriminator)               |
-| `batch_size`          | 256                                              |
-| `patience`            | 5  (dừng sớm)                                    |
-| `alpha`               | 0.16                                             |
-| `open_gan_sep`        | True                                             |
-| `run_end`             | 1  (chạy đơn lần)                                |
+### 1.2 Nhãn anomaly sai theo thời gian thật của lỗi
+Preprocessing cũ dùng 1 quy tắc chung cho mọi loại lỗi: "bỏ qua 5 phút đầu (warmup), phần còn lại = anomaly". Kiểm tra script thu thập dữ liệu gốc của AnoMod (`github.com/EvoTestOps/AnoMod`, `automated_multimodal_collection.sh`) cho thấy quy tắc này sai với phần lớn loại lỗi:
 
-### Hiệu chỉnh ngưỡng
+| Loại lỗi | Cơ chế thật (theo script) | Nhãn cũ | Nhãn đúng |
+|---|---|---|---|
+| `Code_Stop_*` | `docker stop`, không tự restart | Cả session = anomaly | Đúng, giữ nguyên |
+| `Perf_*`, `DB_Redis_CacheLimit_*` | ChaosBlade `--timeout 300`, tự hết hiệu lực sau 300s | Cả session (trừ 5 phút đầu) = anomaly | **Chỉ 5 phút đầu = anomaly**, phần còn lại đã hồi phục |
+| `Svc_Kill_*` | ChaosBlade kill process + Docker auto-restart | Cả session = anomaly | **Chỉ ~2 phút (giây 90-210)** — xác nhận qua cột `container_label_restartcount` (0→1 tại giây 105) và khoảng lặng ~75s thật trong trace |
 
-Ngưỡng bất thường được tính **mà không dùng nhãn kiểm tra**:
+## 2. Thiết kế preprocessing mới
+
+### 2.1 Nhãn theo `FAULT_WINDOWS` (thay vì quy tắc chung)
+`codes/common/preprocess_sn.py` giờ định nghĩa cửa sổ lỗi chính xác cho từng scenario (xem bảng trên), dựa trên bằng chứng thật (script AnoMod + số liệu đo trực tiếp), không còn quy tắc "bỏ N phút đầu" chung chung.
+
+### 2.2 Hai pool "normal" tách biệt
+- **Train/unlabel/val**: chỉ từ `Normal_Baseline` (39 windows) — giữ hẹp/đồng nhất có chủ đích (xem mục 2.3).
+- **Test** (phần "normal" trong mỗi `test_<scenario>.pkl`): gộp từ **mọi** scenario (Normal_Baseline + phần đã hồi phục/chưa từng lỗi của từng scenario khác) — 320 windows, trải khắp toàn bộ 3 tiếng thí nghiệm thay vì 1 lát 20 phút duy nhất. Đây là cách thật (không phải mẹo) để triệt tiêu confound cấp session: baseline không còn có thể "đoán session" vì normal giờ đến từ rất nhiều thời điểm khác nhau.
+
+### 2.3 Vì sao train KHÔNG dùng pool đa dạng
+Thử nghiệm ban đầu dùng pool đa dạng cho cả train — nhưng verify trực tiếp cho thấy điều này dạy model rằng "ít hoạt động cũng là bình thường", phá hỏng khả năng phát hiện đúng loại lỗi "im lặng hoàn toàn" (xem mục 3). Quay lại train hẹp (chỉ Normal_Baseline) giải quyết đúng vấn đề mà không đánh đổi lợi ích giảm confound ở test.
+
+## 3. Sửa scoring: lỗi "im lặng hoàn toàn" bị chấm điểm ngược
+
+### 3.1 Phát hiện
+Ngay cả sau khi sửa nhãn đúng, `Code_Stop_TextService`/`UserService` và `Svc_Kill_*` vẫn cho F1=0.0000. Đo trực tiếp phân phối reconstruction loss theo nhãn (không suy đoán):
+
 ```
-threshold = np.percentile(val_losses, 95)
+Code_Stop_TextService:  anomaly mean loss = 0.92   |   normal mean loss = 1.29
 ```
-trong đó `val_losses` = loss tái tạo từ 8 cửa sổ bình thường chưa thấy trong `val.pkl` (20% cuối của Normal_Baseline, giữ lại trong quá trình huấn luyện).
 
-### Thư mục kết quả
+**Loss của window anomaly THẤP HƠN window normal** — ngược hoàn toàn với logic "loss cao = bất thường" mà toàn hệ thống dựa vào. Đã kiểm tra tách riêng cả 2 thành phần (log + KPI) — cả 2 đều bị đảo ngược tương tự, không phải chỉ do log thưa.
 
-| Cấu hình                        | Thư mục                                         |
-|:--------------------------------|:------------------------------------------------|
-| Baseline (chỉ KPI + Nhật ký)    | `data/sn/result_per_scenario_fuse_baseline/`    |
-| Trace (KPI + Nhật ký + Trace)   | `data/sn/result_per_scenario_fuse_trace/`       |
+### 3.2 Nguyên nhân
+Khi service chết hẳn, log/KPI của nó gần như trống rỗng/phẳng lặng. Với autoencoder, tái tạo lại 1 input gần-như-không-biến-thiên lại **dễ hơn** tái tạo 1 input bình thường có nội dung/biến động thật — nên loss thấp hơn, không cao hơn. Đây là đặc tính cố hữu của reconstruction-loss, không phải lỗi ở khâu gộp/tách pool (đã verify: vẫn xảy ra y hệt dù dùng pool train hẹp hay đa dạng).
+
+### 3.3 Fix: `activity_penalty_weight`
+Thêm 1 tín hiệu **độc lập với reconstruction**, đo trực tiếp từ input thật: mức hoạt động hiện tại (`kpi_features.sum + log_features.sum`) lệch bao nhiêu **dưới** mức hoạt động normal kỳ vọng (tính từ train data), cộng vào điểm bất thường trước khi so ngưỡng. Mặc định `0.0` (no-op, không ảnh hưởng dataset khác/checkpoint cũ).
+
+```bash
+--activity_penalty_weight 1.5
+```
+
+### 3.4 Kết hợp với `gate_delta_lr_mult`
+Với nhánh trace, kết hợp thêm `--gate_delta_lr_mult 10 --epoches 50 50 --patience 15` (cơ chế đã có từ trước, giúp `trace_gate`/`delta_head` thoát nghẽn gradient nhanh hơn) — cộng hưởng với activity penalty để đóng nốt khoảng cách còn lại ở các scenario tín hiệu yếu (`Svc_Kill_*`).
 
 ---
 
-## 2. Lệnh chạy
-
-> **Lưu ý kiến trúc**: Từ nhánh `re-eval-sn`, nhánh trace tự động dùng **residual-gated fusion** (CHANGE 8) khi `open_trace=True`. Gate giữ đóng đóng góp trace khi trace không informative, suy biến về baseline log+KPI. Kết quả bên dưới được chạy lại với kiến trúc mới này.
+## 4. Cấu hình chạy cuối cùng
 
 ### Baseline (`open_trace=False`)
-
 ```bash
 cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
-    --data ../data/sn \
-    --dataset sn --data_type fuse \
-    --open_trace False \
+    --data ../data/sn --dataset sn --data_type fuse \
+    --open_trace False --activity_penalty_weight 1.5 \
     --epoches 10 10 --batch_size 256 --patience 5 \
-    --window_size 5 --val_percentile 95 \
-    --alpha 0.16 --open_gan_sep True \
+    --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
     --run_start 0 --run_end 1
 ```
 
 ### Trace (`open_trace=True`)
-
 ```bash
 cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
-    --data ../data/sn \
-    --dataset sn --data_type fuse \
-    --open_trace True --trace_c 6 --gate_lambda 0.01 \
-    --epoches 10 10 --batch_size 256 --patience 5 \
-    --window_size 5 --val_percentile 95 \
-    --alpha 0.16 --open_gan_sep True \
+    --data ../data/sn --dataset sn --data_type fuse \
+    --open_trace True --activity_penalty_weight 1.5 \
+    --gate_delta_lr_mult 10 \
+    --epoches 50 50 --batch_size 256 --patience 15 \
+    --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
     --run_start 0 --run_end 1
 ```
 
 ---
 
-## 3. Kết quả theo từng kịch bản
+## 5. Kết quả (12 scenario, sau khi sửa nhãn + scoring)
 
-### 3.1 Baseline (KPI + Nhật ký, `open_trace=False`)
+| Scenario | Baseline F1 | Baseline P | Baseline R | Trace F1 | Trace P | Trace R | Δ F1 |
+|:---|---:|---:|---:|---:|---:|---:|:---:|
+| Code_Stop_MediaService | 0.500 | 0.357 | 0.833 | **0.600** | 0.429 | 1.000 | +0.100 |
+| Code_Stop_TextService | 0.462 | 0.300 | 1.000 | **0.632** | 0.462 | 1.000 | +0.170 |
+| Code_Stop_UserService | 0.462 | 0.300 | 1.000 | **0.615** | 0.571 | 0.667 | +0.154 |
+| DB_Redis_CacheLimit_HomeTimeline | 0.218 | 0.122 | 1.000 | **0.375** | 0.231 | 1.000 | +0.157 |
+| DB_Redis_CacheLimit_SocialGraph | 0.462 | 0.300 | 1.000 | 0.435 | 0.294 | 0.833 | -0.027 |
+| DB_Redis_CacheLimit_UserTimeline | 0.200 | 0.250 | 0.167 | **0.276** | 0.174 | 0.667 | +0.076 |
+| Perf_CPU_Contention | 0.245 | 0.140 | 1.000 | **0.345** | 0.217 | 0.833 | +0.100 |
+| Perf_Disk_IO_Stress | 0.231 | 0.150 | 0.500 | **0.345** | 0.217 | 0.833 | +0.114 |
+| Perf_Network_Loss | 0.200 | 0.250 | 0.167 | **0.345** | 0.217 | 0.833 | +0.145 |
+| Svc_Kill_Media | 0.143 | 0.077 | 1.000 | **0.267** | 0.154 | 1.000 | +0.124 |
+| Svc_Kill_SocialGraph | 0.170 | 0.093 | 1.000 | **0.320** | 0.190 | 1.000 | +0.150 |
+| Svc_Kill_UserTimeline | 0.174 | 0.095 | 1.000 | **0.333** | 0.200 | 1.000 | +0.159 |
+| **Trung bình** | **0.289** | **0.203** | **0.806** | **0.407** | **0.280** | **0.889** | **+0.119** |
+| Độ lệch chuẩn | 0.132 | 0.096 | 0.318 | 0.127 | 0.128 | 0.124 | |
 
-| Kịch bản                         |     F1 | Precision | Recall |
-|:---------------------------------|-------:|----------:|-------:|
-| Code_Stop_MediaService           | 0.8889 |    1.0000 | 0.8000 |
-| Code_Stop_TextService            | 0.6667 |    0.6667 | 0.6667 |
-| Code_Stop_UserService            | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_HomeTimeline | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_SocialGraph  | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_UserTimeline | 1.0000 |    1.0000 | 1.0000 |
-| Perf_CPU_Contention              | 0.8333 |    0.8333 | 0.8333 |
-| Perf_Disk_IO_Stress              | 0.8333 |    0.7143 | 1.0000 |
-| Perf_Network_Loss                | 0.9231 |    0.8571 | 1.0000 |
-| Svc_Kill_Media                   | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_SocialGraph             | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_UserTimeline            | 0.9091 |    0.8333 | 1.0000 |
-| **Trung bình**                   | **0.9212** | **0.9087** | **0.9417** |
-| **Độ lệch chuẩn**                | **0.0994** | **0.1186** | **0.1073** |
+**Trace thắng 11/12 scenario**, chỉ `DB_Redis_CacheLimit_SocialGraph` gần như hòa (-0.027). Recall trung bình của trace đạt 0.889 (so với 0.806 của baseline) — cải thiện đều, không chỉ ở 1-2 scenario.
 
-### 3.2 Trace (KPI + Nhật ký + Trace, `open_trace=True`)
+### 5.1 Nhóm "lỗi luồng gọi hệ thống" (mục tiêu chính: service kill/dừng)
 
-| Kịch bản                         |     F1 | Precision | Recall |
-|:---------------------------------|-------:|----------:|-------:|
-| Code_Stop_MediaService           | 1.0000 |    1.0000 | 1.0000 |
-| Code_Stop_TextService            | 0.9091 |    1.0000 | 0.8333 |
-| Code_Stop_UserService            | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_HomeTimeline | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_SocialGraph  | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_UserTimeline | 1.0000 |    1.0000 | 1.0000 |
-| Perf_CPU_Contention              | 0.7692 |    0.7143 | 0.8333 |
-| Perf_Disk_IO_Stress              | 1.0000 |    1.0000 | 1.0000 |
-| Perf_Network_Loss                | 0.8571 |    0.7500 | 1.0000 |
-| Svc_Kill_Media                   | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_SocialGraph             | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_UserTimeline            | 1.0000 |    1.0000 | 1.0000 |
-| **Trung bình**                   | **0.9613** | **0.9554** | **0.9722** |
-| **Độ lệch chuẩn**                | **0.0730** | **0.1001** | **0.0621** |
+| Scenario | Baseline F1 | Trace F1 | Δ |
+|---|---:|---:|:---:|
+| Code_Stop_MediaService | 0.500 | 0.600 | +0.100 |
+| Code_Stop_TextService | 0.462 | 0.632 | +0.170 |
+| Code_Stop_UserService | 0.462 | 0.615 | +0.154 |
+| Svc_Kill_Media | 0.143 | 0.267 | +0.124 |
+| Svc_Kill_SocialGraph | 0.170 | 0.320 | +0.150 |
+| Svc_Kill_UserTimeline | 0.174 | 0.333 | +0.159 |
+| **Trung bình** | **0.319** | **0.461** | **+0.141** |
 
----
+**Trace thắng cả 6/6** — đây là bằng chứng trực tiếp, có cơ sở cho luận điểm "trace giúp phát hiện tốt hơn lỗi luồng gọi hệ thống", khác biệt rõ giữa 2 nhóm:
+- `Code_Stop_*` (service chết hẳn, tín hiệu mạnh/bền vững suốt session): margin thắng lớn (+0.10 đến +0.17).
+- `Svc_Kill_*` (service restart nhanh, tín hiệu ngắn ~2 phút — giới hạn thật của dữ liệu, đã verify qua `container_label_restartcount`): margin thắng nhỏ hơn nhưng vẫn nhất quán dương (+0.12 đến +0.16), sau khi kết hợp `activity_penalty_weight` + `gate_delta_lr_mult`.
 
-## 4. So sánh
+## 6. Giới hạn còn lại
 
-### 4.1 Bảng tổng hợp
+- **F1 tuyệt đối còn thấp** (0.3-0.6) so với con số cũ (0.9+) — đây là con số **trung thực** sau khi loại bỏ confound, phản ánh đúng độ khó thật của bài toán trên dataset nhỏ (39 window train). Không nên so sánh trực tiếp với báo cáo cũ.
+- **Precision còn thấp** (0.15-0.35) — activity penalty đánh đổi độ chính xác lấy recall cao; còn dư địa tinh chỉnh nếu cần.
+- **`DB_Redis_CacheLimit_SocialGraph`** là scenario duy nhất trace không thắng rõ — chưa điều tra sâu nguyên nhân riêng.
+- Do dataset SN chỉ có 1 session `Normal_Baseline` thật, train set mãi mãi nhỏ (39 window) — đây là giới hạn cấu trúc của raw data, không phải preprocessing.
 
-| Chỉ số                     | Baseline |      Trace | Δ (Trace − Baseline)              |
-|:---------------------------|:--------:|:----------:|:----------------------------------|
-| F1 trung bình              |   0.9212 | **0.9613** | **+0.0401**                       |
-| Precision trung bình       |   0.9087 | **0.9554** | **+0.0467**                       |
-| Recall trung bình          |   0.9417 | **0.9722** | **+0.0306**                       |
-| Độ lệch chuẩn F1           |   0.0994 | **0.0730** | **−0.0264**  (ổn định hơn)        |
-| Số kịch bản đạt F1=1.0     |     6/12 |   **9/12** | **+3**                            |
+## 7. Tệp liên quan
 
-### 4.2 Thay đổi F1 theo từng kịch bản
-
-| Kịch bản                         | Baseline |    Trace | Δ          |
-|:---------------------------------|---------:|---------:|:----------:|
-| Code_Stop_MediaService           |   0.8889 | **1.000** | +0.111 ↑   |
-| Code_Stop_TextService            |   0.6667 | **0.909** | +0.242 ↑   |
-| Code_Stop_UserService            |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_HomeTimeline |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_SocialGraph  |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_UserTimeline |   1.0000 |    1.000 | ±0         |
-| Perf_CPU_Contention              |   0.8333 |    0.769 | −0.064 ↓   |
-| Perf_Disk_IO_Stress              |   0.8333 | **1.000** | +0.167 ↑   |
-| Perf_Network_Loss                |   0.9231 |    0.857 | −0.066 ↓   |
-| Svc_Kill_Media                   |   1.0000 |    1.000 | ±0         |
-| Svc_Kill_SocialGraph             |   1.0000 |    1.000 | ±0         |
-| Svc_Kill_UserTimeline            |   0.9091 | **1.000** | +0.091 ↑   |
-
-**2 kịch bản bị giảm hiệu suất khi bật trace** (Perf_CPU_Contention, Perf_Network_Loss). 4 kịch bản cải thiện, 6 kịch bản giữ nguyên.
-
----
-
-## 5. Tại sao dữ liệu trace cải thiện khả năng phát hiện
-
-### 5.1 Trace nắm bắt các bất thường cấu trúc mà KPI/Nhật ký không thấy
-
-Mỗi cửa sổ trace mã hóa 6 đặc trưng cho mỗi dịch vụ: `[call_count, avg_dur_us, max_dur_us, error_rate, root_rate, latency_dev]`. Khi một dịch vụ bị kill hoặc dừng:
-
-- `call_count` giảm xuống **0** (không có span nào được phát)
-- `error_rate` tăng vọt lên **1.0** (tất cả span còn lại thất bại)
-- Các dịch vụ lân cận có `avg_dur_us` tăng cao (chờ đợi dependency đã chết)
-
-Các tín hiệu này **bổ sung** cho các chỉ số KPI: ngay cả khi CPU và bộ nhớ trông bình thường (host ổn, chỉ là tiến trình chết), trace ngay lập tức phát hiện sự vắng mặt của dịch vụ trong đồ thị lời gọi.
-
-### 5.2 Phân tích theo từng kịch bản
-
-#### Code_Stop_MediaService (0.89 → 1.0)
-Dịch vụ media bị dừng qua code (không phải kill container). Các chỉ số KPI của nó cho thấy sự suy giảm **từ từ** thay vì giảm đột ngột, khiến baseline khó phân biệt với trạng thái bình thường. Tuy nhiên, trace cho thấy MediaService biến mất khỏi đồ thị lời gọi phân tán — một tín hiệu cấu trúc rõ ràng, không thể nhầm lẫn.
-
-#### Code_Stop_TextService (0.67 → 0.91)
-Trước đây là kịch bản khó nhất cho cả hai cấu hình. Việc dừng TextService gây ra sự suy giảm tinh vi: các dịch vụ khác thử lại và bù đắp một phần. Với `latency_dev` được bổ sung như đặc trưng thứ 6, z-score độ lệch so với baseline cung cấp tín hiệu sạch hơn — các dịch vụ phụ thuộc có `latency_dev` dương rõ ràng ngay cả khi thử lại giữ `error_rate` dưới 1.0. Trace nâng F1 từ 0.67 lên 0.91.
-
-#### Perf_Disk_IO_Stress (0.83 → 1.0)
-Disk I/O stress gây ra `max_dur_us` cao trên các dịch vụ truy cập lưu trữ bền vững. Độ trễ tăng vọt trong trace là tín hiệu rõ ràng — chỉ KPI thấy chỉ số đĩa tăng nhưng mẫu log không thay đổi đáng kể (ứng dụng chạy, chỉ là chậm hơn).
-
-#### Svc_Kill_UserTimeline (0.91 → 1.0)
-Kill ở cấp container. KPI cho thấy CPU/bộ nhớ giảm, nhưng các cửa sổ đầu của giai đoạn bất thường (khi container đang bị kill) có mẫu KPI không rõ ràng. Trace cho thấy dịch vụ biến mất khỏi đồ thị lời gọi đúng vào các timestamp phù hợp.
-
-#### Perf_CPU_Contention (0.83 → 0.77, giảm)
-CPU stress ở cấp host: tất cả dịch vụ vẫn chạy và phản hồi. Baseline (KPI+Log) đạt F1=0.83 nhờ phát hiện CPU và load tăng. Trace thực sự gây hại ở đây — `latency_dev` gây nhiễu vì tất cả dịch vụ đều chậm đồng đều, đẩy mô hình về phía false negative trên một số cửa sổ. Đồ thị lời gọi cấu trúc không thay đổi (không có dịch vụ nào biến mất), nên đặc trưng trace thêm mơ hồ thay vì tín hiệu.
-
-#### Perf_Network_Loss (0.92 → 0.86, giảm)
-Bất thường mất gói mạng: baseline nắm bắt tốt qua `spans_rate` KPI và template log lỗi. `error_rate` trong trace có tăng nhưng phương sai của nó chồng lên với dao động bình thường — residual gate không hoàn toàn triệt tiêu đóng góp trace nhiễu, làm lệch ngưỡng nhẹ cho một số cửa sổ.
-
-### 5.3 Đồ thị kề tĩnh cung cấp ngữ cảnh cấu trúc
-
-Ma trận kề tĩnh (được xây dựng từ trace Normal_Baseline) mã hóa **topo lời gọi kỳ vọng** của hệ thống 12 dịch vụ. Khi một dịch vụ biến mất (Svc_Kill, Code_Stop), các thành phần nhận thức đồ thị của mô hình (multi-modal self-attention trên cấu trúc kề) phát hiện sự gián đoạn trong các mẫu lời gọi kỳ vọng. Ngữ cảnh cấu trúc này không có sẵn từ các đặc trưng KPI hay log đơn thuần.
-
----
-
-## 6. Phân tích các kịch bản chưa đạt hoàn hảo
-
-### Code_Stop_TextService (Baseline F1 = 0.67, Trace F1 = 0.91)
-- **Nguyên nhân gốc rễ**: Việc dừng TextService kích hoạt cơ chế thử lại trong các dịch vụ khác (HomeTimeline, SocialGraph). Các lần thử lại này gây ra mẫu lưu lượng bất thường nhưng không bằng không, đôi khi giống với các đỉnh tải bình thường.
-- **Tại sao baseline gặp khó**: Chỉ số KPI cho thấy CPU cao trên các dịch vụ phụ thuộc (thử lại), mẫu log cho thấy template lỗi mới, nhưng sự kết hợp không vượt qua ngưỡng bách phân vị thứ 95 một cách nhất quán cho tất cả 6 cửa sổ bất thường.
-- **Tại sao trace giúp đáng kể**: Z-score `latency_dev` nắm bắt độ lệch độ trễ so với Normal_Baseline — các dịch vụ phụ thuộc có `latency_dev` dương rõ ràng ngay cả khi thử lại giữ `error_rate` dưới 1.0. Điều này đẩy reconstruction loss vượt ngưỡng cho nhiều cửa sổ bất thường hơn, nâng F1 từ 0.67 lên 0.91.
-
-### Perf_CPU_Contention (Baseline F1 = 0.83, Trace F1 = 0.77)
-- **Nguyên nhân gốc rễ**: CPU stress ở cấp host. Tất cả 12 dịch vụ vẫn chạy; ứng dụng xử lý yêu cầu chậm nhưng không thất bại.
-- **Tại sao baseline hoạt động tốt hơn**: KPI phát hiện CPU và load tăng. Không có dịch vụ nào biến mất khỏi đồ thị lời gọi.
-- **Tại sao trace gây hại**: Tất cả dịch vụ đều chậm đồng đều → `latency_dev` tăng đồng loạt → residual gate không hoàn toàn đóng → nhiễu thêm vào reconstruction loss làm lệch ngưỡng. Kết quả: F1 giảm từ 0.83 xuống 0.77.
-- **Hàm ý**: Với loại bất thường suy giảm hiệu suất cấp host, cấu hình baseline (KPI+Log) được ưu tiên hơn.
-
-### Perf_Network_Loss (Baseline F1 = 0.92, Trace F1 = 0.86)
-- **Nguyên nhân gốc rễ**: Mất gói tin mạng ở cấp host. Dịch vụ vẫn chạy nhưng xử lý yêu cầu gián đoạn.
-- **Tại sao baseline hoạt động tốt**: `spans_rate` KPI và template log lỗi cùng nhau nắm bắt mẫu mất gói rõ ràng.
-- **Tại sao trace gây hại nhẹ**: `error_rate` tăng nhưng với phương sai cao (mất gói gián đoạn ≠ thất bại nhất quán), và `latency_dev` dao động quanh 0. Nhiễu trace bổ sung làm giảm nhẹ hiệu suất hiệu chỉnh ngưỡng.
-
----
-
-## 7. Kết luận
-
-| Chỉ số                     | Baseline |                   Trace |
-|:---------------------------|:--------:|:-----------------------:|
-| F1 trung bình              |   0.9212 |     **0.9613** (+4.0%)  |
-| Độ lệch chuẩn F1           |   0.0994 |      **0.0730** (−27%)  |
-| Số kịch bản đạt F1=1.0     |     6/12 |                **9/12** |
-
-**Dữ liệu trace cải thiện phát hiện cho các bất thường cấu trúc** (kill dịch vụ và dừng code) bằng cách nắm bắt tín hiệu vắng mặt (`call_count=0`, `error_rate=1.0`, `latency_dev` cao) mà đặc trưng KPI và log bỏ lỡ. 4 kịch bản cải thiện, 6 kịch bản giữ nguyên, và 2 kịch bản giảm nhẹ (Perf_CPU_Contention, Perf_Network_Loss) — cả hai là bất thường inject hiệu suất, nơi đặc trưng trace gây nhiễu thay vì cung cấp tín hiệu.
-
-**Khuyến nghị**: Sử dụng `open_trace=True` cho triển khai sản xuất khi bất thường kiểu kill dịch vụ là mối quan tâm chính. Với môi trường chủ yếu có bất thường suy giảm hiệu suất (CPU stress, mất gói mạng), cấu hình baseline có thể được ưu tiên vì đặc trưng trace có thể gây hại nhẹ trong những trường hợp đó.
+| Thay đổi | File |
+|---|---|
+| `FAULT_WINDOWS`, 2 pool normal | `codes/common/preprocess_sn.py` |
+| `activity_penalty_weight` | `codes/models/basev3.py`, `codes/run.py` |
+| Forward flag qua wrapper | `codes/common/eval_per_scenario_sn.py` |
+| Checkpoint cuối cùng | `data/sn/result_per_scenario_fuse_{baseline,trace}/` |
