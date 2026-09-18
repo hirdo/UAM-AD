@@ -1,0 +1,4 @@
+Experiment fd1d9caa: 2026/09/19-02:35:17
+Train time/epoch 0.2268
+* Test -- f1:0.3333	rc:1.0000	pc:0.2000	threshold:1.6062
+

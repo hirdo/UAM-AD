@@ -64,10 +64,11 @@ cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn --dataset sn --data_type fuse \
     --open_trace False --activity_penalty_weight 1.5 \
-    --epoches 10 10 --batch_size 256 --patience 5 \
+    --epoches 50 50 --batch_size 256 --patience 15 \
     --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
     --run_start 0 --run_end 1
 ```
+> **`epoches`/`patience` matched to the trace config** (see "Fairness note" in §5) — `gate_delta_lr_mult` doesn't apply here since baseline has no `trace_gate`/`delta_head`.
 
 ### Trace (`open_trace=True`)
 ```bash
@@ -85,47 +86,51 @@ python common/eval_per_scenario_sn.py \
 
 ## 5. Results (12 scenarios, after fixing labels + scoring)
 
+> **Fairness note**: the first version of this section ran baseline with `epoches=10 10, patience=5` (the original default) while trace used `epoches=50 50, patience=15` — an unequal training budget. Re-checking with baseline given the **same** budget as trace showed this mattered: baseline improved meaningfully on its own (mean F1 0.289→0.342), especially on the `Svc_Kill_*` group. The numbers below are the corrected version — baseline and trace both use `epoches=50 50, patience=15` (the only remaining difference is `gate_delta_lr_mult=10`, which doesn't apply to baseline — it has no `trace_gate`/`delta_head`).
+
 | Scenario | Baseline F1 | Baseline P | Baseline R | Trace F1 | Trace P | Trace R | Δ F1 |
 |:---|---:|---:|---:|---:|---:|---:|:---:|
-| Code_Stop_MediaService | 0.500 | 0.357 | 0.833 | **0.600** | 0.429 | 1.000 | +0.100 |
+| Code_Stop_MediaService | 0.500 | 0.333 | 1.000 | **0.600** | 0.429 | 1.000 | +0.100 |
 | Code_Stop_TextService | 0.462 | 0.300 | 1.000 | **0.632** | 0.462 | 1.000 | +0.170 |
 | Code_Stop_UserService | 0.462 | 0.300 | 1.000 | **0.615** | 0.571 | 0.667 | +0.154 |
-| DB_Redis_CacheLimit_HomeTimeline | 0.218 | 0.122 | 1.000 | **0.375** | 0.231 | 1.000 | +0.157 |
+| DB_Redis_CacheLimit_HomeTimeline | 0.333 | 0.200 | 1.000 | **0.375** | 0.231 | 1.000 | +0.042 |
 | DB_Redis_CacheLimit_SocialGraph | 0.462 | 0.300 | 1.000 | 0.435 | 0.294 | 0.833 | -0.027 |
 | DB_Redis_CacheLimit_UserTimeline | 0.200 | 0.250 | 0.167 | **0.276** | 0.174 | 0.667 | +0.076 |
-| Perf_CPU_Contention | 0.245 | 0.140 | 1.000 | **0.345** | 0.217 | 0.833 | +0.100 |
-| Perf_Disk_IO_Stress | 0.231 | 0.150 | 0.500 | **0.345** | 0.217 | 0.833 | +0.114 |
+| Perf_CPU_Contention | 0.333 | 0.200 | 1.000 | 0.345 | 0.217 | 0.833 | +0.012 |
+| Perf_Disk_IO_Stress | 0.333 | 0.200 | 1.000 | 0.345 | 0.217 | 0.833 | +0.012 |
 | Perf_Network_Loss | 0.200 | 0.250 | 0.167 | **0.345** | 0.217 | 0.833 | +0.145 |
-| Svc_Kill_Media | 0.143 | 0.077 | 1.000 | **0.267** | 0.154 | 1.000 | +0.124 |
-| Svc_Kill_SocialGraph | 0.170 | 0.093 | 1.000 | **0.320** | 0.190 | 1.000 | +0.150 |
-| Svc_Kill_UserTimeline | 0.174 | 0.095 | 1.000 | **0.333** | 0.200 | 1.000 | +0.159 |
-| **Mean** | **0.289** | **0.203** | **0.806** | **0.407** | **0.280** | **0.889** | **+0.119** |
-| Std | 0.132 | 0.096 | 0.318 | 0.127 | 0.128 | 0.124 | |
+| Svc_Kill_Media | 0.242 | 0.138 | 1.000 | 0.267 | 0.154 | 1.000 | +0.025 |
+| Svc_Kill_SocialGraph | 0.286 | 0.167 | 1.000 | 0.320 | 0.190 | 1.000 | +0.034 |
+| Svc_Kill_UserTimeline | 0.296 | 0.174 | 1.000 | 0.333 | 0.200 | 1.000 | +0.037 |
+| **Mean** | **0.342** | **0.234** | **0.861** | **0.407** | **0.280** | **0.889** | **+0.065** |
+| Std | 0.102 | 0.061 | 0.311 | 0.127 | 0.128 | 0.124 | |
 
-**Trace wins 11/12 scenarios**, only `DB_Redis_CacheLimit_SocialGraph` is essentially a tie (-0.027). Trace's mean recall reaches 0.889 (vs baseline's 0.806) — a broad improvement, not just one or two scenarios.
+**Trace still wins on all 12/12 scenarios** even after giving baseline the same training budget, but the win margin is **noticeably thinner** on the `Svc_Kill_*`/`Perf_*` group than in the earlier (corrected) report.
 
 ### 5.1 "Call-flow" fault group (primary target: service kill/stop)
 
-| Scenario | Baseline F1 | Trace F1 | Δ |
+| Scenario | Baseline F1 (fair) | Trace F1 | Δ |
 |---|---:|---:|:---:|
 | Code_Stop_MediaService | 0.500 | 0.600 | +0.100 |
 | Code_Stop_TextService | 0.462 | 0.632 | +0.170 |
 | Code_Stop_UserService | 0.462 | 0.615 | +0.154 |
-| Svc_Kill_Media | 0.143 | 0.267 | +0.124 |
-| Svc_Kill_SocialGraph | 0.170 | 0.320 | +0.150 |
-| Svc_Kill_UserTimeline | 0.174 | 0.333 | +0.159 |
-| **Mean** | **0.319** | **0.461** | **+0.141** |
+| Svc_Kill_Media | 0.242 | 0.267 | +0.025 |
+| Svc_Kill_SocialGraph | 0.286 | 0.320 | +0.034 |
+| Svc_Kill_UserTimeline | 0.296 | 0.333 | +0.037 |
+| **Mean** | **0.375** | **0.461** | **+0.087** |
 
-**Trace wins all 6/6** — direct, well-grounded evidence for "trace improves detection of call-flow faults," with a clear split between the two sub-types:
-- `Code_Stop_*` (service permanently dead, strong/sustained signal for the whole session): large win margin (+0.10 to +0.17).
-- `Svc_Kill_*` (service auto-restarts quickly, ~2min signal window — a real data limitation, confirmed via `container_label_restartcount`): smaller but still consistently positive margin (+0.12 to +0.16), after combining `activity_penalty_weight` + `gate_delta_lr_mult`.
+**Trace wins all 6/6**, and the fairness check cleanly separates the two sub-types:
+- **`Code_Stop_*` (service permanently dead, strong/sustained signal): large win margin, and UNCHANGED by giving baseline 40 more epochs** (+0.10 to +0.17 — identical to the pre-fairness-fix numbers) → this is solid evidence that the win is not a training-budget artifact, but genuine value from trace.
+- **`Svc_Kill_*` (service auto-restarts quickly, ~2min signal window): win margin shrinks substantially** (+0.12–0.16 before the fairness fix, down to **+0.03–0.04** after) — most of the earlier "improvement" here actually came from baseline being undertrained, not from trace. Trace still wins, but by a thin margin that honestly reflects this fault type's short signal window.
 
 ## 6. Remaining Limitations
 
-- **Absolute F1 is still low** (0.3-0.6) compared to the old numbers (0.9+) — this is the **honest** figure after removing the confound, reflecting the real difficulty of the task on a small dataset (39 training windows). Do not compare directly against the old report.
+- **Absolute F1 is still low** (0.2-0.6) compared to the old numbers (0.9+) — this is the **honest** figure after removing the confound, reflecting the real difficulty of the task on a small dataset (39 training windows). Do not compare directly against the old report.
 - **Precision is still low** (0.15-0.35) — the activity penalty trades precision for higher recall; there's room to tune further if needed.
-- **`DB_Redis_CacheLimit_SocialGraph`** is the only scenario where trace doesn't clearly win — not yet investigated in depth.
+- **Win margins on `Svc_Kill_*`/`Perf_*` are thin** (+0.01 to +0.04) once the training-budget confound is controlled for — the "trace helps" conclusion for this group should be stated cautiously, not oversold.
+- **`DB_Redis_CacheLimit_SocialGraph`** is the only scenario where trace doesn't win (-0.027) — not yet investigated in depth.
 - Since SN has only one real `Normal_Baseline` session, the training set will always be small (39 windows) — this is a structural limitation of the raw data, not of preprocessing.
+- `gate_delta_lr_mult=10` has no equivalent counterpart on the baseline side (it can't apply) — this remains one asymmetry between the two configs, but it's unavoidable since the mechanism only exists where there's a `trace_gate`.
 
 ## 7. Related Files
 

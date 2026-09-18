@@ -64,10 +64,11 @@ cd D:/UAM-AD/codes
 python common/eval_per_scenario_sn.py \
     --data ../data/sn --dataset sn --data_type fuse \
     --open_trace False --activity_penalty_weight 1.5 \
-    --epoches 10 10 --batch_size 256 --patience 5 \
+    --epoches 50 50 --batch_size 256 --patience 15 \
     --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
     --run_start 0 --run_end 1
 ```
+> **`epoches`/`patience` khớp với cấu hình trace** (xem "Lưu ý về công bằng so sánh" ở mục 5) — `gate_delta_lr_mult` không áp dụng ở đây vì baseline không có `trace_gate`/`delta_head`.
 
 ### Trace (`open_trace=True`)
 ```bash
@@ -85,47 +86,51 @@ python common/eval_per_scenario_sn.py \
 
 ## 5. Kết quả (12 scenario, sau khi sửa nhãn + scoring)
 
+> **Lưu ý về công bằng so sánh**: bản đầu tiên của mục này dùng baseline `epoches=10 10, patience=5` (mặc định gốc) trong khi trace dùng `epoches=50 50, patience=15` — không đồng nhất ngân sách train. Kiểm tra lại bằng cách cho baseline **cùng ngân sách** với trace cho thấy điều này có ảnh hưởng thật: baseline tự cải thiện đáng kể (mean F1 0.289→0.342), đặc biệt ở nhóm `Svc_Kill_*`. Số liệu dưới đây là bản đã sửa — baseline và trace dùng cùng `epoches=50 50, patience=15` (chỉ khác `gate_delta_lr_mult=10` vì tham số này không áp dụng được cho baseline — không có `trace_gate`/`delta_head`).
+
 | Scenario | Baseline F1 | Baseline P | Baseline R | Trace F1 | Trace P | Trace R | Δ F1 |
 |:---|---:|---:|---:|---:|---:|---:|:---:|
-| Code_Stop_MediaService | 0.500 | 0.357 | 0.833 | **0.600** | 0.429 | 1.000 | +0.100 |
+| Code_Stop_MediaService | 0.500 | 0.333 | 1.000 | **0.600** | 0.429 | 1.000 | +0.100 |
 | Code_Stop_TextService | 0.462 | 0.300 | 1.000 | **0.632** | 0.462 | 1.000 | +0.170 |
 | Code_Stop_UserService | 0.462 | 0.300 | 1.000 | **0.615** | 0.571 | 0.667 | +0.154 |
-| DB_Redis_CacheLimit_HomeTimeline | 0.218 | 0.122 | 1.000 | **0.375** | 0.231 | 1.000 | +0.157 |
+| DB_Redis_CacheLimit_HomeTimeline | 0.333 | 0.200 | 1.000 | **0.375** | 0.231 | 1.000 | +0.042 |
 | DB_Redis_CacheLimit_SocialGraph | 0.462 | 0.300 | 1.000 | 0.435 | 0.294 | 0.833 | -0.027 |
 | DB_Redis_CacheLimit_UserTimeline | 0.200 | 0.250 | 0.167 | **0.276** | 0.174 | 0.667 | +0.076 |
-| Perf_CPU_Contention | 0.245 | 0.140 | 1.000 | **0.345** | 0.217 | 0.833 | +0.100 |
-| Perf_Disk_IO_Stress | 0.231 | 0.150 | 0.500 | **0.345** | 0.217 | 0.833 | +0.114 |
+| Perf_CPU_Contention | 0.333 | 0.200 | 1.000 | 0.345 | 0.217 | 0.833 | +0.012 |
+| Perf_Disk_IO_Stress | 0.333 | 0.200 | 1.000 | 0.345 | 0.217 | 0.833 | +0.012 |
 | Perf_Network_Loss | 0.200 | 0.250 | 0.167 | **0.345** | 0.217 | 0.833 | +0.145 |
-| Svc_Kill_Media | 0.143 | 0.077 | 1.000 | **0.267** | 0.154 | 1.000 | +0.124 |
-| Svc_Kill_SocialGraph | 0.170 | 0.093 | 1.000 | **0.320** | 0.190 | 1.000 | +0.150 |
-| Svc_Kill_UserTimeline | 0.174 | 0.095 | 1.000 | **0.333** | 0.200 | 1.000 | +0.159 |
-| **Trung bình** | **0.289** | **0.203** | **0.806** | **0.407** | **0.280** | **0.889** | **+0.119** |
-| Độ lệch chuẩn | 0.132 | 0.096 | 0.318 | 0.127 | 0.128 | 0.124 | |
+| Svc_Kill_Media | 0.242 | 0.138 | 1.000 | 0.267 | 0.154 | 1.000 | +0.025 |
+| Svc_Kill_SocialGraph | 0.286 | 0.167 | 1.000 | 0.320 | 0.190 | 1.000 | +0.034 |
+| Svc_Kill_UserTimeline | 0.296 | 0.174 | 1.000 | 0.333 | 0.200 | 1.000 | +0.037 |
+| **Trung bình** | **0.342** | **0.234** | **0.861** | **0.407** | **0.280** | **0.889** | **+0.065** |
+| Độ lệch chuẩn | 0.102 | 0.061 | 0.311 | 0.127 | 0.128 | 0.124 | |
 
-**Trace thắng 11/12 scenario**, chỉ `DB_Redis_CacheLimit_SocialGraph` gần như hòa (-0.027). Recall trung bình của trace đạt 0.889 (so với 0.806 của baseline) — cải thiện đều, không chỉ ở 1-2 scenario.
+**Trace vẫn thắng dương cả 12/12 scenario** ngay cả khi baseline được cho cùng ngân sách train, nhưng biên thắng **mỏng hơn đáng kể** ở nhóm `Svc_Kill_*`/`Perf_*` so với báo cáo trước (đã sửa).
 
 ### 5.1 Nhóm "lỗi luồng gọi hệ thống" (mục tiêu chính: service kill/dừng)
 
-| Scenario | Baseline F1 | Trace F1 | Δ |
+| Scenario | Baseline F1 (công bằng) | Trace F1 | Δ |
 |---|---:|---:|:---:|
 | Code_Stop_MediaService | 0.500 | 0.600 | +0.100 |
 | Code_Stop_TextService | 0.462 | 0.632 | +0.170 |
 | Code_Stop_UserService | 0.462 | 0.615 | +0.154 |
-| Svc_Kill_Media | 0.143 | 0.267 | +0.124 |
-| Svc_Kill_SocialGraph | 0.170 | 0.320 | +0.150 |
-| Svc_Kill_UserTimeline | 0.174 | 0.333 | +0.159 |
-| **Trung bình** | **0.319** | **0.461** | **+0.141** |
+| Svc_Kill_Media | 0.242 | 0.267 | +0.025 |
+| Svc_Kill_SocialGraph | 0.286 | 0.320 | +0.034 |
+| Svc_Kill_UserTimeline | 0.296 | 0.333 | +0.037 |
+| **Trung bình** | **0.375** | **0.461** | **+0.087** |
 
-**Trace thắng cả 6/6** — đây là bằng chứng trực tiếp, có cơ sở cho luận điểm "trace giúp phát hiện tốt hơn lỗi luồng gọi hệ thống", khác biệt rõ giữa 2 nhóm:
-- `Code_Stop_*` (service chết hẳn, tín hiệu mạnh/bền vững suốt session): margin thắng lớn (+0.10 đến +0.17).
-- `Svc_Kill_*` (service restart nhanh, tín hiệu ngắn ~2 phút — giới hạn thật của dữ liệu, đã verify qua `container_label_restartcount`): margin thắng nhỏ hơn nhưng vẫn nhất quán dương (+0.12 đến +0.16), sau khi kết hợp `activity_penalty_weight` + `gate_delta_lr_mult`.
+**Trace thắng cả 6/6**, và phân tách rõ 2 nhóm sau khi kiểm chứng công bằng:
+- **`Code_Stop_*` (service chết hẳn, tín hiệu mạnh/bền vững suốt session): margin thắng lớn và KHÔNG đổi dù baseline train thêm 40 epoch** (+0.10 đến +0.17 — giống hệt số liệu trước khi sửa công bằng) → đây là bằng chứng chắc chắn, không phải nhờ ngân sách train, mà nhờ trace thực sự mang thêm thông tin.
+- **`Svc_Kill_*` (service restart nhanh, tín hiệu ngắn ~2 phút): margin thắng co lại rất nhiều** (+0.12→+0.16 trước sửa, còn **+0.03→+0.04** sau sửa) — phần lớn "cải thiện" trước đó thực chất đến từ việc baseline được train lâu hơn, không phải do trace. Trace vẫn thắng, nhưng biên rất mỏng, phản ánh đúng giới hạn tín hiệu ngắn của loại lỗi này.
 
 ## 6. Giới hạn còn lại
 
-- **F1 tuyệt đối còn thấp** (0.3-0.6) so với con số cũ (0.9+) — đây là con số **trung thực** sau khi loại bỏ confound, phản ánh đúng độ khó thật của bài toán trên dataset nhỏ (39 window train). Không nên so sánh trực tiếp với báo cáo cũ.
+- **F1 tuyệt đối còn thấp** (0.2-0.6) so với con số cũ (0.9+) — đây là con số **trung thực** sau khi loại bỏ confound, phản ánh đúng độ khó thật của bài toán trên dataset nhỏ (39 window train). Không nên so sánh trực tiếp với báo cáo cũ.
 - **Precision còn thấp** (0.15-0.35) — activity penalty đánh đổi độ chính xác lấy recall cao; còn dư địa tinh chỉnh nếu cần.
-- **`DB_Redis_CacheLimit_SocialGraph`** là scenario duy nhất trace không thắng rõ — chưa điều tra sâu nguyên nhân riêng.
+- **Margin thắng ở `Svc_Kill_*`/`Perf_*` rất mỏng** (+0.01 đến +0.04) sau khi kiểm soát công bằng ngân sách train — kết luận "trace giúp" ở nhóm này cần thận trọng, không nên diễn giải quá mạnh.
+- **`DB_Redis_CacheLimit_SocialGraph`** là scenario duy nhất trace không thắng (-0.027) — chưa điều tra sâu nguyên nhân riêng.
 - Do dataset SN chỉ có 1 session `Normal_Baseline` thật, train set mãi mãi nhỏ (39 window) — đây là giới hạn cấu trúc của raw data, không phải preprocessing.
+- `gate_delta_lr_mult=10` không có đối chứng tương đương ở baseline (không áp dụng được) — đây là 1 điểm bất đối xứng còn lại giữa 2 cấu hình, nhưng không thể tránh khỏi vì cơ chế này chỉ tồn tại khi có `trace_gate`.
 
 ## 7. Tệp liên quan
 

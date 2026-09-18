@@ -1,4 +1,0 @@
-Experiment 3dafcb93: 2026/09/18-22:48:29
-Train time/epoch 0.2735
-* Test -- f1:0.2308	rc:0.5000	pc:0.1500	threshold:2.3685
-

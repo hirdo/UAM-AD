@@ -1,0 +1,4 @@
+Experiment deffb3d7: 2026/09/19-02:37:25
+Train time/epoch 0.2318
+* Test -- f1:0.2963	rc:1.0000	pc:0.1739	threshold:1.6543
+

@@ -9,95 +9,95 @@
     {
       "scenario": "Code_Stop_MediaService_20251104_024819",
       "f1": 0.5,
-      "precision": 0.3571,
-      "recall": 0.8333,
-      "elapsed_sec": 34.799045300002035
+      "precision": 0.3333,
+      "recall": 1.0,
+      "elapsed_sec": 25.91548540000076
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
       "f1": 0.4615,
       "precision": 0.3,
       "recall": 1.0,
-      "elapsed_sec": 12.99491819999821
+      "elapsed_sec": 15.740817899997637
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
       "f1": 0.4615,
       "precision": 0.3,
       "recall": 1.0,
-      "elapsed_sec": 12.00378400000045
+      "elapsed_sec": 15.656750599999214
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
-      "f1": 0.2182,
-      "precision": 0.1224,
+      "f1": 0.3333,
+      "precision": 0.2,
       "recall": 1.0,
-      "elapsed_sec": 11.458254699999088
+      "elapsed_sec": 24.630724000002374
     },
     {
       "scenario": "DB_Redis_CacheLimit_SocialGraph_20251104_013615",
       "f1": 0.4615,
       "precision": 0.3,
       "recall": 1.0,
-      "elapsed_sec": 11.846819800000958
+      "elapsed_sec": 16.184507699996175
     },
     {
       "scenario": "DB_Redis_CacheLimit_UserTimeline_20251104_011238",
       "f1": 0.2,
       "precision": 0.25,
       "recall": 0.1667,
-      "elapsed_sec": 12.141088700002001
+      "elapsed_sec": 16.011648399995465
     },
     {
       "scenario": "Perf_CPU_Contention_20251103_222601",
-      "f1": 0.2449,
-      "precision": 0.1395,
+      "f1": 0.3333,
+      "precision": 0.2,
       "recall": 1.0,
-      "elapsed_sec": 13.313253899999836
+      "elapsed_sec": 29.20582870000362
     },
     {
       "scenario": "Perf_Disk_IO_Stress_20251103_231335",
-      "f1": 0.2308,
-      "precision": 0.15,
-      "recall": 0.5,
-      "elapsed_sec": 13.165155500002584
+      "f1": 0.3333,
+      "precision": 0.2,
+      "recall": 1.0,
+      "elapsed_sec": 25.524392599996645
     },
     {
       "scenario": "Perf_Network_Loss_20251103_224954",
       "f1": 0.2,
       "precision": 0.25,
       "recall": 0.1667,
-      "elapsed_sec": 11.730476099997759
+      "elapsed_sec": 16.069042199997057
     },
     {
       "scenario": "Svc_Kill_Media_20251104_000111",
-      "f1": 0.1429,
-      "precision": 0.0769,
+      "f1": 0.2424,
+      "precision": 0.1379,
       "recall": 1.0,
-      "elapsed_sec": 11.7555489999977
+      "elapsed_sec": 27.16733760000352
     },
     {
       "scenario": "Svc_Kill_SocialGraph_20251104_002506",
-      "f1": 0.1702,
-      "precision": 0.093,
+      "f1": 0.2857,
+      "precision": 0.1667,
       "recall": 1.0,
-      "elapsed_sec": 11.429356299999199
+      "elapsed_sec": 27.358500399997865
     },
     {
       "scenario": "Svc_Kill_UserTimeline_20251103_233717",
-      "f1": 0.1739,
-      "precision": 0.0952,
+      "f1": 0.2963,
+      "precision": 0.1739,
       "recall": 1.0,
-      "elapsed_sec": 11.671798799998214
+      "elapsed_sec": 30.97398869999597
     }
   ],
   "aggregate": {
-    "f1_mean": 0.28878333333333334,
-    "f1_std": 0.13187195072830646,
-    "precision_mean": 0.2028416666666667,
-    "precision_std": 0.09545992578331262,
-    "recall_mean": 0.8055583333333333,
-    "recall_std": 0.3179197919243503,
-    "total_elapsed_sec": 168.51325290000023
+    "f1_mean": 0.34240000000000004,
+    "f1_std": 0.10146273535967118,
+    "precision_mean": 0.2343166666666667,
+    "precision_std": 0.0607479743603759,
+    "recall_mean": 0.8611166666666668,
+    "recall_std": 0.3105525742750958,
+    "total_elapsed_sec": 270.64608189999853
   }
 }

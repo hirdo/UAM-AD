@@ -1,4 +1,0 @@
-Experiment 0ba725d1: 2026/09/18-22:47:38
-Train time/epoch 0.2936
-* Test -- f1:0.2182	rc:1.0000	pc:0.1224	threshold:1.8177
-

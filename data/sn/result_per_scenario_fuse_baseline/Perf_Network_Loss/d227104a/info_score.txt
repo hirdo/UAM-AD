@@ -1,0 +1,4 @@
+Experiment d227104a: 2026/09/19-02:35:59
+Train time/epoch 0.2491
+* Test -- f1:0.2000	rc:0.1667	pc:0.2500	threshold:6.6369
+
