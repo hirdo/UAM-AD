@@ -1,0 +1,59 @@
+2026-09-18 14:48:21,523 P7388 INFO ^^^^^^^^^^ Current Model:hades, 3dafcb93 ^^^^^^^^^^
+2026-09-18 14:48:21,523 P7388 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
+2026-09-18 14:48:22,247 P7388 INFO 373 unique log templates found.
+2026-09-18 14:48:22,263 P7388 INFO Transforming unlabel train data.
+2026-09-18 14:48:22,279 P7388 INFO Transforming test data.
+2026-09-18 14:48:22,423 P7388 INFO 6150 new templates show.
+2026-09-18 14:48:22,565 P7388 INFO Transforming val data.
+2026-09-18 14:48:22,565 P7388 INFO 78 new templates show.
+2026-09-18 14:48:22,581 P7388 INFO Data loaded done!
+2026-09-18 14:48:22,613 P7388 INFO Known word number: 373
+2026-09-18 14:48:23,183 P7388 INFO Activity baseline (train): mean=90.5470 std=20.5385
+2026-09-18 14:48:25,081 P7388 INFO Epoch 0/10, train generator loss: 1.32167
+2026-09-18 14:48:25,183 P7388 INFO Epoch 0/10, train discriminator loss: 2.69848
+2026-09-18 14:48:25,393 P7388 INFO *** Test time is 0.20874285697937012
+2026-09-18 14:48:25,395 P7388 INFO Epoch 0/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.62s]
+2026-09-18 14:48:25,525 P7388 INFO Epoch 1/10, train generator loss: 1.25754
+2026-09-18 14:48:25,599 P7388 INFO Epoch 1/10, train discriminator loss: 2.03242
+2026-09-18 14:48:25,822 P7388 INFO *** Test time is 0.22225022315979004
+2026-09-18 14:48:25,822 P7388 INFO Epoch 1/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.19s]
+2026-09-18 14:48:25,822 P7388 INFO early stopping epoch 1/5
+2026-09-18 14:48:25,947 P7388 INFO Epoch 2/10, train generator loss: 1.24390
+2026-09-18 14:48:26,042 P7388 INFO Epoch 2/10, train discriminator loss: 1.63043
+2026-09-18 14:48:26,216 P7388 INFO *** Test time is 0.17403626441955566
+2026-09-18 14:48:26,216 P7388 INFO Epoch 2/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.22s]
+2026-09-18 14:48:26,216 P7388 INFO early stopping epoch 2/5
+2026-09-18 14:48:26,343 P7388 INFO Epoch 3/10, train generator loss: 1.24583
+2026-09-18 14:48:26,468 P7388 INFO Epoch 3/10, train discriminator loss: 1.42598
+2026-09-18 14:48:26,756 P7388 INFO *** Test time is 0.27175092697143555
+2026-09-18 14:48:26,756 P7388 INFO Epoch 3/10, test f1: 0.23077 rc: 0.50000 pc: 0.15000. [0.27s]
+2026-09-18 14:48:26,913 P7388 INFO Epoch 4/10, train generator loss: 1.24464
+2026-09-18 14:48:27,060 P7388 INFO Epoch 4/10, train discriminator loss: 1.35889
+2026-09-18 14:48:27,309 P7388 INFO *** Test time is 0.24735689163208008
+2026-09-18 14:48:27,309 P7388 INFO Epoch 4/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.29s]
+2026-09-18 14:48:27,309 P7388 INFO early stopping epoch 1/5
+2026-09-18 14:48:27,466 P7388 INFO Epoch 5/10, train generator loss: 1.24428
+2026-09-18 14:48:27,594 P7388 INFO Epoch 5/10, train discriminator loss: 1.28005
+2026-09-18 14:48:27,750 P7388 INFO *** Test time is 0.15591144561767578
+2026-09-18 14:48:27,756 P7388 INFO Epoch 5/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.28s]
+2026-09-18 14:48:27,758 P7388 INFO early stopping epoch 2/5
+2026-09-18 14:48:27,845 P7388 INFO Epoch 6/10, train generator loss: 1.25376
+2026-09-18 14:48:27,939 P7388 INFO Epoch 6/10, train discriminator loss: 1.15262
+2026-09-18 14:48:28,144 P7388 INFO *** Test time is 0.20520877838134766
+2026-09-18 14:48:28,144 P7388 INFO Epoch 6/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.18s]
+2026-09-18 14:48:28,144 P7388 INFO early stopping epoch 3/5
+2026-09-18 14:48:28,239 P7388 INFO Epoch 7/10, train generator loss: 1.26754
+2026-09-18 14:48:28,318 P7388 INFO Epoch 7/10, train discriminator loss: 1.05153
+2026-09-18 14:48:28,491 P7388 INFO *** Test time is 0.17357826232910156
+2026-09-18 14:48:28,491 P7388 INFO Epoch 7/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.17s]
+2026-09-18 14:48:28,491 P7388 INFO early stopping epoch 4/5
+2026-09-18 14:48:28,618 P7388 INFO Epoch 8/10, train generator loss: 1.28247
+2026-09-18 14:48:28,728 P7388 INFO Epoch 8/10, train discriminator loss: 0.96733
+2026-09-18 14:48:28,913 P7388 INFO *** Test time is 0.18508195877075195
+2026-09-18 14:48:28,913 P7388 INFO Epoch 8/10, test f1: 0.20690 rc: 0.50000 pc: 0.13043. [0.24s]
+2026-09-18 14:48:28,914 P7388 INFO early stopping epoch 5/5
+2026-09-18 14:48:28,914 P7388 INFO Early stopping
+2026-09-18 14:48:29,028 P7388 INFO Threshold (p=95.0, src=val): 2.495603
+2026-09-18 14:48:29,076 P7388 INFO *** Test F1 0.1000  of unsupervised traning
+2026-09-18 14:48:29,076 P7388 INFO *** Best F1 {'f1': 0.23076923076923078, 'rc': 0.5, 'pc': 0.15, 'threshold': np.float64(2.3684866714477537)}  of unsupervised traning
+2026-09-18 14:48:29,080 P7388 INFO Current hash id 3dafcb93

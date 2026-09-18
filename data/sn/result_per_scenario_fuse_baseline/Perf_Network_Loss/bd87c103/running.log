@@ -1,0 +1,45 @@
+2026-09-18 14:48:34,186 P11976 INFO ^^^^^^^^^^ Current Model:hades, bd87c103 ^^^^^^^^^^
+2026-09-18 14:48:34,186 P11976 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
+2026-09-18 14:48:35,038 P11976 INFO 373 unique log templates found.
+2026-09-18 14:48:35,050 P11976 INFO Transforming unlabel train data.
+2026-09-18 14:48:35,070 P11976 INFO Transforming test data.
+2026-09-18 14:48:35,209 P11976 INFO 6154 new templates show.
+2026-09-18 14:48:35,367 P11976 INFO Transforming val data.
+2026-09-18 14:48:35,383 P11976 INFO 78 new templates show.
+2026-09-18 14:48:35,399 P11976 INFO Data loaded done!
+2026-09-18 14:48:35,431 P11976 INFO Known word number: 373
+2026-09-18 14:48:36,002 P11976 INFO Activity baseline (train): mean=90.5470 std=20.5385
+2026-09-18 14:48:38,046 P11976 INFO Epoch 0/10, train generator loss: 1.33537
+2026-09-18 14:48:38,157 P11976 INFO Epoch 0/10, train discriminator loss: 2.58490
+2026-09-18 14:48:38,347 P11976 INFO *** Test time is 0.19016242027282715
+2026-09-18 14:48:38,347 P11976 INFO Epoch 0/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.67s]
+2026-09-18 14:48:38,473 P11976 INFO Epoch 1/10, train generator loss: 1.27858
+2026-09-18 14:48:38,552 P11976 INFO Epoch 1/10, train discriminator loss: 1.95592
+2026-09-18 14:48:38,770 P11976 INFO *** Test time is 0.2180495262145996
+2026-09-18 14:48:38,775 P11976 INFO Epoch 1/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
+2026-09-18 14:48:38,775 P11976 INFO early stopping epoch 1/5
+2026-09-18 14:48:38,919 P11976 INFO Epoch 2/10, train generator loss: 1.26201
+2026-09-18 14:48:38,997 P11976 INFO Epoch 2/10, train discriminator loss: 1.51943
+2026-09-18 14:48:39,219 P11976 INFO *** Test time is 0.2219703197479248
+2026-09-18 14:48:39,219 P11976 INFO Epoch 2/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.22s]
+2026-09-18 14:48:39,219 P11976 INFO early stopping epoch 2/5
+2026-09-18 14:48:39,387 P11976 INFO Epoch 3/10, train generator loss: 1.26379
+2026-09-18 14:48:39,514 P11976 INFO Epoch 3/10, train discriminator loss: 1.24538
+2026-09-18 14:48:39,752 P11976 INFO *** Test time is 0.2376880645751953
+2026-09-18 14:48:39,752 P11976 INFO Epoch 3/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.30s]
+2026-09-18 14:48:39,752 P11976 INFO early stopping epoch 3/5
+2026-09-18 14:48:39,899 P11976 INFO Epoch 4/10, train generator loss: 1.27856
+2026-09-18 14:48:40,019 P11976 INFO Epoch 4/10, train discriminator loss: 1.06064
+2026-09-18 14:48:40,248 P11976 INFO *** Test time is 0.22966861724853516
+2026-09-18 14:48:40,256 P11976 INFO Epoch 4/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.27s]
+2026-09-18 14:48:40,256 P11976 INFO early stopping epoch 4/5
+2026-09-18 14:48:40,423 P11976 INFO Epoch 5/10, train generator loss: 1.30018
+2026-09-18 14:48:40,498 P11976 INFO Epoch 5/10, train discriminator loss: 0.92473
+2026-09-18 14:48:40,634 P11976 INFO *** Test time is 0.13638901710510254
+2026-09-18 14:48:40,634 P11976 INFO Epoch 5/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.24s]
+2026-09-18 14:48:40,634 P11976 INFO early stopping epoch 5/5
+2026-09-18 14:48:40,634 P11976 INFO Early stopping
+2026-09-18 14:48:40,775 P11976 INFO Threshold (p=95.0, src=val): 2.533508
+2026-09-18 14:48:40,815 P11976 INFO *** Test F1 0.0870  of unsupervised traning
+2026-09-18 14:48:40,815 P11976 INFO *** Best F1 {'f1': 0.2, 'rc': 0.16666666666666666, 'pc': 0.25, 'threshold': np.float64(6.650085678100583)}  of unsupervised traning
+2026-09-18 14:48:40,818 P11976 INFO Current hash id bd87c103

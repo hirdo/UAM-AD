@@ -1,0 +1,4 @@
+Experiment bffc29c5: 2026/09/18-22:47:50
+Train time/epoch 0.3684
+* Test -- f1:0.4615	rc:1.0000	pc:0.3000	threshold:2.5284
+

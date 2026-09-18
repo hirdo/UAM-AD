@@ -1,4 +1,0 @@
-Experiment ec88df57: 2026/09/17-19:43:59
-Train time/epoch 0.2493
-* Test -- f1:0.8936	rc:0.8077	pc:1.0000	threshold:1.4002
-

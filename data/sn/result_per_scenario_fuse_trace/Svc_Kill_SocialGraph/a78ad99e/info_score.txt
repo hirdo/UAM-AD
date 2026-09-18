@@ -1,0 +1,4 @@
+Experiment a78ad99e: 2026/09/18-22:53:47
+Train time/epoch 0.2746
+* Test -- f1:0.3200	rc:1.0000	pc:0.1905	threshold:1.7963
+

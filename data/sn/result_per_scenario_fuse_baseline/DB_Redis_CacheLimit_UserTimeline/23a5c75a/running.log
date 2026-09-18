@@ -1,0 +1,45 @@
+2026-09-18 14:47:55,991 P13948 INFO ^^^^^^^^^^ Current Model:hades, 23a5c75a ^^^^^^^^^^
+2026-09-18 14:47:55,991 P13948 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
+2026-09-18 14:47:56,706 P13948 INFO 373 unique log templates found.
+2026-09-18 14:47:56,706 P13948 INFO Transforming unlabel train data.
+2026-09-18 14:47:56,722 P13948 INFO Transforming test data.
+2026-09-18 14:47:56,848 P13948 INFO 6154 new templates show.
+2026-09-18 14:47:57,008 P13948 INFO Transforming val data.
+2026-09-18 14:47:57,024 P13948 INFO 78 new templates show.
+2026-09-18 14:47:57,032 P13948 INFO Data loaded done!
+2026-09-18 14:47:57,072 P13948 INFO Known word number: 373
+2026-09-18 14:47:57,626 P13948 INFO Activity baseline (train): mean=90.5470 std=20.5385
+2026-09-18 14:47:59,497 P13948 INFO Epoch 0/10, train generator loss: 1.32712
+2026-09-18 14:47:59,600 P13948 INFO Epoch 0/10, train discriminator loss: 2.60408
+2026-09-18 14:47:59,783 P13948 INFO *** Test time is 0.18297219276428223
+2026-09-18 14:47:59,785 P13948 INFO Epoch 0/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.60s]
+2026-09-18 14:47:59,935 P13948 INFO Epoch 1/10, train generator loss: 1.28084
+2026-09-18 14:48:00,034 P13948 INFO Epoch 1/10, train discriminator loss: 1.97650
+2026-09-18 14:48:00,190 P13948 INFO *** Test time is 0.1558065414428711
+2026-09-18 14:48:00,192 P13948 INFO Epoch 1/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.22s]
+2026-09-18 14:48:00,192 P13948 INFO early stopping epoch 1/5
+2026-09-18 14:48:00,298 P13948 INFO Epoch 2/10, train generator loss: 1.26018
+2026-09-18 14:48:00,383 P13948 INFO Epoch 2/10, train discriminator loss: 1.55196
+2026-09-18 14:48:00,540 P13948 INFO *** Test time is 0.15749645233154297
+2026-09-18 14:48:00,556 P13948 INFO Epoch 2/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
+2026-09-18 14:48:00,556 P13948 INFO early stopping epoch 2/5
+2026-09-18 14:48:00,672 P13948 INFO Epoch 3/10, train generator loss: 1.25267
+2026-09-18 14:48:00,743 P13948 INFO Epoch 3/10, train discriminator loss: 1.28411
+2026-09-18 14:48:00,967 P13948 INFO *** Test time is 0.22327494621276855
+2026-09-18 14:48:00,983 P13948 INFO Epoch 3/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
+2026-09-18 14:48:00,983 P13948 INFO early stopping epoch 3/5
+2026-09-18 14:48:01,137 P13948 INFO Epoch 4/10, train generator loss: 1.26078
+2026-09-18 14:48:01,268 P13948 INFO Epoch 4/10, train discriminator loss: 1.11678
+2026-09-18 14:48:01,516 P13948 INFO *** Test time is 0.24785757064819336
+2026-09-18 14:48:01,524 P13948 INFO Epoch 4/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.29s]
+2026-09-18 14:48:01,524 P13948 INFO early stopping epoch 4/5
+2026-09-18 14:48:01,665 P13948 INFO Epoch 5/10, train generator loss: 1.27563
+2026-09-18 14:48:01,779 P13948 INFO Epoch 5/10, train discriminator loss: 1.01707
+2026-09-18 14:48:02,059 P13948 INFO *** Test time is 0.2717883586883545
+2026-09-18 14:48:02,067 P13948 INFO Epoch 5/10, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.26s]
+2026-09-18 14:48:02,067 P13948 INFO early stopping epoch 5/5
+2026-09-18 14:48:02,067 P13948 INFO Early stopping
+2026-09-18 14:48:02,232 P13948 INFO Threshold (p=95.0, src=val): 2.536935
+2026-09-18 14:48:02,293 P13948 INFO *** Test F1 0.0870  of unsupervised traning
+2026-09-18 14:48:02,293 P13948 INFO *** Best F1 {'f1': 0.2, 'rc': 0.16666666666666666, 'pc': 0.25, 'threshold': np.float64(6.5912553215026835)}  of unsupervised traning
+2026-09-18 14:48:02,297 P13948 INFO Current hash id 23a5c75a

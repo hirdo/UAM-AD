@@ -158,6 +158,8 @@ def main():
                    help="Add max-based latency_dev feature to the gate's input. False = no-op (default).")
     p.add_argument("--trace_pool", default="mean", choices=["mean", "max"],
                    help="How to pool per-node trace embeddings into ZV. 'mean' = no-op (default).")
+    p.add_argument("--activity_penalty_weight", default=0.0, type=float,
+                   help="Weight on the 'activity deficit' anomaly-score term. 0.0 = no-op (default).")
     p.add_argument("--result_dir",    default=None,
                    help="Base result dir; each scenario gets its own subdir. "
                         "Defaults to {data}/result_per_scenario_{data_type}_{trace|baseline}")
@@ -233,6 +235,7 @@ def main():
             "--gate_delta_lr_mult", str(args.gate_delta_lr_mult),
             "--gate_extra_feats",  str(args.gate_extra_feats),
             "--trace_pool",        str(args.trace_pool),
+            "--activity_penalty_weight", str(args.activity_penalty_weight),
         ]
 
         sc_start = time.perf_counter()

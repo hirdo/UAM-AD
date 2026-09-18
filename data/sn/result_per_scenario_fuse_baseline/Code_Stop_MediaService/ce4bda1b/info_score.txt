@@ -1,4 +1,0 @@
-Experiment ce4bda1b: 2026/09/17-19:41:01
-Train time/epoch 0.2155
-* Test -- f1:0.8286	rc:0.7073	pc:1.0000	threshold:1.6926
-

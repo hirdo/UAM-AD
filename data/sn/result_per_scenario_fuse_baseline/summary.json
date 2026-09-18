@@ -2,102 +2,102 @@
   "config": {
     "data_type": "fuse",
     "open_trace": "False",
-    "val_percentile": 95.0,
+    "val_percentile": 95,
     "window_size": 5
   },
   "per_scenario": [
     {
       "scenario": "Code_Stop_MediaService_20251104_024819",
-      "f1": 0.8611,
-      "precision": 1.0,
-      "recall": 0.7561,
-      "elapsed_sec": 30.2580178000062
+      "f1": 0.5,
+      "precision": 0.3571,
+      "recall": 0.8333,
+      "elapsed_sec": 34.799045300002035
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
-      "f1": 0.8571,
-      "precision": 0.9545,
-      "recall": 0.7778,
-      "elapsed_sec": 24.560717800006387
+      "f1": 0.4615,
+      "precision": 0.3,
+      "recall": 1.0,
+      "elapsed_sec": 12.99491819999821
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
-      "f1": 0.902,
-      "precision": 1.0,
-      "recall": 0.8214,
-      "elapsed_sec": 23.296153200004483
+      "f1": 0.4615,
+      "precision": 0.3,
+      "recall": 1.0,
+      "elapsed_sec": 12.00378400000045
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
-      "f1": 0.8462,
-      "precision": 1.0,
-      "recall": 0.7333,
-      "elapsed_sec": 22.422249499999452
+      "f1": 0.2182,
+      "precision": 0.1224,
+      "recall": 1.0,
+      "elapsed_sec": 11.458254699999088
     },
     {
       "scenario": "DB_Redis_CacheLimit_SocialGraph_20251104_013615",
-      "f1": 0.875,
-      "precision": 1.0,
-      "recall": 0.7778,
-      "elapsed_sec": 22.23604139999952
+      "f1": 0.4615,
+      "precision": 0.3,
+      "recall": 1.0,
+      "elapsed_sec": 11.846819800000958
     },
     {
       "scenario": "DB_Redis_CacheLimit_UserTimeline_20251104_011238",
-      "f1": 0.8085,
-      "precision": 1.0,
-      "recall": 0.6786,
-      "elapsed_sec": 24.491357100007008
+      "f1": 0.2,
+      "precision": 0.25,
+      "recall": 0.1667,
+      "elapsed_sec": 12.141088700002001
     },
     {
       "scenario": "Perf_CPU_Contention_20251103_222601",
-      "f1": 0.766,
-      "precision": 1.0,
-      "recall": 0.6207,
-      "elapsed_sec": 22.150655499994173
+      "f1": 0.2449,
+      "precision": 0.1395,
+      "recall": 1.0,
+      "elapsed_sec": 13.313253899999836
     },
     {
       "scenario": "Perf_Disk_IO_Stress_20251103_231335",
-      "f1": 0.875,
-      "precision": 1.0,
-      "recall": 0.7778,
-      "elapsed_sec": 21.698454199999105
+      "f1": 0.2308,
+      "precision": 0.15,
+      "recall": 0.5,
+      "elapsed_sec": 13.165155500002584
     },
     {
       "scenario": "Perf_Network_Loss_20251103_224954",
-      "f1": 0.8936,
-      "precision": 1.0,
-      "recall": 0.8077,
-      "elapsed_sec": 23.83753340000112
+      "f1": 0.2,
+      "precision": 0.25,
+      "recall": 0.1667,
+      "elapsed_sec": 11.730476099997759
     },
     {
       "scenario": "Svc_Kill_Media_20251104_000111",
-      "f1": 0.8444,
-      "precision": 1.0,
-      "recall": 0.7308,
-      "elapsed_sec": 25.00524349999614
+      "f1": 0.1429,
+      "precision": 0.0769,
+      "recall": 1.0,
+      "elapsed_sec": 11.7555489999977
     },
     {
       "scenario": "Svc_Kill_SocialGraph_20251104_002506",
-      "f1": 0.902,
-      "precision": 1.0,
-      "recall": 0.8214,
-      "elapsed_sec": 24.038025100002415
+      "f1": 0.1702,
+      "precision": 0.093,
+      "recall": 1.0,
+      "elapsed_sec": 11.429356299999199
     },
     {
       "scenario": "Svc_Kill_UserTimeline_20251103_233717",
-      "f1": 0.8936,
-      "precision": 1.0,
-      "recall": 0.8077,
-      "elapsed_sec": 21.740395600005286
+      "f1": 0.1739,
+      "precision": 0.0952,
+      "recall": 1.0,
+      "elapsed_sec": 11.671798799998214
     }
   ],
   "aggregate": {
-    "f1_mean": 0.8603749999999999,
-    "f1_std": 0.03890790675856686,
-    "precision_mean": 0.9962083333333333,
-    "precision_std": 0.012575535663430885,
-    "recall_mean": 0.7592583333333334,
-    "recall_std": 0.05819909017520997,
-    "total_elapsed_sec": 286.3853795999894
+    "f1_mean": 0.28878333333333334,
+    "f1_std": 0.13187195072830646,
+    "precision_mean": 0.2028416666666667,
+    "precision_std": 0.09545992578331262,
+    "recall_mean": 0.8055583333333333,
+    "recall_std": 0.3179197919243503,
+    "total_elapsed_sec": 168.51325290000023
   }
 }

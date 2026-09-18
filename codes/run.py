@@ -109,6 +109,12 @@ parser.add_argument("--trace_pool", default="mean", choices=["mean", "max"],
                     help="How to pool per-node trace embeddings [N,H] into ZV [H]. "
                          "'mean' (default) dilutes a single extreme node's signal across all "
                          "N nodes; 'max' takes the most extreme node's embedding directly.")
+parser.add_argument("--activity_penalty_weight", default=0.0, type=float,
+                    help="Weight on a reconstruction-independent 'activity deficit' term added "
+                         "to the anomaly score: how far below the normal training activity level "
+                         "(kpi_features.sum + log_features.sum) a window's raw input is. Catches "
+                         "'went silent' faults whose near-empty input reconstructs too well to "
+                         "score as anomalous on reconstruction loss alone. 0.0 = no-op (default).")
 parser.add_argument("--fuse_type", default="multi_modal_self_attn", choices=["concat", "cross_attn", "sep_attn","multi_modal_self_attn"])
 parser.add_argument("--attn_type", default="add", choices=["dot", "add","qkv"])
 parser.add_argument("--enable_rca", default=False, type=str2bool,

@@ -1,4 +1,0 @@
-Experiment 79f320ac: 2026/09/17-19:44:50
-Train time/epoch 0.2314
-* Test -- f1:0.9020	rc:0.8214	pc:1.0000	threshold:1.5172
-

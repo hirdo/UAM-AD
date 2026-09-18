@@ -1,0 +1,45 @@
+2026-09-18 14:48:45,903 P17044 INFO ^^^^^^^^^^ Current Model:hades, feb76270 ^^^^^^^^^^
+2026-09-18 14:48:45,903 P17044 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
+2026-09-18 14:48:46,762 P17044 INFO 373 unique log templates found.
+2026-09-18 14:48:46,762 P17044 INFO Transforming unlabel train data.
+2026-09-18 14:48:46,794 P17044 INFO Transforming test data.
+2026-09-18 14:48:46,905 P17044 INFO 6138 new templates show.
+2026-09-18 14:48:47,049 P17044 INFO Transforming val data.
+2026-09-18 14:48:47,049 P17044 INFO 78 new templates show.
+2026-09-18 14:48:47,065 P17044 INFO Data loaded done!
+2026-09-18 14:48:47,097 P17044 INFO Known word number: 373
+2026-09-18 14:48:47,667 P17044 INFO Activity baseline (train): mean=90.5470 std=20.5385
+2026-09-18 14:48:49,775 P17044 INFO Epoch 0/10, train generator loss: 1.30087
+2026-09-18 14:48:49,893 P17044 INFO Epoch 0/10, train discriminator loss: 2.51084
+2026-09-18 14:48:50,059 P17044 INFO *** Test time is 0.16541123390197754
+2026-09-18 14:48:50,075 P17044 INFO Epoch 0/10, test f1: 0.14286 rc: 1.00000 pc: 0.07692. [0.63s]
+2026-09-18 14:48:50,185 P17044 INFO Epoch 1/10, train generator loss: 1.26921
+2026-09-18 14:48:50,248 P17044 INFO Epoch 1/10, train discriminator loss: 1.91282
+2026-09-18 14:48:50,447 P17044 INFO *** Test time is 0.19964933395385742
+2026-09-18 14:48:50,447 P17044 INFO Epoch 1/10, test f1: 0.13559 rc: 1.00000 pc: 0.07273. [0.16s]
+2026-09-18 14:48:50,447 P17044 INFO early stopping epoch 1/5
+2026-09-18 14:48:50,573 P17044 INFO Epoch 2/10, train generator loss: 1.24773
+2026-09-18 14:48:50,716 P17044 INFO Epoch 2/10, train discriminator loss: 1.57158
+2026-09-18 14:48:50,941 P17044 INFO *** Test time is 0.2255558967590332
+2026-09-18 14:48:50,941 P17044 INFO Epoch 2/10, test f1: 0.14286 rc: 1.00000 pc: 0.07692. [0.27s]
+2026-09-18 14:48:50,941 P17044 INFO early stopping epoch 2/5
+2026-09-18 14:48:51,112 P17044 INFO Epoch 3/10, train generator loss: 1.24018
+2026-09-18 14:48:51,225 P17044 INFO Epoch 3/10, train discriminator loss: 1.36707
+2026-09-18 14:48:51,478 P17044 INFO *** Test time is 0.25294971466064453
+2026-09-18 14:48:51,478 P17044 INFO Epoch 3/10, test f1: 0.14286 rc: 1.00000 pc: 0.07692. [0.28s]
+2026-09-18 14:48:51,478 P17044 INFO early stopping epoch 3/5
+2026-09-18 14:48:51,635 P17044 INFO Epoch 4/10, train generator loss: 1.24735
+2026-09-18 14:48:51,762 P17044 INFO Epoch 4/10, train discriminator loss: 1.22802
+2026-09-18 14:48:51,984 P17044 INFO *** Test time is 0.22220587730407715
+2026-09-18 14:48:51,984 P17044 INFO Epoch 4/10, test f1: 0.13559 rc: 1.00000 pc: 0.07273. [0.28s]
+2026-09-18 14:48:51,984 P17044 INFO early stopping epoch 4/5
+2026-09-18 14:48:52,081 P17044 INFO Epoch 5/10, train generator loss: 1.25677
+2026-09-18 14:48:52,156 P17044 INFO Epoch 5/10, train discriminator loss: 1.12020
+2026-09-18 14:48:52,328 P17044 INFO *** Test time is 0.17186880111694336
+2026-09-18 14:48:52,336 P17044 INFO Epoch 5/10, test f1: 0.13559 rc: 1.00000 pc: 0.07273. [0.17s]
+2026-09-18 14:48:52,336 P17044 INFO early stopping epoch 5/5
+2026-09-18 14:48:52,336 P17044 INFO Early stopping
+2026-09-18 14:48:52,458 P17044 INFO Threshold (p=95.0, src=val): 2.555004
+2026-09-18 14:48:52,487 P17044 INFO *** Test F1 0.0000  of unsupervised traning
+2026-09-18 14:48:52,503 P17044 INFO *** Best F1 {'f1': 0.14285714285714285, 'rc': 1.0, 'pc': 0.07692307692307693, 'threshold': np.float64(1.7592008113861084)}  of unsupervised traning
+2026-09-18 14:48:52,505 P17044 INFO Current hash id feb76270

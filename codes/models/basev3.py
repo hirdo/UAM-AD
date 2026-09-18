@@ -178,6 +178,18 @@ class BaseModel(nn.Module):
         self.num_services = kwargs.get("num_services", 0)
         self.trace_c = kwargs.get("trace_c", 0)
         self.gate_delta_lr_mult = float(kwargs.get("gate_delta_lr_mult", 1.0))
+        # "Went silent" faults (dead service -> near-empty kpi/log input) can score
+        # *lower* reconstruction loss than genuine normal windows, since a mostly-flat
+        # input is easier to reconstruct than one with real variation (verified on SN:
+        # e.g. Code_Stop_TextService anomaly mean loss 0.92 vs normal mean loss 1.29,
+        # in both the kpi and log components separately). activity_penalty_weight adds
+        # a reconstruction-independent term — how far *below* the normal training
+        # activity level (kpi_features.sum + log_features.sum) this window's raw input
+        # is — so a silent window is still flagged even though it reconstructs "well".
+        # 0.0 = no-op (default); only computed/applied when > 0.
+        self.activity_penalty_weight = float(kwargs.get("activity_penalty_weight", 0.0))
+        self._normal_activity_mean = None
+        self._normal_activity_std = None
         self.kwargs = kwargs
 
         self.model_save_dir = os.path.join(kwargs["result_dir"], kwargs["hash_id"])
@@ -232,6 +244,25 @@ class BaseModel(nn.Module):
         logging.info("Inference delay {:.4f}".format(np.mean(inference_time)))
         return pseudo_Dataset(data)
 
+    def _compute_activity_baseline(self, loader):
+        """Mean/std of raw per-window activity (kpi_features.sum + log_features.sum)
+        over a normal-only loader. Used by activity_penalty_weight (see __init__)."""
+        totals = []
+        for batch_input in loader:
+            activity = (batch_input["kpi_features"].sum(dim=-1)
+                        + batch_input["log_features"].sum(dim=-1))
+            totals.extend(activity.reshape(-1).cpu().numpy().tolist())
+        totals = np.array(totals)
+        return float(totals.mean()), float(totals.std() + 1e-6)
+
+    def _activity_deficit(self, batch_input):
+        """[B,W] how far *below* self._normal_activity_mean this batch's raw
+        activity is, in std units. 0 where activity is at/above normal."""
+        activity = (batch_input["kpi_features"].sum(dim=-1)
+                    + batch_input["log_features"].sum(dim=-1))
+        deficit = (self._normal_activity_mean - activity) / self._normal_activity_std
+        return torch.clamp(deficit, min=0.0)
+
     def evaluate(self, test_loader, datatype="Test", threshold=None):
         res = defaultdict(list)
         kpi_inputs = []
@@ -261,7 +292,10 @@ class BaseModel(nn.Module):
                     kpi_outputs.append(kpi_inputs[-1])
                     log_outputs.append(result["output"].cpu().numpy())
                     distance = result["loss"]
-                res["loss"].extend(distance.cpu().numpy().reshape(-1).tolist())
+                distance_cpu = distance.cpu()
+                if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                    distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                res["loss"].extend(distance_cpu.numpy().reshape(-1).tolist())
                 res["true"].extend(batch_input["labels"].cpu().numpy().reshape(-1).tolist())
 
         kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
@@ -520,6 +554,11 @@ class BaseModel(nn.Module):
         return best_test_scores
 
     def unsupervised_fit(self, unlabel_loader, test_loader, val_loader=None):
+        if self.activity_penalty_weight > 0:
+            self._normal_activity_mean, self._normal_activity_std = \
+                self._compute_activity_baseline(unlabel_loader)
+            logging.info(f"Activity baseline (train): mean={self._normal_activity_mean:.4f} "
+                         f"std={self._normal_activity_std:.4f}")
         if self.open_trace and self.gate_delta_lr_mult != 1.0 and hasattr(self.model, "trace_gate"):
             # Residual-gated trace fusion (fuse_v3.py CHANGE 8) has both gate and
             # delta_head's last layer zero-initialized: d(loss)/d(gate_weight) is
@@ -673,7 +712,10 @@ class BaseModel(nn.Module):
                         distance = result["fusion_loss"]
                     else:
                         distance = result["loss"]
-                    normal_losses.extend(distance.cpu().numpy().reshape(-1).tolist())
+                    distance_cpu = distance.cpu()
+                    if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                        distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                    normal_losses.extend(distance_cpu.numpy().reshape(-1).tolist())
             val_threshold = np.percentile(normal_losses, self.val_percentile)
             logging.info(f"Threshold (p={self.val_percentile}, src={source}): {val_threshold:.6f}")
             test_results, test_embeds = self.evaluate(test_loader, threshold=val_threshold)

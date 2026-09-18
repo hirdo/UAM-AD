@@ -6,16 +6,36 @@ Dataset layout expected under SN_DATA_ROOT/:
   metric_data/ {scenario}_metrics_{timestamp}/ *.csv (system + container + jaeger)
   trace_data/  {scenario}_traces_{timestamp}/  all_traces.csv
 
+Anomaly labeling: each scenario is split into (anomaly, normal) windows using
+FAULT_WINDOWS below, derived from AnoMod's actual injection timing rather than a
+blanket "skip N minutes, everything after is anomaly" rule (see FAULT_WINDOWS
+docstring for the per-fault-type rationale, citing the collection script).
+
+Two separate normal pools:
+  - train/unlabel/val: Normal_Baseline only. Kept narrow/homogeneous on purpose
+    — pooling in every scenario's recovered/never-faulted windows here taught
+    the model that low-activity windows are normal too, which backfires for
+    "service went silent" faults (reconstructing a near-empty window is
+    *easier* than a busy one, so a dead-service window stopped scoring as
+    anomalous at all once quiet-but-normal and quiet-because-dead blurred
+    together).
+  - scenarios/test_{name}.pkl's normal side: pooled from EVERY scenario
+    (Normal_Baseline + each scenario's recovered/never-faulted windows), so
+    evaluation still spans many different recording times instead of one
+    ~20min slice, without changing what the model was trained to reconstruct.
+
 Output (OUTPUT_DIR/):
-  train.pkl              — first 80% of Normal_Baseline windows (for training)
+  train.pkl              — 80% (shuffled) of Normal_Baseline's windows (for training)
   unlabel.pkl            — same as train.pkl
-  val.pkl                — last 20% of Normal_Baseline windows (unseen normal,
-                           used to compute anomaly threshold without test leakage)
+  val.pkl                — remaining 20% (unseen normal, used to compute anomaly
+                           threshold without test leakage)
   meta.pkl               — dataset metadata
   scenarios/
-    test_{name}.pkl      — per-scenario test file: normal windows (40) +
-                           subsampled anomaly windows (max_anomaly_windows, default 6),
-                           shuffled. Anomaly rate ~13%.
+    test_{name}.pkl      — per-scenario test file, one per scenario that has a
+                           real fault window (see FAULT_WINDOWS): pooled normal
+                           windows (all scenarios) + that scenario's own
+                           subsampled anomaly windows (max_anomaly_windows,
+                           default 6), shuffled.
 
 KPI features (59 total):
   10 system   : cpu_usage, disk_io_time, disk_read_bytes, disk_usage_pct,
@@ -33,7 +53,7 @@ Usage:
     python codes/common/preprocess_sn.py \\
         --sn_data_root D:/AnoMod/SN_data \\
         --output_dir data/sn \\
-        --window_sec 30 --warmup_minutes 5 \\
+        --window_sec 30 \\
         --max_anomaly_windows 6 --seed 42
 """
 
@@ -103,6 +123,53 @@ CONTAINER_LABEL_COL = "container_label_com_docker_compose_service"
 
 TRACE_NODE_FEAT_DIM = 6  # [call_count, avg_dur_us, max_dur_us, error_rate, root_rate, latency_dev]
 
+# Per-scenario fault window (start_sec, end_sec) relative to when data collection
+# starts for that session. Windows starting inside this range get label=1;
+# everything else in that same session (before start_sec, at/after end_sec, or
+# the whole session when the scenario has no entry / entry is None) gets label=0
+# and is folded into the shared normal pool. Derived from AnoMod's actual
+# injection timing (automated_multimodal_collection.sh, github.com/EvoTestOps/AnoMod):
+# collect_data() starts 15s AFTER inject_anomaly() (10s ANOMALY_EFFECT_WAIT +
+# 5s POST_TEST_WAIT). Matched by scenario-name prefix.
+#   - Code_Stop_*: `docker stop <container>`, not restarted until end-of-run
+#     cleanup -> fault is active for the entire collected session.
+#   - Perf_*/DB_Redis_CacheLimit_*: ChaosBlade `--timeout 300` -> auto-reverts
+#     300s after injection = ~285s after collection starts; using a flat 300s
+#     (5 min) here is a small conservative margin, not a precise cutoff.
+#   - Svc_Kill_*: ChaosBlade `process kill --signal 9`, no --timeout, relies on
+#     Docker's own restart policy. Empirically verified directly (not assumed)
+#     via the `container_label_restartcount` label in socialnet_container_memory
+#     .csv: for all 3 Svc_Kill_* scenarios it flips 0->1 at exactly t=105s into
+#     the collected session (Normal_Baseline never gets this label at all, i.e.
+#     restartcount stays 0 the whole time -> not a generic artifact). Cross-
+#     checked against raw span gaps in all_traces.csv: Svc_Kill_UserTimeline's
+#     target service goes fully silent for ~75s (101.8s -> 176.8s), right at
+#     the restart marker, versus a normal ~5-10s inter-span gap for that
+#     service elsewhere in the session. (90, 210) below is a 2-minute window
+#     bracketing that observed gap with margin on both sides.
+FAULT_WINDOWS: Dict[str, Optional[Tuple[float, Optional[float]]]] = {
+    "Code_Stop_MediaService":           (0.0, None),
+    "Code_Stop_TextService":            (0.0, None),
+    "Code_Stop_UserService":            (0.0, None),
+    "Perf_CPU_Contention":              (0.0, 300.0),
+    "Perf_Disk_IO_Stress":              (0.0, 300.0),
+    "Perf_Network_Loss":                (0.0, 300.0),
+    "DB_Redis_CacheLimit_HomeTimeline": (0.0, 300.0),
+    "DB_Redis_CacheLimit_SocialGraph":  (0.0, 300.0),
+    "DB_Redis_CacheLimit_UserTimeline": (0.0, 300.0),
+    "Svc_Kill_Media":                   (90.0, 210.0),
+    "Svc_Kill_SocialGraph":             (90.0, 210.0),
+    "Svc_Kill_UserTimeline":            (90.0, 210.0),
+}
+
+
+def _fault_window_for(scenario_name: str) -> Optional[Tuple[float, Optional[float]]]:
+    """Look up FAULT_WINDOWS by matching scenario_name's prefix."""
+    for prefix, window in FAULT_WINDOWS.items():
+        if scenario_name.startswith(prefix):
+            return window
+    raise KeyError(f"No FAULT_WINDOWS entry matches scenario '{scenario_name}'")
+
 # Log timestamp format: [YYYY-Mon-DD HH:MM:SS.ffffff] <LEVEL>: ...
 _LOG_TS_RE  = re.compile(
     r'^\[(\d{4}-\w{3}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d+)\]'
@@ -146,14 +213,12 @@ class SNPreprocessor:
         sn_data_root: str,
         output_dir: str,
         window_sec: int = 30,
-        warmup_minutes: int = 5,
         max_anomaly_windows: int = 6,
         seed: int = 42,
     ):
         self.sn_data_root        = sn_data_root
         self.output_dir          = output_dir
         self.window_sec          = window_sec
-        self.warmup_minutes      = warmup_minutes
         self.max_anomaly_windows = max_anomaly_windows
         self.seed                = seed
         self.rng                 = random.Random(seed)
@@ -204,8 +269,13 @@ class SNPreprocessor:
         }
 
     def _window_starts(self, t_min: datetime, t_max: datetime) -> List[datetime]:
+        """Window 0 starts exactly at t_min (not floored to a wall-clock grid
+        boundary): FAULT_WINDOWS offsets are computed relative to t_min in
+        _process_scenario, so flooring here would shift window 0 to *before*
+        t_min, giving it a negative offset that incorrectly fails fault-window
+        checks like `offset_sec >= fw_start` for fw_start=0.0."""
         delta   = timedelta(seconds=self.window_sec)
-        current = t_min.replace(microsecond=0, second=(t_min.second // self.window_sec) * self.window_sec)
+        current = t_min.replace(microsecond=0)
         wins = []
         while current < t_max:
             wins.append(current)
@@ -664,11 +734,14 @@ class SNPreprocessor:
         self,
         scenario_name: str,
         dirs: Dict[str, str],
-        is_anomaly: bool,
-    ) -> List[Dict]:
+        fault_window_sec: Optional[Tuple[float, Optional[float]]],
+    ) -> Tuple[List[Tuple[str, Dict]], List[Tuple[str, Dict]]]:
         """
-        Process one scenario and return a list of window samples.
-        For anomaly scenarios, the first WARMUP_MINUTES are excluded.
+        Process one scenario and split its windows into (anomaly_samples, normal_samples)
+        based on fault_window_sec = (start_sec, end_sec), the fault-active range relative
+        to this session's own start (see FAULT_WINDOWS). A window is anomaly=1 iff its
+        start falls in [start_sec, end_sec) (end_sec=None means "to session end").
+        fault_window_sec=None means no fault window at all -> every window is normal.
         """
         logging.info(f"  Processing scenario: {scenario_name}")
         metric_dir = dirs["metric_dir"]
@@ -679,7 +752,7 @@ class SNPreprocessor:
         cpu_path = os.path.join(metric_dir, "system_cpu_usage.csv")
         if not os.path.exists(cpu_path):
             logging.warning(f"    No system_cpu_usage.csv, skipping")
-            return []
+            return [], []
 
         cpu_df = pd.read_csv(cpu_path, usecols=["timestamp"], parse_dates=["timestamp"])
         t_min  = cpu_df["timestamp"].min()
@@ -687,14 +760,11 @@ class SNPreprocessor:
         logging.info(f"    Time range: {t_min} → {t_max} "
                      f"({(t_max - t_min).total_seconds() / 60:.1f} min)")
 
-        # Warmup skip for anomaly scenarios
-        warmup = timedelta(minutes=self.warmup_minutes) if is_anomaly else timedelta(0)
-        win_starts = self._window_starts(t_min + warmup, t_max)
+        win_starts = self._window_starts(t_min, t_max)
         W = len(win_starts)
         if W == 0:
-            logging.warning(f"    No windows after warmup skip, skipping")
-            return []
-        logging.info(f"    Windows: {W} (after {self.warmup_minutes}-min warmup skip)")
+            logging.warning(f"    No windows, skipping")
+            return [], []
 
         # KPI matrix
         kpi_matrix, metric_names = self._build_kpi_matrix(metric_dir, win_starts)
@@ -708,13 +778,21 @@ class SNPreprocessor:
         # Log windows
         win_log_lists = self._load_log_windows(log_dir, win_starts)
 
-        # Assemble samples
-        samples = []
-        label   = 1 if is_anomaly else 0
-        delta   = timedelta(seconds=self.window_sec)
+        # Assemble samples, splitting by fault_window_sec
+        anomaly_samples: List[Tuple[str, Dict]] = []
+        normal_samples:  List[Tuple[str, Dict]] = []
+        fw_start, fw_end = fault_window_sec if fault_window_sec is not None else (None, None)
 
         for i in range(W):
             t_start  = win_starts[i]
+            offset_sec = (t_start - t_min).total_seconds()
+            is_anomaly = (
+                fault_window_sec is not None
+                and offset_sec >= fw_start
+                and (fw_end is None or offset_sec < fw_end)
+            )
+            label = 1 if is_anomaly else 0
+
             block_id = hashlib.md5(
                 f"{scenario_name}_{t_start}".encode()
             ).hexdigest()[:12]
@@ -735,10 +813,10 @@ class SNPreprocessor:
                 "_scenario":           scenario_name,           # metadata (not used by model)
                 "_t_start":            t_start,
             }
-            samples.append((block_id, sample))
+            (anomaly_samples if is_anomaly else normal_samples).append((block_id, sample))
 
-        logging.info(f"    → {W} windows assembled (label={label})")
-        return samples
+        logging.info(f"    → {len(anomaly_samples)} anomaly + {len(normal_samples)} normal windows assembled")
+        return anomaly_samples, normal_samples
 
     # ── Entry point ───────────────────────────────────────────────────────────
 
@@ -747,12 +825,12 @@ class SNPreprocessor:
 
         # Identify Normal_Baseline
         normal_keys = [k for k in scenario_dirs if "Normal_Baseline" in k]
-        anomaly_keys = [k for k in scenario_dirs if "Normal_Baseline" not in k]
+        other_keys = [k for k in scenario_dirs if "Normal_Baseline" not in k]
         if not normal_keys:
             raise ValueError("No Normal_Baseline scenario found in data root.")
         normal_key = normal_keys[0]
         logging.info(f"Normal scenario: {normal_key}")
-        logging.info(f"Anomaly scenarios ({len(anomaly_keys)}): {anomaly_keys}")
+        logging.info(f"Other scenarios ({len(other_keys)}): {other_keys}")
 
         # Step 1: Build static adjacency from Normal_Baseline
         logging.info("Step 1: Building static adjacency from Normal_Baseline traces …")
@@ -766,36 +844,63 @@ class SNPreprocessor:
         logging.info("Step 2: Fitting Drain3 on Normal_Baseline logs …")
         self._fit_drain3(scenario_dirs[normal_key]["log_dir"])
 
-        # Step 3: Process Normal_Baseline
-        logging.info("Step 3: Processing Normal_Baseline …")
-        normal_samples = self._process_scenario(
-            normal_key, scenario_dirs[normal_key], is_anomaly=False
-        )
+        # Step 3: Process every scenario, splitting each into (anomaly, normal)
+        # windows per FAULT_WINDOWS. Two separate normal pools are kept:
+        #   - baseline_normal_samples: Normal_Baseline only. Used for
+        #     train/unlabel/val, i.e. what the model actually learns "normal"
+        #     from. Kept narrow/homogeneous on purpose: pooling in the more
+        #     varied recovered/never-faulted windows here taught the model
+        #     that low-activity windows are normal too, which backfires for
+        #     "service went silent" faults (Code_Stop_*) — reconstructing a
+        #     near-empty window is *easier* than a busy one, so once the
+        #     model treats quiet-but-normal and quiet-because-dead the same
+        #     way, the dead-service windows stop scoring as anomalous at all
+        #     (verified: their reconstruction loss came out *lower* than
+        #     normal windows', producing F1=0 despite a real, strong fault).
+        #   - test_normal_pool: every scenario's normal-labeled windows
+        #     pooled together. Used only to fill out test_<scenario>.pkl's
+        #     normal side, so evaluation still spans many different
+        #     recording times/sessions instead of one ~20min slice — this is
+        #     what breaks the "which session is this" shortcut a
+        #     single-source normal pool would otherwise hand a baseline
+        #     model. Test-time-only, so it doesn't affect what the model
+        #     itself was trained to reconstruct.
+        logging.info("Step 3: Processing all scenarios (anomaly/normal split) …")
+        _, baseline_normal_samples = self._process_scenario(normal_key, scenario_dirs[normal_key], None)
+        test_normal_pool = list(baseline_normal_samples)
 
-        # Step 4: Process anomaly scenarios + save each test file immediately
-        logging.info("Step 4: Processing anomaly scenarios …")
+        anomaly_by_scenario: Dict[str, List[Tuple[str, Dict]]] = {}
+        for sc in other_keys:
+            fw = _fault_window_for(sc)
+            anom, norm = self._process_scenario(sc, scenario_dirs[sc], fw)
+            test_normal_pool.extend(norm)
+            if anom:
+                anomaly_by_scenario[sc] = anom
+            else:
+                logging.info(f"    (no fault window for {sc} -> contributes normal only, no test file)")
+
+        # Step 4: Save each scenario's test file now that the full normal pool
+        # (Normal_Baseline + every scenario's recovered/never-faulted windows)
+        # is assembled.
+        logging.info("Step 4: Saving per-scenario test files …")
         os.makedirs(self.output_dir, exist_ok=True)
         scenarios_dir = os.path.join(self.output_dir, "scenarios")
         os.makedirs(scenarios_dir, exist_ok=True)
-
-        anomaly_by_scenario: Dict[str, List[Tuple[str, Dict]]] = {}
-        for sc in anomaly_keys:
-            samples = self._process_scenario(sc, scenario_dirs[sc], is_anomaly=True)
-            anomaly_by_scenario[sc] = samples
-            # Save scenario test file immediately after processing
-            self._save_scenario_test(sc, samples, normal_samples, scenarios_dir)
+        for sc, samples in anomaly_by_scenario.items():
+            self._save_scenario_test(sc, samples, test_normal_pool, scenarios_dir)
 
         anomaly_samples: List[Tuple[str, Dict]] = [
             s for sc_samples in anomaly_by_scenario.values() for s in sc_samples
         ]
 
-        logging.info(f"\nNormal windows  : {len(normal_samples)}")
+        logging.info(f"\nBaseline (train) normal windows : {len(baseline_normal_samples)}")
+        logging.info(f"Test normal pool                : {len(test_normal_pool)}")
         logging.info(f"Anomaly windows : {len(anomaly_samples)} "
                      f"({len(anomaly_by_scenario)} scenarios)")
 
-        # Step 5: Save train / unlabel / meta
+        # Step 5: Save train / unlabel / meta — from Normal_Baseline only
         logging.info("Step 5: Saving train/unlabel/meta …")
-        self._build_and_save(normal_samples, anomaly_by_scenario)
+        self._build_and_save(baseline_normal_samples, anomaly_by_scenario)
 
         logging.info("Preprocessing complete.")
 
@@ -849,13 +954,19 @@ class SNPreprocessor:
     ):
         """Save train.pkl, unlabel.pkl, val.pkl, meta.pkl.
 
-        Temporal split: first 80% → train/unlabel, last 20% → val (unseen normal).
+        normal_samples is now pooled from many different scenarios/sessions
+        (see run()), not just one chronological recording, so a positional
+        first-80%/last-20% split would just split by which scenario happened
+        to be processed first/last rather than by anything meaningful. Shuffle
+        (seeded) before splitting 80% → train/unlabel, 20% → val (unseen normal).
         Val is used to compute anomaly threshold without test data leakage.
         """
-        n_val   = max(1, round(len(normal_samples) * 0.2))
-        n_train = len(normal_samples) - n_val
-        train_samples = normal_samples[:n_train]   # first 80% (temporal order)
-        val_samples   = normal_samples[n_train:]   # last  20%
+        shuffled = list(normal_samples)
+        self.rng.shuffle(shuffled)
+        n_val   = max(1, round(len(shuffled) * 0.2))
+        n_train = len(shuffled) - n_val
+        train_samples = shuffled[:n_train]
+        val_samples   = shuffled[n_train:]
 
         train_data = self._to_dict(train_samples)
         val_data   = self._to_dict(val_samples)
@@ -912,7 +1023,6 @@ def main():
     )
     p.add_argument("--window_sec",           default=30,  type=int,
                    help="Window size in seconds (default: 30s; metrics sampled at 15s)")
-    p.add_argument("--warmup_minutes",       default=5,   type=int)
     p.add_argument("--max_anomaly_windows",  default=6,   type=int,
                    help="Max anomaly windows per scenario test file (evenly subsampled). "
                         "Keeps anomaly rate ~13%% to reduce consecutive clusters after shuffle.")
@@ -923,7 +1033,6 @@ def main():
         sn_data_root        = args.sn_data_root,
         output_dir          = args.output_dir,
         window_sec          = args.window_sec,
-        warmup_minutes      = args.warmup_minutes,
         max_anomaly_windows = args.max_anomaly_windows,
         seed                = args.seed,
     ).run()
