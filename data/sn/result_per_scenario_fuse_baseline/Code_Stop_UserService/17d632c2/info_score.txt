@@ -1,4 +1,4 @@
-Experiment 17d632c2: 2026/09/19-18:42:19
-Train time/epoch 0.3454
-* Test -- f1:0.8791	rc:1.0000	pc:0.7843	threshold:2.6715
+Experiment 17d632c2: 2026/09/19-23:33:20
+Train time/epoch 0.2388
+* Test -- f1:0.9630	rc:0.9750	pc:0.9512	threshold:5.2534
 

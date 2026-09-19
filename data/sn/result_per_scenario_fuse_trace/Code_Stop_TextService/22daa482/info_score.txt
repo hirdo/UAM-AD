@@ -1,4 +1,4 @@
-Experiment 22daa482: 2026/09/19-18:47:13
-Train time/epoch 0.3979
-* Test -- f1:0.8966	rc:1.0000	pc:0.8125	threshold:3.5766
+Experiment 22daa482: 2026/09/19-23:34:06
+Train time/epoch 0.3399
+* Test -- f1:0.9873	rc:0.9750	pc:1.0000	threshold:8.1517
 

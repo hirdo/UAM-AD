@@ -1,4 +1,4 @@
-Experiment af0d5ca5: 2026/09/19-18:41:56
-Train time/epoch 0.3500
-* Test -- f1:0.8667	rc:1.0000	pc:0.7647	threshold:2.5175
+Experiment af0d5ca5: 2026/09/19-23:33:04
+Train time/epoch 0.2523
+* Test -- f1:0.9630	rc:0.9750	pc:0.9512	threshold:5.6332
 

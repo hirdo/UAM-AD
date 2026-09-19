@@ -8,24 +8,24 @@
   "per_scenario": [
     {
       "scenario": "Code_Stop_MediaService_20251104_024819",
-      "f1": 0.8991,
-      "precision": 0.8305,
+      "f1": 0.9899,
+      "precision": 1.0,
       "recall": 0.98,
-      "elapsed_sec": 80.3417346999995
+      "elapsed_sec": 19.33486840000114
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
-      "f1": 0.8667,
-      "precision": 0.7647,
-      "recall": 1.0,
-      "elapsed_sec": 28.327066699999705
+      "f1": 0.963,
+      "precision": 0.9512,
+      "recall": 0.975,
+      "elapsed_sec": 16.35873300000094
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
-      "f1": 0.8791,
-      "precision": 0.7843,
-      "recall": 1.0,
-      "elapsed_sec": 23.571399700000256
+      "f1": 0.963,
+      "precision": 0.9512,
+      "recall": 0.975,
+      "elapsed_sec": 15.65359090000129
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
@@ -92,12 +92,12 @@
     }
   ],
   "aggregate": {
-    "f1_mean": 0.7220833333333334,
-    "f1_std": 0.15422597507841826,
-    "precision_mean": 0.6487750000000001,
-    "precision_std": 0.18597288836906667,
-    "recall_mean": 0.8483416666666668,
-    "recall_std": 0.17036500745132166,
-    "total_elapsed_sec": 369.66671250000036
+    "f1_mean": 0.7446666666666668,
+    "f1_std": 0.18032657103772093,
+    "precision_mean": 0.6923500000000001,
+    "precision_std": 0.2298000525819493,
+    "recall_mean": 0.844175,
+    "recall_std": 0.1668748689138062,
+    "total_elapsed_sec": 288.48704830000315
   }
 }

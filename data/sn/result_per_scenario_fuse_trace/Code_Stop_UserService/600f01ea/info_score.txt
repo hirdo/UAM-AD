@@ -1,4 +1,4 @@
-Experiment 600f01ea: 2026/09/19-18:47:45
-Train time/epoch 0.3912
-* Test -- f1:0.8571	rc:0.9750	pc:0.7647	threshold:2.1763
+Experiment 600f01ea: 2026/09/19-23:34:36
+Train time/epoch 0.3351
+* Test -- f1:0.9873	rc:0.9750	pc:1.0000	threshold:9.2029
 
