@@ -28,16 +28,12 @@ def load_sessions(data_dir, **keywds):  # both log and kpi
     return train, unlabel, val, test
 
 class myDataset(Dataset):
-    def __init__(self, sessions, window_size=100, test_flag=False, train_noise_std=0.0):
+    def __init__(self, sessions, window_size=100, test_flag=False):
         self.data = []
         self.window=[]
         self.idx2id = {}
         self.window_size = window_size
         self.test_flag = test_flag
-        # Gaussian jitter on kpi/trace features, train-only (test_flag=False) — helps a
-        # tiny training pool (e.g. SN's 32 windows) see more varied views per epoch
-        # instead of the exact same fixed points every time. No-op at 0.0 (default).
-        self.train_noise_std = train_noise_std
         # Detect whether trace data is present in the dataset
         first_item = next(iter(sessions.values()))
         self.has_trace = "trace_node_features" in first_item and "trace_adj" in first_item
@@ -88,12 +84,8 @@ class myDataset(Dataset):
                 trace_nodes_list.append(block["trace_node_features"])  # [num_services, trace_c]
                 trace_adjs_list.append(block["trace_adj"])             # [num_services, num_services]
 
-        kpis = np.array(kpis)
-        if not self.test_flag and self.train_noise_std > 0:
-            kpis = kpis + np.random.normal(0, self.train_noise_std, size=kpis.shape).astype(kpis.dtype)
-
         result = {
-            "kpi_features": torch.FloatTensor(kpis),
+            "kpi_features": torch.FloatTensor(np.array(kpis)),
             "log_features": torch.FloatTensor(np.array(log_template)),
             "labels": torch.tensor(labels),
             "unmatched_kpi_features": torch.FloatTensor(np.array(kpis2)),
@@ -101,11 +93,7 @@ class myDataset(Dataset):
         if self.has_trace:
             # trace_node_features: [window_size, num_services, trace_c]
             # trace_adj:           [window_size, num_services, num_services]
-            trace_nodes = np.array(trace_nodes_list)
-            if not self.test_flag and self.train_noise_std > 0:
-                trace_nodes = trace_nodes + np.random.normal(
-                    0, self.train_noise_std, size=trace_nodes.shape).astype(trace_nodes.dtype)
-            result["trace_node_features"] = torch.FloatTensor(trace_nodes)
+            result["trace_node_features"] = torch.FloatTensor(np.array(trace_nodes_list))
             result["trace_adj"] = torch.FloatTensor(np.array(trace_adjs_list))
         return result
     def __get_session_id__(self, idx):
@@ -263,9 +251,8 @@ class Process():
             val_chunks = construct_unmatched_data(val_chunks, kwargs)
 
         ws = kwargs["window_size"]
-        train_noise_std = kwargs.get("train_noise_std", 0.0)
         self.dataset = {
-            'unlabel': myDataset(self.unlabel_train, window_size=ws, train_noise_std=train_noise_std) if not supervised else None,
+            'unlabel': myDataset(self.unlabel_train, window_size=ws) if not supervised else None,
             'test':    myDataset(self.test_chunks,   window_size=ws, test_flag=True),
             'val':     myDataset(val_chunks, window_size=ws) if val_chunks else None,
         }

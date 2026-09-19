@@ -1,4 +1,0 @@
-Experiment d2321fd2: 2026/09/19-18:50:02
-Train time/epoch 0.3619
-* Test -- f1:0.8333	rc:1.0000	pc:0.7143	threshold:1.6474
-

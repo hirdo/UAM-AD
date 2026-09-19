@@ -6,7 +6,7 @@ from tqdm import tqdm
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from sklearn.metrics import f1_score, recall_score, precision_score
+from sklearn.metrics import f1_score, recall_score, precision_score, roc_auc_score, average_precision_score
 import logging
 import warnings
 warnings.filterwarnings("ignore", module="sklearn")
@@ -263,6 +263,22 @@ class BaseModel(nn.Module):
         deficit = (self._normal_activity_mean - activity) / self._normal_activity_std
         return torch.clamp(deficit, min=0.0)
 
+    def _score_loader(self, loader):
+        """Anomaly scores (fusion loss [+ activity penalty]) of every window in a loader,
+        computed in eval mode. Used for val-based model selection and the val threshold."""
+        scores = []
+        self.model.eval()
+        self.loss_fusion.eval()
+        with torch.no_grad():
+            for batch_input in loader:
+                result = self.model.forward(self.__input2device(batch_input))
+                distance = result["fusion_loss"] if self.data_type == "fuse" else result["loss"]
+                distance_cpu = distance.cpu()
+                if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                    distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                scores.extend(distance_cpu.numpy().reshape(-1).tolist())
+        return np.array(scores)
+
     def evaluate(self, test_loader, datatype="Test", threshold=None):
         res = defaultdict(list)
         kpi_inputs = []
@@ -305,13 +321,17 @@ class BaseModel(nn.Module):
         test_embeds = {"embeds":embeds,"distance":res["loss"],"labels":res["true"]}
         
         if threshold is not None:
-            # Fixed threshold from normal (train) distribution — no data leakage, no point_adjust
+            # Fixed threshold from normal (val) distribution — no test labels, no point_adjust.
+            # AUROC/AUPRC are threshold-free, computed on the same scores.
             pred = [1 if d > threshold else 0 for d in res["loss"]]
+            both_classes = len(set(res["true"])) > 1
             best_res = {
                 "f1": f1_score(res["true"], pred, zero_division=0),
                 "rc": recall_score(res["true"], pred, zero_division=0),
                 "pc": precision_score(res["true"], pred, zero_division=0),
                 "threshold": threshold,
+                "auroc": roc_auc_score(res["true"], res["loss"]) if both_classes else float("nan"),
+                "auprc": average_precision_score(res["true"], res["loss"]) if both_classes else float("nan"),
             }
         else:
             # Original sweep on test losses (backward compat for non-SN datasets)
@@ -578,8 +598,10 @@ class BaseModel(nn.Module):
         else:
             optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         optimizer2 = torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate)
-        best_res = {"f1":-1}
-        best_state, best_test_scores = None, None
+        # Model selection uses only normal data: early stopping on the mean anomaly score of
+        # the val windows (falls back to the train windows if no val set is provided).
+        best_val_score, best_state = float("inf"), None
+        select_loader = val_loader if val_loader is not None else unlabel_loader
         lr=self.learning_rate
 
         pre_loss, worse_count = float("inf"), 0
@@ -667,22 +689,11 @@ class BaseModel(nn.Module):
                
             epoch_time_elapsed = time.time() - epoch_time_start
             self.train_time.append(epoch_time_elapsed)
-            start_time = time.time()
-            if self.evaluation_sep:
-                test_results = self.evaluate_sep(test_loader, datatype="Test")
-            else:
-                test_results,test_embeds = self.evaluate(test_loader, datatype="Test")
-            logging.info("*** Test time is {}".format(time.time() - start_time))
-            logging.info("Epoch {}/{}, test f1: {:.5f} rc: {:.5f} pc: {:.5f}. [{:.2f}s]".format(epoch, self.epoches_1, test_results["f1"],test_results["rc"],test_results["pc"],epoch_time_elapsed))
+            val_score = float(self._score_loader(select_loader).mean())
+            logging.info("Epoch {}/{}, val score: {:.5f}. [{:.2f}s]".format(epoch, self.epoches_1, val_score, epoch_time_elapsed))
 
-            if test_results["f1"] > best_res["f1"]:
-                best_res = test_results
-                # best_embeds = test_embeds
-                # np.save(f"temp/embeds_{self.kwadrgs['dataset']}_{self.kwargs['open_gan']}_{self.kwargs['open_unmatch_zoomout']}_{self.kwargs['unmatch_k']}.npy",test_embeds["embeds"])
-                # np.save(f"temp/distance_{self.kwargs['dataset']}_{self.kwargs['open_gan']}_{self.kwargs['open_unmatch_zoomout']}_{self.kwargs['unmatch_k']}.npy",test_embeds["distance"])
-                # np.save(f"temp/labels_{self.kwargs['dataset']}.npy",test_embeds["labels"])
-
-                best_test_scores = test_results
+            if val_score < best_val_score:
+                best_val_score = val_score
                 best_state = copy.deepcopy(self.model.state_dict())
                 early_stopping_ct = 0
             else:
@@ -697,44 +708,33 @@ class BaseModel(nn.Module):
         self.save_model(best_state)
         self.load_model(self.model_save_file)
 
-        if self.val_percentile is not None:
-            # Compute threshold from unseen normal (val) losses — no test data leakage
-            # Fall back to unlabel_loader if val_loader not provided
-            threshold_loader = val_loader if val_loader is not None else unlabel_loader
-            source = "val" if val_loader is not None else "unlabel(fallback)"
-            normal_losses = []
-            self.model.eval()
-            self.loss_fusion.eval()
-            with torch.no_grad():
-                for batch_input in threshold_loader:
-                    result = self.model.forward(self.__input2device(batch_input))
-                    if self.data_type == "fuse":
-                        distance = result["fusion_loss"]
-                    else:
-                        distance = result["loss"]
-                    distance_cpu = distance.cpu()
-                    if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
-                        distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
-                    normal_losses.extend(distance_cpu.numpy().reshape(-1).tolist())
-            val_threshold = np.percentile(normal_losses, self.val_percentile)
-            logging.info(f"Threshold (p={self.val_percentile}, src={source}): {val_threshold:.6f}")
-            test_results, test_embeds = self.evaluate(test_loader, threshold=val_threshold)
-            final_threshold = val_threshold
-        else:
-            test_results, test_embeds = self.evaluate(test_loader)
-            final_threshold = test_results.get("threshold")
+        # Threshold: percentile of the normal (val) scores of the selected model — no test labels.
+        source = "val" if val_loader is not None else "unlabel(fallback)"
+        normal_scores = self._score_loader(select_loader)
+        val_threshold = np.percentile(normal_scores, self.val_percentile)
+        logging.info(f"Threshold (p={self.val_percentile}, src={source}, n={len(normal_scores)}): {val_threshold:.6f}")
 
-        logging.info("*** Test F1 {:.4f}  of unsupervised traning".format(test_results["f1"]))
-        logging.info(f"*** Best F1 {best_test_scores}  of unsupervised traning")
+        # Primary result: F1/P/R at the val threshold (no point_adjust) + threshold-free AUROC/AUPRC.
+        scores, test_embeds = self.evaluate(test_loader, threshold=val_threshold)
+        # Oracle result (labelled as such): threshold swept on the test scores with point_adjust.
+        oracle = self.evaluate_sep(test_loader, datatype="Test") if self.evaluation_sep \
+            else self.evaluate(test_loader)[0]
+        for k in ("f1", "rc", "pc", "threshold"):
+            if oracle.get(k) is not None:
+                scores["oracle_" + k] = oracle[k]
+
+        logging.info("*** Test F1 {:.4f} P {:.4f} R {:.4f} AUROC {:.4f} AUPRC {:.4f} (val threshold)".format(
+            scores["f1"], scores["pc"], scores["rc"], scores["auroc"], scores["auprc"]))
+        logging.info("*** Oracle F1 {:.4f} (test-swept threshold, point_adjust)".format(scores.get("oracle_f1", float("nan"))))
 
         if self.kwargs.get("enable_rca") and self.open_trace:
             rca_records = self.localize_root_causes(
-                test_loader, threshold=final_threshold,
+                test_loader, threshold=val_threshold,
                 top_k=self.kwargs.get("rca_top_k", 3))
-            best_test_scores["rca_records"] = rca_records
-            best_test_scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
+            scores["rca_records"] = rca_records
+            scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
 
-        return best_test_scores
+        return scores
     
 
     

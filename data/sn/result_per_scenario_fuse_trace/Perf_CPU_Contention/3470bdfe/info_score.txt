@@ -1,4 +1,0 @@
-Experiment 3470bdfe: 2026/09/19-18:49:32
-Train time/epoch 0.3891
-* Test -- f1:0.7826	rc:1.0000	pc:0.6429	threshold:1.6703
-

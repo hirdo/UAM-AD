@@ -1,4 +1,0 @@
-Experiment 1a754df1: 2026/09/19-18:50:27
-Train time/epoch 0.4071
-* Test -- f1:0.9524	rc:1.0000	pc:0.9091	threshold:1.6767
-

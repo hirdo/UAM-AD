@@ -362,10 +362,7 @@ class RCAEvalRE3OBPreprocessor:
         pre_fault_idx = max(pre_fault_idx, 1)  # need at least 1 row for baseline
         baseline_avg = node_feats[:pre_fault_idx, :, 1].mean(axis=0)   # [NUM_SERVICES]
         baseline_std = node_feats[:pre_fault_idx, :, 1].std(axis=0) + 1e-6
-        # Clipped defensively — see preprocess_rcaeval_re2_ob.py for the rationale
-        # (a near-zero baseline_std for a low-variance service can otherwise produce
-        # an extreme z-score that dominates the reconstruction loss for that node).
-        node_feats[:, :, 5] = np.clip((node_feats[:, :, 1] - baseline_avg) / baseline_std, -10.0, 10.0)
+        node_feats[:, :, 5] = (node_feats[:, :, 1] - baseline_avg) / baseline_std
 
         return node_feats, adj
 

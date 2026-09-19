@@ -11,30 +11,31 @@ FAULT_WINDOWS below, derived from AnoMod's actual injection timing rather than a
 blanket "skip N minutes, everything after is anomaly" rule (see FAULT_WINDOWS
 docstring for the per-fault-type rationale, citing the collection script).
 
-Two separate normal pools:
-  - train/unlabel/val: Normal_Baseline only. Kept narrow/homogeneous on purpose
+Normal windows are split by session:
+  - train/unlabel: all Normal_Baseline windows. Kept narrow/homogeneous on purpose
     — pooling in every scenario's recovered/never-faulted windows here taught
     the model that low-activity windows are normal too, which backfires for
     "service went silent" faults (reconstructing a near-empty window is
     *easier* than a busy one, so a dead-service window stopped scoring as
     anomalous at all once quiet-but-normal and quiet-because-dead blurred
     together).
-  - scenarios/test_{name}.pkl's normal side: pooled from EVERY scenario
-    (Normal_Baseline + each scenario's recovered/never-faulted windows), so
-    evaluation still spans many different recording times instead of one
-    ~20min slice, without changing what the model was trained to reconstruct.
+  - val / test normal side: the normal windows of every other session, split
+    20% (val) / 80% (test pool) per source session. Val is drawn from the same
+    mix of sessions as the test normals, so a threshold taken from it is
+    representative; the test pool is disjoint from val.
 
 Output (OUTPUT_DIR/):
-  train.pkl              — 80% (shuffled) of Normal_Baseline's windows (for training)
+  train.pkl              — all Normal_Baseline windows (for training)
   unlabel.pkl            — same as train.pkl
-  val.pkl                — remaining 20% (unseen normal, used to compute anomaly
-                           threshold without test leakage)
+  val.pkl                — 20% of every other session's normal windows (unseen; used
+                           for model selection and the anomaly threshold)
   meta.pkl               — dataset metadata
   scenarios/
     test_{name}.pkl      — per-scenario test file, one per scenario that has a
-                           real fault window (see FAULT_WINDOWS): all of that
-                           scenario's anomaly windows + normal windows sampled
-                           from the pool of all scenarios (round-robin across
+                           real fault window (see FAULT_WINDOWS): that
+                           scenario's anomaly windows (at most max_anomalies=39) +
+                           normal windows sampled from the other 80% of every
+                           other session's normals (round-robin across
                            source scenarios) to reach target_anomaly_rate
                            (default 0.125), shuffled.
 
@@ -122,6 +123,7 @@ CONTAINER_METRIC_FILES = [
 ]
 CONTAINER_LABEL_COL = "container_label_com_docker_compose_service"
 
+VAL_FRACTION = 0.2  # share of each non-baseline session's normal windows that goes to val
 TRACE_NODE_FEAT_DIM = 6  # [call_count, avg_dur_us, max_dur_us, error_rate, root_rate, latency_dev]
 
 # Per-scenario fault window (start_sec, end_sec) relative to when data collection
@@ -215,12 +217,14 @@ class SNPreprocessor:
         output_dir: str,
         window_sec: int = 30,
         target_anomaly_rate: float = 0.125,
+        max_anomalies: int = 39,
         seed: int = 42,
     ):
         self.sn_data_root        = sn_data_root
         self.output_dir          = output_dir
         self.window_sec          = window_sec
         self.target_anomaly_rate = target_anomaly_rate
+        self.max_anomalies       = max_anomalies
         self.seed                = seed
         self.rng                 = random.Random(seed)
 
@@ -868,13 +872,19 @@ class SNPreprocessor:
         #     itself was trained to reconstruct.
         logging.info("Step 3: Processing all scenarios (anomaly/normal split) …")
         _, baseline_normal_samples = self._process_scenario(normal_key, scenario_dirs[normal_key], None)
-        test_normal_pool = list(baseline_normal_samples)
+        test_normal_pool: List[Tuple[str, Dict]] = []
+        val_normal_samples: List[Tuple[str, Dict]] = []
 
         anomaly_by_scenario: Dict[str, List[Tuple[str, Dict]]] = {}
         for sc in other_keys:
             fw = _fault_window_for(sc)
             anom, norm = self._process_scenario(sc, scenario_dirs[sc], fw)
-            test_normal_pool.extend(norm)
+            # 20% of this source's normal windows -> val, the other 80% -> test pool.
+            norm = list(norm)
+            self.rng.shuffle(norm)
+            n_val = round(len(norm) * VAL_FRACTION)
+            val_normal_samples.extend(norm[:n_val])
+            test_normal_pool.extend(norm[n_val:])
             if anom:
                 anomaly_by_scenario[sc] = anom
             else:
@@ -895,13 +905,14 @@ class SNPreprocessor:
         ]
 
         logging.info(f"\nBaseline (train) normal windows : {len(baseline_normal_samples)}")
+        logging.info(f"Val normal windows              : {len(val_normal_samples)}")
         logging.info(f"Test normal pool                : {len(test_normal_pool)}")
         logging.info(f"Anomaly windows : {len(anomaly_samples)} "
                      f"({len(anomaly_by_scenario)} scenarios)")
 
         # Step 5: Save train / unlabel / meta — from Normal_Baseline only
         logging.info("Step 5: Saving train/unlabel/meta …")
-        self._build_and_save(baseline_normal_samples, anomaly_by_scenario)
+        self._build_and_save(baseline_normal_samples, val_normal_samples, anomaly_by_scenario)
 
         logging.info("Preprocessing complete.")
 
@@ -923,13 +934,17 @@ class SNPreprocessor:
     ):
         """Save one per-scenario test file.
 
-        Uses every anomaly window of the scenario and samples just enough
-        normal windows from the pooled normal set to reach target_anomaly_rate
-        (capped at the pool size). The normal windows are drawn round-robin
-        across their source scenarios so the file still mixes many sessions.
+        Uses the scenario's anomaly windows (evenly thinned over time to at most
+        max_anomalies, so the normal pool can still reach target_anomaly_rate)
+        and samples just enough normal windows from the test normal pool to
+        reach target_anomaly_rate (capped at the pool size). The normal windows
+        are drawn round-robin across their source scenarios so the file still
+        mixes many sessions.
         """
-        sc_samples_sub = sc_samples
-        n_anom = len(sc_samples_sub)
+        if len(sc_samples) > self.max_anomalies:
+            step = len(sc_samples) / self.max_anomalies
+            sc_samples = [sc_samples[int(i * step)] for i in range(self.max_anomalies)]
+        n_anom = len(sc_samples)
         n_normal = min(len(normal_samples),
                        round(n_anom * (1 - self.target_anomaly_rate) / self.target_anomaly_rate))
 
@@ -944,11 +959,10 @@ class SNPreprocessor:
                 if group and len(chosen) < n_normal:
                     chosen.append(group.pop())
 
-        combined = chosen + sc_samples_sub
+        combined = chosen + sc_samples
         self.rng.shuffle(combined)
         sc_data = self._to_dict(combined)
 
-        n_anom    = len(sc_samples_sub)
         anom_rate = n_anom / len(combined)
         safe_name = re.sub(r'[^A-Za-z0-9_]', '_', sc_name)
         path = os.path.join(scenarios_dir, f"test_{safe_name}.pkl")
@@ -959,25 +973,17 @@ class SNPreprocessor:
 
     def _build_and_save(
         self,
-        normal_samples: List[Tuple[str, Dict]],
+        train_samples: List[Tuple[str, Dict]],
+        val_samples: List[Tuple[str, Dict]],
         anomaly_by_scenario: Dict[str, List[Tuple[str, Dict]]],
     ):
         """Save train.pkl, unlabel.pkl, val.pkl, meta.pkl.
 
-        normal_samples is now pooled from many different scenarios/sessions
-        (see run()), not just one chronological recording, so a positional
-        first-80%/last-20% split would just split by which scenario happened
-        to be processed first/last rather than by anything meaningful. Shuffle
-        (seeded) before splitting 80% → train/unlabel, 20% → val (unseen normal).
-        Val is used to compute anomaly threshold without test data leakage.
+        train/unlabel: all Normal_Baseline windows. val: 20% of every other
+        session's normal windows (unseen; used for model selection and the
+        anomaly threshold without touching test data). The remaining 80% of
+        those normals form the test normal pool (see run()).
         """
-        shuffled = list(normal_samples)
-        self.rng.shuffle(shuffled)
-        n_val   = max(1, round(len(shuffled) * 0.2))
-        n_train = len(shuffled) - n_val
-        train_samples = shuffled[:n_train]
-        val_samples   = shuffled[n_train:]
-
         train_data = self._to_dict(train_samples)
         val_data   = self._to_dict(val_samples)
 
@@ -1037,6 +1043,8 @@ def main():
                    help="Anomaly fraction of each scenario test file. All of the scenario's "
                         "anomaly windows are kept; normal windows are sampled to reach this rate "
                         "(capped at the pooled normal size).")
+    p.add_argument("--max_anomalies",        default=39, type=int,
+                   help="Cap on anomaly windows per scenario test file (thinned evenly over time).")
     p.add_argument("--seed",                 default=42,  type=int)
     args = p.parse_args()
 
@@ -1045,6 +1053,7 @@ def main():
         output_dir          = args.output_dir,
         window_sec          = args.window_sec,
         target_anomaly_rate = args.target_anomaly_rate,
+        max_anomalies       = args.max_anomalies,
         seed                = args.seed,
     ).run()
 

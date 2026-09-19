@@ -1,0 +1,88 @@
+2026-09-19 19:14:04,039 P24020 INFO ^^^^^^^^^^ Current Model:hades, 9e1d6fe6 ^^^^^^^^^^
+2026-09-19 19:14:04,039 P24020 INFO Load from D:\UAM-AD\data\sn
+2026-09-19 19:14:04,470 P24020 INFO 451 unique log templates found.
+2026-09-19 19:14:04,476 P24020 INFO Transforming unlabel train data.
+2026-09-19 19:14:04,531 P24020 INFO Transforming test data.
+2026-09-19 19:14:04,572 P24020 INFO 1669 new templates show.
+2026-09-19 19:14:04,635 P24020 INFO Transforming val data.
+2026-09-19 19:14:04,637 P24020 INFO 1257 new templates show.
+2026-09-19 19:14:04,647 P24020 INFO Data loaded done!
+2026-09-19 19:14:04,720 P24020 INFO Known word number: 451
+2026-09-19 19:14:05,266 P24020 INFO Activity baseline (train): mean=93.1636 std=12.1861
+2026-09-19 19:14:07,916 P24020 INFO Epoch 0/50, train generator loss: 1.32685
+2026-09-19 19:14:08,053 P24020 INFO Epoch 0/50, train discriminator loss: 2.65273
+2026-09-19 19:14:08,116 P24020 INFO Epoch 0/50, val score: 2.11855. [0.91s]
+2026-09-19 19:14:08,304 P24020 INFO Epoch 1/50, train generator loss: 1.22436
+2026-09-19 19:14:08,413 P24020 INFO Epoch 1/50, train discriminator loss: 2.08173
+2026-09-19 19:14:08,453 P24020 INFO Epoch 1/50, val score: 2.07967. [0.27s]
+2026-09-19 19:14:08,623 P24020 INFO Epoch 2/50, train generator loss: 1.20501
+2026-09-19 19:14:08,737 P24020 INFO Epoch 2/50, train discriminator loss: 1.70112
+2026-09-19 19:14:08,786 P24020 INFO Epoch 2/50, val score: 2.06155. [0.26s]
+2026-09-19 19:14:08,947 P24020 INFO Epoch 3/50, train generator loss: 1.21505
+2026-09-19 19:14:09,061 P24020 INFO Epoch 3/50, train discriminator loss: 1.45632
+2026-09-19 19:14:09,104 P24020 INFO Epoch 3/50, val score: 2.06127. [0.25s]
+2026-09-19 19:14:09,251 P24020 INFO Epoch 4/50, train generator loss: 1.24066
+2026-09-19 19:14:09,362 P24020 INFO Epoch 4/50, train discriminator loss: 1.27787
+2026-09-19 19:14:09,405 P24020 INFO Epoch 4/50, val score: 2.07094. [0.24s]
+2026-09-19 19:14:09,405 P24020 INFO early stopping epoch 1/15
+2026-09-19 19:14:09,568 P24020 INFO Epoch 5/50, train generator loss: 1.28089
+2026-09-19 19:14:09,667 P24020 INFO Epoch 5/50, train discriminator loss: 1.12807
+2026-09-19 19:14:09,711 P24020 INFO Epoch 5/50, val score: 2.08113. [0.26s]
+2026-09-19 19:14:09,711 P24020 INFO early stopping epoch 2/15
+2026-09-19 19:14:09,895 P24020 INFO Epoch 6/50, train generator loss: 1.32909
+2026-09-19 19:14:10,031 P24020 INFO Epoch 6/50, train discriminator loss: 1.00068
+2026-09-19 19:14:10,073 P24020 INFO Epoch 6/50, val score: 2.08062. [0.32s]
+2026-09-19 19:14:10,073 P24020 INFO early stopping epoch 3/15
+2026-09-19 19:14:10,201 P24020 INFO Epoch 7/50, train generator loss: 1.38118
+2026-09-19 19:14:10,310 P24020 INFO Epoch 7/50, train discriminator loss: 0.90378
+2026-09-19 19:14:10,350 P24020 INFO Epoch 7/50, val score: 2.08023. [0.24s]
+2026-09-19 19:14:10,350 P24020 INFO early stopping epoch 4/15
+2026-09-19 19:14:10,484 P24020 INFO Epoch 8/50, train generator loss: 1.43745
+2026-09-19 19:14:10,595 P24020 INFO Epoch 8/50, train discriminator loss: 0.83057
+2026-09-19 19:14:10,651 P24020 INFO Epoch 8/50, val score: 2.08099. [0.25s]
+2026-09-19 19:14:10,652 P24020 INFO early stopping epoch 5/15
+2026-09-19 19:14:10,802 P24020 INFO Epoch 9/50, train generator loss: 1.49490
+2026-09-19 19:14:10,906 P24020 INFO Epoch 9/50, train discriminator loss: 0.77381
+2026-09-19 19:14:10,956 P24020 INFO Epoch 9/50, val score: 2.08066. [0.26s]
+2026-09-19 19:14:10,956 P24020 INFO early stopping epoch 6/15
+2026-09-19 19:14:11,101 P24020 INFO Epoch 10/50, train generator loss: 1.55002
+2026-09-19 19:14:11,203 P24020 INFO Epoch 10/50, train discriminator loss: 0.73117
+2026-09-19 19:14:11,247 P24020 INFO Epoch 10/50, val score: 2.08350. [0.25s]
+2026-09-19 19:14:11,247 P24020 INFO early stopping epoch 7/15
+2026-09-19 19:14:11,395 P24020 INFO Epoch 11/50, train generator loss: 1.59791
+2026-09-19 19:14:11,495 P24020 INFO Epoch 11/50, train discriminator loss: 0.70163
+2026-09-19 19:14:11,539 P24020 INFO Epoch 11/50, val score: 2.09090. [0.25s]
+2026-09-19 19:14:11,539 P24020 INFO early stopping epoch 8/15
+2026-09-19 19:14:11,683 P24020 INFO Epoch 12/50, train generator loss: 1.63619
+2026-09-19 19:14:11,796 P24020 INFO Epoch 12/50, train discriminator loss: 0.68045
+2026-09-19 19:14:11,838 P24020 INFO Epoch 12/50, val score: 2.09623. [0.26s]
+2026-09-19 19:14:11,838 P24020 INFO early stopping epoch 9/15
+2026-09-19 19:14:11,992 P24020 INFO Epoch 13/50, train generator loss: 1.66024
+2026-09-19 19:14:12,119 P24020 INFO Epoch 13/50, train discriminator loss: 0.66470
+2026-09-19 19:14:12,162 P24020 INFO Epoch 13/50, val score: 2.10037. [0.28s]
+2026-09-19 19:14:12,163 P24020 INFO early stopping epoch 10/15
+2026-09-19 19:14:12,304 P24020 INFO Epoch 14/50, train generator loss: 1.67670
+2026-09-19 19:14:12,402 P24020 INFO Epoch 14/50, train discriminator loss: 0.65221
+2026-09-19 19:14:12,451 P24020 INFO Epoch 14/50, val score: 2.10634. [0.24s]
+2026-09-19 19:14:12,451 P24020 INFO early stopping epoch 11/15
+2026-09-19 19:14:12,584 P24020 INFO Epoch 15/50, train generator loss: 1.68808
+2026-09-19 19:14:12,684 P24020 INFO Epoch 15/50, train discriminator loss: 0.64123
+2026-09-19 19:14:12,729 P24020 INFO Epoch 15/50, val score: 2.11458. [0.23s]
+2026-09-19 19:14:12,729 P24020 INFO early stopping epoch 12/15
+2026-09-19 19:14:12,877 P24020 INFO Epoch 16/50, train generator loss: 1.69848
+2026-09-19 19:14:12,999 P24020 INFO Epoch 16/50, train discriminator loss: 0.63662
+2026-09-19 19:14:13,052 P24020 INFO Epoch 16/50, val score: 2.12225. [0.27s]
+2026-09-19 19:14:13,052 P24020 INFO early stopping epoch 13/15
+2026-09-19 19:14:13,188 P24020 INFO Epoch 17/50, train generator loss: 1.70924
+2026-09-19 19:14:13,302 P24020 INFO Epoch 17/50, train discriminator loss: 0.65214
+2026-09-19 19:14:13,347 P24020 INFO Epoch 17/50, val score: 2.12373. [0.25s]
+2026-09-19 19:14:13,347 P24020 INFO early stopping epoch 14/15
+2026-09-19 19:14:13,504 P24020 INFO Epoch 18/50, train generator loss: 1.70204
+2026-09-19 19:14:13,602 P24020 INFO Epoch 18/50, train discriminator loss: 0.69197
+2026-09-19 19:14:13,653 P24020 INFO Epoch 18/50, val score: 2.12024. [0.26s]
+2026-09-19 19:14:13,654 P24020 INFO early stopping epoch 15/15
+2026-09-19 19:14:13,654 P24020 INFO Early stopping
+2026-09-19 19:14:13,859 P24020 INFO Threshold (p=95.0, src=val, n=260): 2.250562
+2026-09-19 19:14:14,152 P24020 INFO *** Test F1 0.4000 P 0.4000 R 0.4000 AUROC 0.6246 AUPRC 0.5078 (val threshold)
+2026-09-19 19:14:14,152 P24020 INFO *** Oracle F1 0.5714 (test-swept threshold, point_adjust)
+2026-09-19 19:14:14,155 P24020 INFO Current hash id 9e1d6fe6

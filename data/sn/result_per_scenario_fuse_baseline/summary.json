@@ -8,96 +8,135 @@
   "per_scenario": [
     {
       "scenario": "Code_Stop_MediaService_20251104_024819",
-      "f1": 0.9899,
-      "precision": 1.0,
-      "recall": 0.98,
-      "elapsed_sec": 19.33486840000114
+      "f1": 0.6903,
+      "precision": 0.527,
+      "recall": 1.0,
+      "auroc": 0.9769,
+      "auprc": 0.7796,
+      "oracle_f1": 0.9176,
+      "elapsed_sec": 28.873300300001574
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
-      "f1": 0.963,
-      "precision": 0.9512,
-      "recall": 0.975,
-      "elapsed_sec": 16.35873300000094
+      "f1": 0.7091,
+      "precision": 0.5493,
+      "recall": 1.0,
+      "auroc": 0.9735,
+      "auprc": 0.7134,
+      "oracle_f1": 0.907,
+      "elapsed_sec": 29.10799550000229
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
-      "f1": 0.963,
-      "precision": 0.9512,
-      "recall": 0.975,
-      "elapsed_sec": 15.65359090000129
+      "f1": 0.7308,
+      "precision": 0.5758,
+      "recall": 1.0,
+      "auroc": 0.9641,
+      "auprc": 0.6639,
+      "oracle_f1": 0.8941,
+      "elapsed_sec": 27.495255100002396
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
-      "f1": 0.6923,
-      "precision": 0.5294,
-      "recall": 1.0,
-      "elapsed_sec": 21.590600199999244
+      "f1": 0.3636,
+      "precision": 0.3333,
+      "recall": 0.4,
+      "auroc": 0.6369,
+      "auprc": 0.3732,
+      "oracle_f1": 0.4444,
+      "elapsed_sec": 17.7631887000025
     },
     {
       "scenario": "DB_Redis_CacheLimit_SocialGraph_20251104_013615",
-      "f1": 0.9,
-      "precision": 0.8182,
+      "f1": 0.72,
+      "precision": 0.5625,
       "recall": 1.0,
-      "elapsed_sec": 21.162043600001198
+      "auroc": 0.9731,
+      "auprc": 0.7363,
+      "oracle_f1": 0.9,
+      "elapsed_sec": 28.22546949999378
     },
     {
       "scenario": "DB_Redis_CacheLimit_UserTimeline_20251104_011238",
-      "f1": 0.6667,
-      "precision": 0.5833,
-      "recall": 0.7778,
-      "elapsed_sec": 29.593523899999127
+      "f1": 0.4762,
+      "precision": 0.3846,
+      "recall": 0.625,
+      "auroc": 0.6922,
+      "auprc": 0.5441,
+      "oracle_f1": 0.6667,
+      "elapsed_sec": 28.61131960000057
     },
     {
       "scenario": "Perf_CPU_Contention_20251103_222601",
-      "f1": 0.6667,
-      "precision": 0.5333,
-      "recall": 0.8889,
-      "elapsed_sec": 28.885095600000568
+      "f1": 0.5217,
+      "precision": 0.4615,
+      "recall": 0.6,
+      "auroc": 0.9031,
+      "auprc": 0.6417,
+      "oracle_f1": 0.6667,
+      "elapsed_sec": 28.84281390000251
     },
     {
       "scenario": "Perf_Disk_IO_Stress_20251103_231335",
-      "f1": 0.7692,
-      "precision": 0.625,
-      "recall": 1.0,
-      "elapsed_sec": 28.866342699999223
+      "f1": 0.5517,
+      "precision": 0.4,
+      "recall": 0.8889,
+      "auroc": 0.9007,
+      "auprc": 0.5787,
+      "oracle_f1": 0.6667,
+      "elapsed_sec": 29.499270400003297
     },
     {
       "scenario": "Perf_Network_Loss_20251103_224954",
-      "f1": 0.6364,
-      "precision": 0.5833,
-      "recall": 0.7,
-      "elapsed_sec": 20.692609800000355
+      "f1": 0.4,
+      "precision": 0.4,
+      "recall": 0.4,
+      "auroc": 0.6246,
+      "auprc": 0.5078,
+      "oracle_f1": 0.5714,
+      "elapsed_sec": 18.739673899995978
     },
     {
       "scenario": "Svc_Kill_Media_20251104_000111",
-      "f1": 0.4444,
-      "precision": 0.4,
-      "recall": 0.5,
-      "elapsed_sec": 20.13282750000144
+      "f1": 0.6667,
+      "precision": 0.5,
+      "recall": 1.0,
+      "auroc": 0.9615,
+      "auprc": 0.6792,
+      "oracle_f1": 0.8889,
+      "elapsed_sec": 28.714225499999884
     },
     {
       "scenario": "Svc_Kill_SocialGraph_20251104_002506",
-      "f1": 0.4444,
-      "precision": 0.3333,
-      "recall": 0.6667,
-      "elapsed_sec": 28.129467299999305
+      "f1": 0.6,
+      "precision": 0.4286,
+      "recall": 1.0,
+      "auroc": 0.9259,
+      "auprc": 0.4778,
+      "oracle_f1": 0.75,
+      "elapsed_sec": 28.684516000001167
     },
     {
       "scenario": "Svc_Kill_UserTimeline_20251103_233717",
-      "f1": 0.8,
-      "precision": 1.0,
-      "recall": 0.6667,
-      "elapsed_sec": 38.08734539999932
+      "f1": 0.7273,
+      "precision": 0.5714,
+      "recall": 1.0,
+      "auroc": 0.9615,
+      "auprc": 0.6792,
+      "oracle_f1": 0.8889,
+      "elapsed_sec": 29.40047659999982
     }
   ],
   "aggregate": {
-    "f1_mean": 0.7446666666666668,
-    "f1_std": 0.18032657103772093,
-    "precision_mean": 0.6923500000000001,
-    "precision_std": 0.2298000525819493,
-    "recall_mean": 0.844175,
-    "recall_std": 0.1668748689138062,
-    "total_elapsed_sec": 288.48704830000315
+    "f1_mean": 0.5964499999999999,
+    "f1_std": 0.12640664209869143,
+    "precision_mean": 0.4745000000000001,
+    "precision_std": 0.08051531945329823,
+    "recall_mean": 0.8261583333333333,
+    "recall_std": 0.23634669258786384,
+    "auroc_mean": 0.8744999999999999,
+    "auprc_mean": 0.614575,
+    "oracle_f1_mean": 0.7635333333333333,
+    "total_elapsed_sec": 324.210442100004
   }
 }
