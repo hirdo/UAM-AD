@@ -1,4 +1,0 @@
-Experiment 7fd3c700: 2026/09/16-19:10:18
-Train time/epoch 0.3669
-* Test -- f1:0.7273	rc:0.8000	pc:0.6667	threshold:1.7627
-

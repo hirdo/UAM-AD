@@ -1,0 +1,182 @@
+2026-09-19 19:21:50,297 P17472 INFO ^^^^^^^^^^ Current Model:hades, 0ccfd793 ^^^^^^^^^^
+2026-09-19 19:21:50,297 P17472 INFO Load from D:\UAM-AD\data\sn
+2026-09-19 19:21:50,496 P17472 INFO 451 unique log templates found.
+2026-09-19 19:21:50,503 P17472 INFO Transforming unlabel train data.
+2026-09-19 19:21:50,530 P17472 INFO Transforming test data.
+2026-09-19 19:21:50,530 P17472 INFO 665 new templates show.
+2026-09-19 19:21:50,533 P17472 INFO Transforming val data.
+2026-09-19 19:21:50,535 P17472 INFO 1257 new templates show.
+2026-09-19 19:21:50,540 P17472 INFO Data loaded done!
+2026-09-19 19:21:50,668 P17472 INFO Known word number: 451
+2026-09-19 19:21:51,195 P17472 INFO Activity baseline (train): mean=93.1636 std=12.1861
+2026-09-19 19:21:54,168 P17472 INFO Epoch 0/50, train generator loss: 1.54996
+2026-09-19 19:21:54,384 P17472 INFO Epoch 0/50, train discriminator loss: 5.69720
+2026-09-19 19:21:54,451 P17472 INFO Epoch 0/50, val score: 2.36861. [1.16s]
+2026-09-19 19:21:54,655 P17472 INFO Epoch 1/50, train generator loss: 1.37373
+2026-09-19 19:21:54,799 P17472 INFO Epoch 1/50, train discriminator loss: 5.07870
+2026-09-19 19:21:54,851 P17472 INFO Epoch 1/50, val score: 2.27714. [0.33s]
+2026-09-19 19:21:55,041 P17472 INFO Epoch 2/50, train generator loss: 1.28214
+2026-09-19 19:21:55,185 P17472 INFO Epoch 2/50, train discriminator loss: 4.86193
+2026-09-19 19:21:55,231 P17472 INFO Epoch 2/50, val score: 2.13370. [0.31s]
+2026-09-19 19:21:55,440 P17472 INFO Epoch 3/50, train generator loss: 1.17423
+2026-09-19 19:21:55,609 P17472 INFO Epoch 3/50, train discriminator loss: 5.25792
+2026-09-19 19:21:55,666 P17472 INFO Epoch 3/50, val score: 1.94667. [0.35s]
+2026-09-19 19:21:55,878 P17472 INFO Epoch 4/50, train generator loss: 1.04764
+2026-09-19 19:21:56,010 P17472 INFO Epoch 4/50, train discriminator loss: 6.23281
+2026-09-19 19:21:56,070 P17472 INFO Epoch 4/50, val score: 1.67306. [0.31s]
+2026-09-19 19:21:56,259 P17472 INFO Epoch 5/50, train generator loss: 0.85797
+2026-09-19 19:21:56,421 P17472 INFO Epoch 5/50, train discriminator loss: 7.49271
+2026-09-19 19:21:56,476 P17472 INFO Epoch 5/50, val score: 1.34339. [0.33s]
+2026-09-19 19:21:56,684 P17472 INFO Epoch 6/50, train generator loss: 0.60508
+2026-09-19 19:21:56,822 P17472 INFO Epoch 6/50, train discriminator loss: 8.49858
+2026-09-19 19:21:56,880 P17472 INFO Epoch 6/50, val score: 1.30364. [0.31s]
+2026-09-19 19:21:57,049 P17472 INFO Epoch 7/50, train generator loss: 0.55999
+2026-09-19 19:21:57,196 P17472 INFO Epoch 7/50, train discriminator loss: 7.93817
+2026-09-19 19:21:57,252 P17472 INFO Epoch 7/50, val score: 1.45640. [0.29s]
+2026-09-19 19:21:57,252 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:21:57,379 P17472 INFO Epoch 8/50, train generator loss: 0.60962
+2026-09-19 19:21:57,521 P17472 INFO Epoch 8/50, train discriminator loss: 6.71582
+2026-09-19 19:21:57,570 P17472 INFO Epoch 8/50, val score: 1.37310. [0.27s]
+2026-09-19 19:21:57,570 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:21:57,701 P17472 INFO Epoch 9/50, train generator loss: 0.54481
+2026-09-19 19:21:57,841 P17472 INFO Epoch 9/50, train discriminator loss: 5.84836
+2026-09-19 19:21:57,902 P17472 INFO Epoch 9/50, val score: 1.17323. [0.27s]
+2026-09-19 19:21:58,061 P17472 INFO Epoch 10/50, train generator loss: 0.45009
+2026-09-19 19:21:58,204 P17472 INFO Epoch 10/50, train discriminator loss: 5.49365
+2026-09-19 19:21:58,256 P17472 INFO Epoch 10/50, val score: 1.18225. [0.28s]
+2026-09-19 19:21:58,256 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:21:58,393 P17472 INFO Epoch 11/50, train generator loss: 0.45519
+2026-09-19 19:21:58,526 P17472 INFO Epoch 11/50, train discriminator loss: 5.47632
+2026-09-19 19:21:58,598 P17472 INFO Epoch 11/50, val score: 1.25243. [0.27s]
+2026-09-19 19:21:58,598 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:21:58,785 P17472 INFO Epoch 12/50, train generator loss: 0.49666
+2026-09-19 19:21:58,946 P17472 INFO Epoch 12/50, train discriminator loss: 5.58928
+2026-09-19 19:21:59,003 P17472 INFO Epoch 12/50, val score: 1.19694. [0.35s]
+2026-09-19 19:21:59,003 P17472 INFO early stopping epoch 3/15
+2026-09-19 19:21:59,139 P17472 INFO Epoch 13/50, train generator loss: 0.45327
+2026-09-19 19:21:59,272 P17472 INFO Epoch 13/50, train discriminator loss: 5.65663
+2026-09-19 19:21:59,324 P17472 INFO Epoch 13/50, val score: 1.13442. [0.27s]
+2026-09-19 19:21:59,480 P17472 INFO Epoch 14/50, train generator loss: 0.42182
+2026-09-19 19:21:59,619 P17472 INFO Epoch 14/50, train discriminator loss: 5.62894
+2026-09-19 19:21:59,673 P17472 INFO Epoch 14/50, val score: 1.11692. [0.27s]
+2026-09-19 19:21:59,847 P17472 INFO Epoch 15/50, train generator loss: 0.40512
+2026-09-19 19:21:59,989 P17472 INFO Epoch 15/50, train discriminator loss: 5.55666
+2026-09-19 19:22:00,047 P17472 INFO Epoch 15/50, val score: 1.13241. [0.29s]
+2026-09-19 19:22:00,047 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:00,202 P17472 INFO Epoch 16/50, train generator loss: 0.40160
+2026-09-19 19:22:00,360 P17472 INFO Epoch 16/50, train discriminator loss: 5.51036
+2026-09-19 19:22:00,426 P17472 INFO Epoch 16/50, val score: 1.11327. [0.31s]
+2026-09-19 19:22:00,591 P17472 INFO Epoch 17/50, train generator loss: 0.38295
+2026-09-19 19:22:00,717 P17472 INFO Epoch 17/50, train discriminator loss: 5.50346
+2026-09-19 19:22:00,776 P17472 INFO Epoch 17/50, val score: 1.07652. [0.27s]
+2026-09-19 19:22:00,950 P17472 INFO Epoch 18/50, train generator loss: 0.35471
+2026-09-19 19:22:01,095 P17472 INFO Epoch 18/50, train discriminator loss: 5.51218
+2026-09-19 19:22:01,152 P17472 INFO Epoch 18/50, val score: 1.08857. [0.29s]
+2026-09-19 19:22:01,152 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:01,307 P17472 INFO Epoch 19/50, train generator loss: 0.35967
+2026-09-19 19:22:01,455 P17472 INFO Epoch 19/50, train discriminator loss: 5.51148
+2026-09-19 19:22:01,514 P17472 INFO Epoch 19/50, val score: 1.10352. [0.30s]
+2026-09-19 19:22:01,514 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:22:01,642 P17472 INFO Epoch 20/50, train generator loss: 0.36581
+2026-09-19 19:22:01,792 P17472 INFO Epoch 20/50, train discriminator loss: 5.50635
+2026-09-19 19:22:01,850 P17472 INFO Epoch 20/50, val score: 1.09255. [0.28s]
+2026-09-19 19:22:01,850 P17472 INFO early stopping epoch 3/15
+2026-09-19 19:22:01,985 P17472 INFO Epoch 21/50, train generator loss: 0.35328
+2026-09-19 19:22:02,129 P17472 INFO Epoch 21/50, train discriminator loss: 5.49852
+2026-09-19 19:22:02,186 P17472 INFO Epoch 21/50, val score: 1.06938. [0.28s]
+2026-09-19 19:22:02,346 P17472 INFO Epoch 22/50, train generator loss: 0.33968
+2026-09-19 19:22:02,480 P17472 INFO Epoch 22/50, train discriminator loss: 5.48639
+2026-09-19 19:22:02,537 P17472 INFO Epoch 22/50, val score: 1.05274. [0.27s]
+2026-09-19 19:22:02,687 P17472 INFO Epoch 23/50, train generator loss: 0.33434
+2026-09-19 19:22:02,825 P17472 INFO Epoch 23/50, train discriminator loss: 5.45838
+2026-09-19 19:22:02,879 P17472 INFO Epoch 23/50, val score: 1.04272. [0.27s]
+2026-09-19 19:22:03,064 P17472 INFO Epoch 24/50, train generator loss: 0.32904
+2026-09-19 19:22:03,221 P17472 INFO Epoch 24/50, train discriminator loss: 5.41075
+2026-09-19 19:22:03,279 P17472 INFO Epoch 24/50, val score: 1.02839. [0.31s]
+2026-09-19 19:22:03,450 P17472 INFO Epoch 25/50, train generator loss: 0.31569
+2026-09-19 19:22:03,585 P17472 INFO Epoch 25/50, train discriminator loss: 5.35953
+2026-09-19 19:22:03,636 P17472 INFO Epoch 25/50, val score: 1.02463. [0.28s]
+2026-09-19 19:22:03,786 P17472 INFO Epoch 26/50, train generator loss: 0.30532
+2026-09-19 19:22:03,922 P17472 INFO Epoch 26/50, train discriminator loss: 5.30495
+2026-09-19 19:22:03,976 P17472 INFO Epoch 26/50, val score: 1.02780. [0.27s]
+2026-09-19 19:22:03,977 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:04,120 P17472 INFO Epoch 27/50, train generator loss: 0.30180
+2026-09-19 19:22:04,264 P17472 INFO Epoch 27/50, train discriminator loss: 5.26680
+2026-09-19 19:22:04,322 P17472 INFO Epoch 27/50, val score: 1.02278. [0.29s]
+2026-09-19 19:22:04,484 P17472 INFO Epoch 28/50, train generator loss: 0.29765
+2026-09-19 19:22:04,628 P17472 INFO Epoch 28/50, train discriminator loss: 5.25147
+2026-09-19 19:22:04,678 P17472 INFO Epoch 28/50, val score: 1.01090. [0.28s]
+2026-09-19 19:22:04,838 P17472 INFO Epoch 29/50, train generator loss: 0.29017
+2026-09-19 19:22:04,974 P17472 INFO Epoch 29/50, train discriminator loss: 5.26214
+2026-09-19 19:22:05,027 P17472 INFO Epoch 29/50, val score: 1.00994. [0.27s]
+2026-09-19 19:22:05,194 P17472 INFO Epoch 30/50, train generator loss: 0.28962
+2026-09-19 19:22:05,370 P17472 INFO Epoch 30/50, train discriminator loss: 5.27911
+2026-09-19 19:22:05,427 P17472 INFO Epoch 30/50, val score: 1.00777. [0.31s]
+2026-09-19 19:22:05,587 P17472 INFO Epoch 31/50, train generator loss: 0.28430
+2026-09-19 19:22:05,717 P17472 INFO Epoch 31/50, train discriminator loss: 5.29038
+2026-09-19 19:22:05,770 P17472 INFO Epoch 31/50, val score: 0.99453. [0.27s]
+2026-09-19 19:22:05,926 P17472 INFO Epoch 32/50, train generator loss: 0.27701
+2026-09-19 19:22:06,076 P17472 INFO Epoch 32/50, train discriminator loss: 5.29407
+2026-09-19 19:22:06,133 P17472 INFO Epoch 32/50, val score: 0.98710. [0.28s]
+2026-09-19 19:22:06,292 P17472 INFO Epoch 33/50, train generator loss: 0.27532
+2026-09-19 19:22:06,421 P17472 INFO Epoch 33/50, train discriminator loss: 5.29209
+2026-09-19 19:22:06,471 P17472 INFO Epoch 33/50, val score: 0.98349. [0.26s]
+2026-09-19 19:22:06,643 P17472 INFO Epoch 34/50, train generator loss: 0.27187
+2026-09-19 19:22:06,792 P17472 INFO Epoch 34/50, train discriminator loss: 5.28148
+2026-09-19 19:22:06,851 P17472 INFO Epoch 34/50, val score: 0.98322. [0.30s]
+2026-09-19 19:22:07,014 P17472 INFO Epoch 35/50, train generator loss: 0.26656
+2026-09-19 19:22:07,150 P17472 INFO Epoch 35/50, train discriminator loss: 5.24755
+2026-09-19 19:22:07,212 P17472 INFO Epoch 35/50, val score: 0.99240. [0.28s]
+2026-09-19 19:22:07,213 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:07,372 P17472 INFO Epoch 36/50, train generator loss: 0.26484
+2026-09-19 19:22:07,528 P17472 INFO Epoch 36/50, train discriminator loss: 5.20130
+2026-09-19 19:22:07,603 P17472 INFO Epoch 36/50, val score: 0.98765. [0.31s]
+2026-09-19 19:22:07,604 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:22:07,745 P17472 INFO Epoch 37/50, train generator loss: 0.26134
+2026-09-19 19:22:07,897 P17472 INFO Epoch 37/50, train discriminator loss: 5.15659
+2026-09-19 19:22:07,950 P17472 INFO Epoch 37/50, val score: 0.97620. [0.29s]
+2026-09-19 19:22:08,123 P17472 INFO Epoch 38/50, train generator loss: 0.25735
+2026-09-19 19:22:08,250 P17472 INFO Epoch 38/50, train discriminator loss: 5.12922
+2026-09-19 19:22:08,308 P17472 INFO Epoch 38/50, val score: 0.97147. [0.28s]
+2026-09-19 19:22:08,476 P17472 INFO Epoch 39/50, train generator loss: 0.25838
+2026-09-19 19:22:08,619 P17472 INFO Epoch 39/50, train discriminator loss: 5.11795
+2026-09-19 19:22:08,667 P17472 INFO Epoch 39/50, val score: 0.97009. [0.29s]
+2026-09-19 19:22:08,824 P17472 INFO Epoch 40/50, train generator loss: 0.25427
+2026-09-19 19:22:08,972 P17472 INFO Epoch 40/50, train discriminator loss: 5.11109
+2026-09-19 19:22:09,031 P17472 INFO Epoch 40/50, val score: 0.97348. [0.28s]
+2026-09-19 19:22:09,031 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:09,155 P17472 INFO Epoch 41/50, train generator loss: 0.25348
+2026-09-19 19:22:09,296 P17472 INFO Epoch 41/50, train discriminator loss: 5.09977
+2026-09-19 19:22:09,346 P17472 INFO Epoch 41/50, val score: 0.97436. [0.26s]
+2026-09-19 19:22:09,346 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:22:09,479 P17472 INFO Epoch 42/50, train generator loss: 0.25206
+2026-09-19 19:22:09,623 P17472 INFO Epoch 42/50, train discriminator loss: 5.09276
+2026-09-19 19:22:09,676 P17472 INFO Epoch 42/50, val score: 0.96319. [0.28s]
+2026-09-19 19:22:09,890 P17472 INFO Epoch 43/50, train generator loss: 0.24893
+2026-09-19 19:22:10,042 P17472 INFO Epoch 43/50, train discriminator loss: 5.06581
+2026-09-19 19:22:10,111 P17472 INFO Epoch 43/50, val score: 0.95935. [0.34s]
+2026-09-19 19:22:10,272 P17472 INFO Epoch 44/50, train generator loss: 0.24820
+2026-09-19 19:22:11,602 P17472 INFO Epoch 44/50, train discriminator loss: 5.03445
+2026-09-19 19:22:11,670 P17472 INFO Epoch 44/50, val score: 0.96233. [1.47s]
+2026-09-19 19:22:11,670 P17472 INFO early stopping epoch 1/15
+2026-09-19 19:22:11,793 P17472 INFO Epoch 45/50, train generator loss: 0.24629
+2026-09-19 19:22:11,931 P17472 INFO Epoch 45/50, train discriminator loss: 5.01402
+2026-09-19 19:22:11,991 P17472 INFO Epoch 45/50, val score: 0.96710. [0.26s]
+2026-09-19 19:22:11,992 P17472 INFO early stopping epoch 2/15
+2026-09-19 19:22:12,140 P17472 INFO Epoch 46/50, train generator loss: 0.24812
+2026-09-19 19:22:12,279 P17472 INFO Epoch 46/50, train discriminator loss: 4.99120
+2026-09-19 19:22:12,335 P17472 INFO Epoch 46/50, val score: 0.96415. [0.29s]
+2026-09-19 19:22:12,337 P17472 INFO early stopping epoch 3/15
+2026-09-19 19:22:12,481 P17472 INFO Epoch 47/50, train generator loss: 0.24494
+2026-09-19 19:22:12,621 P17472 INFO Epoch 47/50, train discriminator loss: 4.96049
+2026-09-19 19:22:12,674 P17472 INFO Epoch 47/50, val score: 0.95662. [0.29s]
+2026-09-19 19:22:12,841 P17472 INFO Epoch 48/50, train generator loss: 0.24363
+2026-09-19 19:22:12,997 P17472 INFO Epoch 48/50, train discriminator loss: 4.92619
+2026-09-19 19:22:13,051 P17472 INFO Epoch 48/50, val score: 0.95306. [0.30s]
+2026-09-19 19:22:13,224 P17472 INFO Epoch 49/50, train generator loss: 0.24541
+2026-09-19 19:22:13,369 P17472 INFO Epoch 49/50, train discriminator loss: 4.89721
+2026-09-19 19:22:13,439 P17472 INFO Epoch 49/50, val score: 0.95230. [0.30s]
+2026-09-19 19:22:14,900 P17472 INFO Threshold (p=95.0, src=val, n=260): 1.265609
+2026-09-19 19:22:15,245 P17472 INFO *** Test F1 0.7273 P 0.5714 R 1.0000 AUROC 0.9615 AUPRC 0.6792 (val threshold)
+2026-09-19 19:22:15,245 P17472 INFO *** Oracle F1 0.8889 (test-swept threshold, point_adjust)
+2026-09-19 19:22:16,441 P17472 INFO Current hash id 0ccfd793

@@ -1,0 +1,4 @@
+Experiment 0be6ded9: 2026/09/20-03:12:28
+Train time/epoch 0.2677
+* Test -- f1:0.7200	rc:1.0000	pc:0.5625	threshold:1.5431	auroc:0.9731	auprc:0.7363	oracle_f1:0.9000	oracle_rc:1.0000	oracle_pc:0.8182	oracle_threshold:1.8766
+

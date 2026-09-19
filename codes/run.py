@@ -63,10 +63,11 @@ parser.add_argument("--run_start", default=0, type=int, help="First run index (i
 parser.add_argument("--run_end",   default=5, type=int, help="Last run index (exclusive)")
 parser.add_argument("--theta", default=0.15, type=float) # 0.3 0.15
 parser.add_argument("--anomaly_rate", default=20, type=int,
-                    help="Threshold sweep range for non-SN datasets (backward compat).")
-parser.add_argument("--val_percentile", default=None, type=float,
-                    help="If set, threshold = percentile(normal_train_losses, val_percentile). "
-                         "Recommended: 95. Replaces anomaly_rate sweep for SN dataset.")
+                    help="Threshold sweep range (percent of top scores) of the 'oracle' F1 that is "
+                         "reported next to the primary metrics.")
+parser.add_argument("--val_percentile", default=95.0, type=float,
+                    help="Threshold = this percentile of the normal (val) scores of the selected model; "
+                         "the primary F1/precision/recall are computed at this threshold.")
 parser.add_argument("--criterion", default="l1", type=str, choices=["l1", "mse"])
 
 
@@ -90,6 +91,16 @@ parser.add_argument("--trace_dropout", default=0.1, type=float,
                     help="Dropout rate inside GAT layers")
 parser.add_argument("--gate_lambda", default=0.01, type=float,
                     help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+parser.add_argument("--gate_delta_lr_mult", default=1.0, type=float,
+                    help="Learning rate multiplier applied only to trace_gate/delta_head params "
+                         "(their gradients are structurally scaled down by the residual-gated "
+                         "fusion's double zero-init, see CHANGE 8 in fuse_v3.py). 1.0 = no-op (default).")
+parser.add_argument("--activity_penalty_weight", default=0.0, type=float,
+                    help="Weight on a reconstruction-independent 'activity deficit' term added "
+                         "to the anomaly score: how far below the normal training activity level "
+                         "(kpi_features.sum + log_features.sum) a window's raw input is. Catches "
+                         "'went silent' faults whose near-empty input reconstructs too well to "
+                         "score as anomalous on reconstruction loss alone. 0.0 = no-op (default).")
 parser.add_argument("--fuse_type", default="multi_modal_self_attn", choices=["concat", "cross_attn", "sep_attn","multi_modal_self_attn"])
 parser.add_argument("--attn_type", default="add", choices=["dot", "add","qkv"])
 parser.add_argument("--enable_rca", default=False, type=str2bool,
