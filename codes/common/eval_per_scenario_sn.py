@@ -94,36 +94,37 @@ def _scan_latest_results(result_dir: str, run_start: int, run_end: int):
     """
     Scan result_dir recursively for info_score.txt files (one per run subdir).
     Each file contains a line like:
-        * Test -- f1:0.2174\trc:0.1220\tpc:1.0000
-    Returns (best_f1, best_pc, best_rc) across all runs, or None if not found.
+        * Test -- f1:0.2174\trc:0.1220\tpc:1.0000\tthreshold:2.1\tauroc:0.9\tauprc:0.5\toracle_f1:0.4
+    where f1/rc/pc are measured at the val threshold. Returns a dict of those values
+    (the run with the highest f1 if several), or None if not found.
     """
-    import re
     if not os.path.isdir(result_dir):
         return None
 
-    best_f1 = best_pc = best_rc = -1.0
+    best = None
 
     for root, dirs, files in os.walk(result_dir):
         for fname in files:
             if fname != "info_score.txt":
                 continue
-            fpath = os.path.join(root, fname)
             try:
-                with open(fpath) as f:
+                with open(os.path.join(root, fname)) as f:
                     for line in f:
-                        m = re.search(
-                            r"f1:([\d.]+)\s+rc:([\d.]+)\s+pc:([\d.]+)", line
-                        )
-                        if m:
-                            f1 = float(m.group(1))
-                            rc = float(m.group(2))
-                            pc = float(m.group(3))
-                            if f1 > best_f1:
-                                best_f1, best_pc, best_rc = f1, pc, rc
+                        if not line.startswith("* Test --"):
+                            continue
+                        vals = {}
+                        for kv in line[len("* Test --"):].split():
+                            k, _, v = kv.partition(":")
+                            try:
+                                vals[k] = float(v)
+                            except ValueError:
+                                pass
+                        if "f1" in vals and (best is None or vals["f1"] > best["f1"]):
+                            best = vals
             except Exception:
                 continue
 
-    return (best_f1, best_pc, best_rc) if best_f1 >= 0 else None
+    return best
 
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
@@ -152,6 +153,10 @@ def main():
     p.add_argument("--run_end",       default=1,    type=int)
     p.add_argument("--gate_lambda",   default=0.01, type=float,
                    help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+    p.add_argument("--gate_delta_lr_mult", default=1.0, type=float,
+                   help="Learning rate multiplier for trace_gate/delta_head params. 1.0 = no-op (default).")
+    p.add_argument("--activity_penalty_weight", default=0.0, type=float,
+                   help="Weight on the 'activity deficit' anomaly-score term. 0.0 = no-op (default).")
     p.add_argument("--result_dir",    default=None,
                    help="Base result dir; each scenario gets its own subdir. "
                         "Defaults to {data}/result_per_scenario_{data_type}_{trace|baseline}")
@@ -224,6 +229,8 @@ def main():
             "--test_pkl",          test_pkl,
             "--result_dir",        sc_result_dir,
             "--gate_lambda",       str(args.gate_lambda),
+            "--gate_delta_lr_mult", str(args.gate_delta_lr_mult),
+            "--activity_penalty_weight", str(args.activity_penalty_weight),
         ]
 
         sc_start = time.perf_counter()
@@ -246,11 +253,13 @@ def main():
         res = _scan_latest_results(sc_result_dir, args.run_start, args.run_end)
         if res is None:
             logging.warning(f"  No result files found in {sc_result_dir}")
-            results.append((sc_name, 0.0, 0.0, 0.0, elapsed))
+            results.append((sc_name, 0.0, 0.0, 0.0, elapsed, 0.0, 0.0, 0.0))
         else:
-            f1, pc, rc = res
-            results.append((sc_name, f1, pc, rc, elapsed))
-            logging.info(f"  → F1={f1:.4f}  P={pc:.4f}  R={rc:.4f}  time={elapsed:.1f}s")
+            f1, pc, rc = res["f1"], res.get("pc", 0.0), res.get("rc", 0.0)
+            auroc, auprc, oracle_f1 = res.get("auroc", float("nan")), res.get("auprc", float("nan")), res.get("oracle_f1", float("nan"))
+            results.append((sc_name, f1, pc, rc, elapsed, auroc, auprc, oracle_f1))
+            logging.info(f"  → F1={f1:.4f}  P={pc:.4f}  R={rc:.4f}  AUROC={auroc:.4f}  "
+                         f"AUPRC={auprc:.4f}  oracleF1={oracle_f1:.4f}  time={elapsed:.1f}s")
 
     # ── Aggregate ─────────────────────────────────────────────────────────────
     if not results:
@@ -263,24 +272,27 @@ def main():
     pcs   = np.array([r[2] for r in results])
     rcs   = np.array([r[3] for r in results])
     times = np.array([r[4] for r in results])
+    aurocs = np.array([r[5] for r in results])
+    auprcs = np.array([r[6] for r in results])
+    oracles = np.array([r[7] for r in results])
 
     col = 38
-    sep = "-" * (col + 44)
-    print(f"\n{'='*82}")
+    sep = "-" * (col + 66)
+    print(f"\n{'='*104}")
     print(f"  Per-Scenario Evaluation Results  ({args.data_type}, "
-          f"open_trace={args.open_trace})")
-    print(f"{'='*82}")
-    print(f"  {'Scenario':<{col}}  {'F1':>6}  {'Precision':>9}  {'Recall':>6}  {'Time(s)':>8}")
+          f"open_trace={args.open_trace}); F1/P/R at the val threshold (p{args.val_percentile:g})")
+    print(f"{'='*104}")
+    print(f"  {'Scenario':<{col}}  {'F1':>6}  {'Precision':>9}  {'Recall':>6}  {'AUROC':>6}  {'AUPRC':>6}  {'OracleF1':>8}  {'Time(s)':>8}")
     print(f"  {sep}")
-    for sc_name, f1, pc, rc, t in results:
+    for sc_name, f1, pc, rc, t, au, ap, of1 in results:
         display = sc_name[:col]
-        print(f"  {display:<{col}}  {f1:>6.4f}  {pc:>9.4f}  {rc:>6.4f}  {t:>8.1f}")
+        print(f"  {display:<{col}}  {f1:>6.4f}  {pc:>9.4f}  {rc:>6.4f}  {au:>6.4f}  {ap:>6.4f}  {of1:>8.4f}  {t:>8.1f}")
     print(f"  {sep}")
-    print(f"  {'Mean':<{col}}  {f1s.mean():>6.4f}  {pcs.mean():>9.4f}  {rcs.mean():>6.4f}  {times.mean():>8.1f}")
+    print(f"  {'Mean':<{col}}  {f1s.mean():>6.4f}  {pcs.mean():>9.4f}  {rcs.mean():>6.4f}  {np.nanmean(aurocs):>6.4f}  {np.nanmean(auprcs):>6.4f}  {np.nanmean(oracles):>8.4f}  {times.mean():>8.1f}")
     print(f"  {'Std':<{col}}  {f1s.std():>6.4f}  {pcs.std():>9.4f}  {rcs.std():>6.4f}")
     print(f"  {sep}")
     print(f"  Total wall time: {total_elapsed:.1f}s ({total_elapsed/60:.1f} min)")
-    print(f"{'='*82}\n")
+    print(f"{'='*104}\n")
 
     # Save summary JSON
     summary = {
@@ -291,13 +303,16 @@ def main():
             "window_size": args.window_size,
         },
         "per_scenario": [
-            {"scenario": sc, "f1": f1, "precision": pc, "recall": rc, "elapsed_sec": t}
-            for sc, f1, pc, rc, t in results
+            {"scenario": sc, "f1": f1, "precision": pc, "recall": rc, "auroc": au, "auprc": ap,
+             "oracle_f1": of1, "elapsed_sec": t}
+            for sc, f1, pc, rc, t, au, ap, of1 in results
         ],
         "aggregate": {
             "f1_mean": float(f1s.mean()), "f1_std": float(f1s.std()),
             "precision_mean": float(pcs.mean()), "precision_std": float(pcs.std()),
             "recall_mean": float(rcs.mean()), "recall_std": float(rcs.std()),
+            "auroc_mean": float(np.nanmean(aurocs)), "auprc_mean": float(np.nanmean(auprcs)),
+            "oracle_f1_mean": float(np.nanmean(oracles)),
             "total_elapsed_sec": float(total_elapsed),
         }
     }

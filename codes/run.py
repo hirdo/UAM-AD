@@ -5,9 +5,8 @@ import torch
 import logging
 from tqdm import tqdm
 from models.basev3 import BaseModel
+from models.rca import compute_hit_rate_at_k
 from common.data_processing_utils import *
-# from models.basev4 import BaseModel
-# from models.base import *
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -43,12 +42,9 @@ parser.add_argument("--open_min_max", default=False, type=str2bool)
 parser.add_argument("--open_position_embedding", default=False, type=str2bool)
 parser.add_argument("--sigma_matrix", default=False, type=str2bool)
 parser.add_argument("--feature_type", default="template_appear", type=str, choices=["word2vec", "sequential","template_count","template_appear"])
-parser.add_argument("--data", type=str, default="../data/chunk_10")
-# dataset choices: "original" | "yzh" | "zte" | "micross"
-parser.add_argument("--dataset", type=str, default="original")
-# parser.add_argument("--data", type=str, default="../data/data3")
-# parser.add_argument("--dataset", type=str, default="zte")
-# parser.add_argument("--data", type=str, default="../data/zte2")
+parser.add_argument("--data", type=str, required=True)
+parser.add_argument("--dataset", type=str, required=True,
+                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "sn"])
 parser.add_argument("--open_kpi_normalization", default=True, type=str2bool)
 parser.add_argument("--open_log_normalization", default=False, type=str2bool)
 # parser.add_argument("--open_narrowing_modal_gap", default=False, type=str2bool) 
@@ -67,10 +63,11 @@ parser.add_argument("--run_start", default=0, type=int, help="First run index (i
 parser.add_argument("--run_end",   default=5, type=int, help="Last run index (exclusive)")
 parser.add_argument("--theta", default=0.15, type=float) # 0.3 0.15
 parser.add_argument("--anomaly_rate", default=20, type=int,
-                    help="Threshold sweep range for non-SN datasets (backward compat).")
-parser.add_argument("--val_percentile", default=None, type=float,
-                    help="If set, threshold = percentile(normal_train_losses, val_percentile). "
-                         "Recommended: 95. Replaces anomaly_rate sweep for SN dataset.")
+                    help="Threshold sweep range (percent of top scores) of the 'oracle' F1 that is "
+                         "reported next to the primary metrics.")
+parser.add_argument("--val_percentile", default=95.0, type=float,
+                    help="Threshold = this percentile of the normal (val) scores of the selected model; "
+                         "the primary F1/precision/recall are computed at this threshold.")
 parser.add_argument("--criterion", default="l1", type=str, choices=["l1", "mse"])
 
 
@@ -84,16 +81,34 @@ parser.add_argument("--data_type", default="kpi", choices=["fuse", "log", "kpi"]
 parser.add_argument("--open_trace", default=False, type=str2bool,
                     help="Enable trace branch (GAT Structure Autoencoder). "
                          "Requires trace_node_features and trace_adj in the data.")
-parser.add_argument("--num_services", default=10, type=int,
-                    help="Number of service nodes in the Service Trace Graph (STG)")
-parser.add_argument("--trace_c", default=5, type=int,
-                    help="Feature dimension per node in the STG (e.g. response_time, cpu, mem, ...)")
+parser.add_argument("--num_services", default=0, type=int,
+                    help="Number of service nodes in the Service Trace Graph (STG). "
+                         "Leave at 0 to auto-fill from meta.pkl.")
+parser.add_argument("--trace_c", default=0, type=int,
+                    help="Feature dimension per node in the STG (e.g. response_time, cpu, mem, ...). "
+                         "Leave at 0 to auto-fill from meta.pkl.")
 parser.add_argument("--trace_dropout", default=0.1, type=float,
                     help="Dropout rate inside GAT layers")
 parser.add_argument("--gate_lambda", default=0.01, type=float,
                     help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+parser.add_argument("--gate_delta_lr_mult", default=1.0, type=float,
+                    help="Learning rate multiplier applied only to trace_gate/delta_head params "
+                         "(their gradients are structurally scaled down by the residual-gated "
+                         "fusion's double zero-init, see CHANGE 8 in fuse_v3.py). 1.0 = no-op (default).")
+parser.add_argument("--activity_penalty_weight", default=0.0, type=float,
+                    help="Weight on a reconstruction-independent 'activity deficit' term added "
+                         "to the anomaly score: how far below the normal training activity level "
+                         "(kpi_features.sum + log_features.sum) a window's raw input is. Catches "
+                         "'went silent' faults whose near-empty input reconstructs too well to "
+                         "score as anomalous on reconstruction loss alone. 0.0 = no-op (default).")
 parser.add_argument("--fuse_type", default="multi_modal_self_attn", choices=["concat", "cross_attn", "sep_attn","multi_modal_self_attn"])
 parser.add_argument("--attn_type", default="add", choices=["dot", "add","qkv"])
+parser.add_argument("--enable_rca", default=False, type=str2bool,
+                    help="Root Cause Localization (TraceDAE §E): rank service nodes by "
+                         "per-node reconstruction score for every window flagged anomalous. "
+                         "Requires open_trace=True.")
+parser.add_argument("--rca_top_k", default=3, type=int,
+                    help="Number of top-ranked candidate services to report per anomalous window.")
 
 ### Kpi params
 parser.add_argument("--inner_dropout", default=0.5, type=float)
@@ -120,7 +135,7 @@ parser.add_argument("--main_model", default="hades", choices=["hades", "join-had
 
 params = vars(parser.parse_args())
 
-# Auto-load metadata saved by preprocess_micross.py (num_services, trace_c, etc.)
+# Auto-load metadata saved by the preprocess_* scripts (num_services, trace_c, etc.)
 import pickle as _pkl
 _meta_path = os.path.join(params["data"], "meta.pkl")
 if os.path.exists(_meta_path):
@@ -131,6 +146,7 @@ if os.path.exists(_meta_path):
         params["num_services"] = _meta["num_services"]
     if params.get("trace_c", 0) == 0 and "trace_c" in _meta:
         params["trace_c"] = _meta["trace_c"]
+    params["service2idx"] = _meta.get("service2idx", {})
     logging.info(f"Loaded meta.pkl: num_services={params['num_services']}, "
                  f"trace_c={params['trace_c']}")
 
@@ -190,18 +206,25 @@ def main(var_nums):
             scores = model.unsupervised_fit(unlabel_loader, test_loader, val_loader=val_loader)
     else:
         model.load_model(params["pre_model"])
-        scores = model.evaluate(test_loader)
-    
+        scores, test_embeds = model.evaluate(test_loader)
+        if params.get("enable_rca") and model.open_trace:
+            rca_records = model.localize_root_causes(
+                test_loader, threshold=scores.get("threshold"),
+                top_k=params.get("rca_top_k", 3))
+            scores["rca_records"] = rca_records
+            scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
+
     ##### Record results #####
     dump_scores(params["result_dir"], params["hash_id"], scores, model.train_time)
+    if scores.get("rca_records"):
+        dump_rca_results(params["result_dir"], params["hash_id"],
+                          scores["rca_records"], scores.get("rca_metrics"))
     logging.info("Current hash id {}".format(params["hash_id"]))
 
 for run_times in range(params["run_start"], params["run_end"]):
     params["run_times"] = run_times
     seed_everything(params["random_seed"] + run_times)   # different seed per run
-    if params["dataset"] == 'yzh':
-        params["open_kpi_select"] = False
-    elif params["dataset"] == "rcaeval_re3_ob":
+    if params["dataset"] == "rcaeval_re3_ob":
         params["open_kpi_select"] = False
     elif params["dataset"] == "rcaeval_re2_ob":
         params["open_kpi_select"] = False
