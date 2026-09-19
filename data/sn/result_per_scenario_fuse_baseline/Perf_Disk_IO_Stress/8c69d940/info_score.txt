@@ -1,4 +1,4 @@
-Experiment 8c69d940: 2026/09/19-02:35:43
-Train time/epoch 0.2327
-* Test -- f1:0.3333	rc:1.0000	pc:0.2000	threshold:1.7629
+Experiment 8c69d940: 2026/09/19-18:44:30
+Train time/epoch 0.3188
+* Test -- f1:0.7692	rc:1.0000	pc:0.6250	threshold:1.7120
 

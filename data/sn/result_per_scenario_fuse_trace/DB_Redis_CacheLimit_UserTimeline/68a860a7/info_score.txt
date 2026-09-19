@@ -1,4 +1,4 @@
-Experiment 68a860a7: 2026/09/18-22:51:37
-Train time/epoch 0.2760
-* Test -- f1:0.2759	rc:0.6667	pc:0.1739	threshold:2.1764
+Experiment 68a860a7: 2026/09/19-18:49:08
+Train time/epoch 0.3735
+* Test -- f1:0.7619	rc:0.8889	pc:0.6667	threshold:1.7369
 

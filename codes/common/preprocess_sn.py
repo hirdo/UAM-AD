@@ -32,10 +32,11 @@ Output (OUTPUT_DIR/):
   meta.pkl               — dataset metadata
   scenarios/
     test_{name}.pkl      — per-scenario test file, one per scenario that has a
-                           real fault window (see FAULT_WINDOWS): pooled normal
-                           windows (all scenarios) + that scenario's own
-                           subsampled anomaly windows (max_anomaly_windows,
-                           default 6), shuffled.
+                           real fault window (see FAULT_WINDOWS): all of that
+                           scenario's anomaly windows + normal windows sampled
+                           from the pool of all scenarios (round-robin across
+                           source scenarios) to reach target_anomaly_rate
+                           (default 0.125), shuffled.
 
 KPI features (59 total):
   10 system   : cpu_usage, disk_io_time, disk_read_bytes, disk_usage_pct,
@@ -54,7 +55,7 @@ Usage:
         --sn_data_root D:/AnoMod/SN_data \\
         --output_dir data/sn \\
         --window_sec 30 \\
-        --max_anomaly_windows 6 --seed 42
+        --target_anomaly_rate 0.125 --seed 42
 """
 
 import argparse
@@ -213,13 +214,13 @@ class SNPreprocessor:
         sn_data_root: str,
         output_dir: str,
         window_sec: int = 30,
-        max_anomaly_windows: int = 6,
+        target_anomaly_rate: float = 0.125,
         seed: int = 42,
     ):
         self.sn_data_root        = sn_data_root
         self.output_dir          = output_dir
         self.window_sec          = window_sec
-        self.max_anomaly_windows = max_anomaly_windows
+        self.target_anomaly_rate = target_anomaly_rate
         self.seed                = seed
         self.rng                 = random.Random(seed)
 
@@ -920,21 +921,30 @@ class SNPreprocessor:
         normal_samples: List[Tuple[str, Dict]],
         scenarios_dir: str,
     ):
-        """Save one per-scenario test file immediately after processing.
+        """Save one per-scenario test file.
 
-        Anomaly windows are subsampled to max_anomaly_windows (evenly spaced)
-        to keep anomaly rate low (~10-15%) and minimise consecutive anomaly
-        clusters after shuffle.
+        Uses every anomaly window of the scenario and samples just enough
+        normal windows from the pooled normal set to reach target_anomaly_rate
+        (capped at the pool size). The normal windows are drawn round-robin
+        across their source scenarios so the file still mixes many sessions.
         """
-        # Subsample anomaly windows evenly across the scenario
-        if self.max_anomaly_windows and len(sc_samples) > self.max_anomaly_windows:
-            n = self.max_anomaly_windows
-            indices = [int(round(i * (len(sc_samples) - 1) / (n - 1))) for i in range(n)]
-            sc_samples_sub = [sc_samples[i] for i in indices]
-        else:
-            sc_samples_sub = sc_samples
+        sc_samples_sub = sc_samples
+        n_anom = len(sc_samples_sub)
+        n_normal = min(len(normal_samples),
+                       round(n_anom * (1 - self.target_anomaly_rate) / self.target_anomaly_rate))
 
-        combined = normal_samples + sc_samples_sub
+        by_source: Dict[str, List[Tuple[str, Dict]]] = {}
+        for item in normal_samples:
+            by_source.setdefault(item[1]["_scenario"], []).append(item)
+        for group in by_source.values():
+            self.rng.shuffle(group)
+        chosen: List[Tuple[str, Dict]] = []
+        while len(chosen) < n_normal:
+            for group in by_source.values():
+                if group and len(chosen) < n_normal:
+                    chosen.append(group.pop())
+
+        combined = chosen + sc_samples_sub
         self.rng.shuffle(combined)
         sc_data = self._to_dict(combined)
 
@@ -1023,9 +1033,10 @@ def main():
     )
     p.add_argument("--window_sec",           default=30,  type=int,
                    help="Window size in seconds (default: 30s; metrics sampled at 15s)")
-    p.add_argument("--max_anomaly_windows",  default=6,   type=int,
-                   help="Max anomaly windows per scenario test file (evenly subsampled). "
-                        "Keeps anomaly rate ~13%% to reduce consecutive clusters after shuffle.")
+    p.add_argument("--target_anomaly_rate",  default=0.125, type=float,
+                   help="Anomaly fraction of each scenario test file. All of the scenario's "
+                        "anomaly windows are kept; normal windows are sampled to reach this rate "
+                        "(capped at the pooled normal size).")
     p.add_argument("--seed",                 default=42,  type=int)
     args = p.parse_args()
 
@@ -1033,7 +1044,7 @@ def main():
         sn_data_root        = args.sn_data_root,
         output_dir          = args.output_dir,
         window_sec          = args.window_sec,
-        max_anomaly_windows = args.max_anomaly_windows,
+        target_anomaly_rate = args.target_anomaly_rate,
         seed                = args.seed,
     ).run()
 

@@ -1,4 +1,4 @@
-Experiment 89a491ac: 2026/09/19-02:34:32
-Train time/epoch 0.2487
-* Test -- f1:0.4615	rc:1.0000	pc:0.3000	threshold:2.6123
+Experiment 89a491ac: 2026/09/19-18:43:02
+Train time/epoch 0.3373
+* Test -- f1:0.9000	rc:1.0000	pc:0.8182	threshold:2.1865
 

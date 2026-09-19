@@ -1,4 +1,4 @@
-Experiment 3df54b4c: 2026/09/18-22:50:56
-Train time/epoch 0.2658
-* Test -- f1:0.3750	rc:1.0000	pc:0.2308	threshold:1.7460
+Experiment 3df54b4c: 2026/09/19-18:48:11
+Train time/epoch 0.3824
+* Test -- f1:0.7619	rc:0.8889	pc:0.6667	threshold:2.4178
 

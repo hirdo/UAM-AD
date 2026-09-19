@@ -13,7 +13,8 @@
 | Loại dữ liệu | `fuse` (KPI + Nhật ký [+ Trace khi `open_trace=True`]) |
 | Train / unlabel | 31 cửa sổ (80% của 39 cửa sổ `Normal_Baseline`) |
 | Val | 8 cửa sổ (20% còn lại của `Normal_Baseline`) |
-| Test mỗi scenario | 326 cửa sổ = 320 normal + 6 anomaly (**1,84%**); `Svc_Kill_*`: 324 = 320 + 4 (**1,23%**) |
+| Test mỗi scenario | Toàn bộ anomaly của scenario + normal lấy mẫu để tỉ lệ anomaly = **12,5%** (`--target_anomaly_rate 0.125`) |
+| Kích thước test | `Code_Stop_MediaService` 370 (50 anomaly + 320 normal, 13,5%); `Code_Stop_TextService`/`UserService` 320 (40 + 280); `Perf_*`, `DB_Redis_*` 80 (10 + 70); `Svc_Kill_*` 32 (4 + 28) |
 | `window_size` | 5 (5 cửa sổ × 30 s) |
 | `val_percentile` | 95 |
 | `epoches` / `patience` | 50 50 / 15 (baseline và trace như nhau) |
@@ -47,9 +48,9 @@ Cửa sổ `Svc_Kill_*` được xác nhận bằng: cột `container_label_rest
 ## 3. Hai pool normal
 
 - **Train / unlabel / val**: chỉ từ `Normal_Baseline`. Giữ hẹp có chủ đích: đưa thêm các cửa sổ ít hoạt động từ scenario khác vào train làm model coi "ít hoạt động" là bình thường, làm mất khả năng phát hiện lỗi "im lặng hoàn toàn" (mục 4.1).
-- **Test** (phần normal của mỗi `test_<scenario>.pkl`): gộp từ **mọi** scenario (`Normal_Baseline` + phần đã hồi phục / chưa từng lỗi của từng scenario) — 320 cửa sổ trải khắp ~3 giờ thí nghiệm. Mỗi file test luôn so anomaly của scenario đó với normal từ nhiều session khác nhau, nên mô hình không thể dựa vào "đây là session nào" để phân biệt.
+- **Test** (phần normal của mỗi `test_<scenario>.pkl`): lấy mẫu từ pool gồm mọi scenario (`Normal_Baseline` + phần đã hồi phục / chưa từng lỗi của từng scenario), lấy luân phiên qua các scenario nguồn để mỗi file test trộn normal từ nhiều session. Nhờ vậy mô hình không thể dựa vào "đây là session nào" để phân biệt.
 
-Anomaly luôn tách riêng theo scenario: mỗi `test_<scenario>.pkl` chỉ chứa anomaly của đúng scenario đó (subsample đều tối đa 6 cửa sổ).
+Anomaly luôn tách riêng theo scenario: mỗi `test_<scenario>.pkl` chỉ chứa anomaly của đúng scenario đó (dùng toàn bộ cửa sổ anomaly có được).
 
 ## 4. Thành phần chấm điểm và huấn luyện
 
@@ -60,7 +61,7 @@ Với lỗi làm service "im lặng" (`Code_Stop_*`, `Svc_Kill_*`), reconstructi
 Learning rate riêng cho `trace_gate` và `delta_head` (nhân với `lr`). Cả hai lớp cuối khởi tạo bằng 0 nên gradient của mỗi bên tỉ lệ với giá trị gần 0 của bên kia (nghẽn nhân đôi); hệ số 10 giúp chúng dịch chuyển khỏi 0 nhanh hơn. Mặc định `1.0`.
 
 ### 4.3 `latency_dev` clip ±10
-`latency_dev` (đặc trưng trace thứ 6) là z-score so với `Normal_Baseline`; `bl_std` ước lượng từ ít mẫu có thể gần 0 làm z-score lên hàng nghìn. Giá trị được cắt về [−10, 10]. Chỉ chạm ~0,1–0,2% giá trị test và 0% giá trị train/val.
+`latency_dev` (đặc trưng trace thứ 6) là z-score so với `Normal_Baseline`; `bl_std` ước lượng từ ít mẫu có thể gần 0 làm z-score lên hàng nghìn. Giá trị được cắt về [−10, 10]. Chạm 0–1% giá trị test (chủ yếu các file `Code_Stop_*`) và 0% giá trị train/val.
 
 ### 4.4 `epoches` / `patience`
 50 50 / 15 cho cả hai cấu hình.
@@ -68,7 +69,11 @@ Learning rate riêng cho `trace_gate` và `delta_head` (nhân với `lr`). Cả 
 ## 5. Lệnh chạy
 
 ```bash
-cd D:/UAM-AD/codes
+cd D:/UAM-AD
+python codes/common/preprocess_sn.py --sn_data_root D:/AnoMod/SN_data --output_dir data/sn \
+    --window_sec 30 --target_anomaly_rate 0.125 --seed 42
+
+cd codes
 # Baseline
 python common/eval_per_scenario_sn.py --data ../data/sn --dataset sn --data_type fuse \
     --open_trace False --activity_penalty_weight 1.5 \
@@ -87,36 +92,36 @@ python common/eval_per_scenario_sn.py --data ../data/sn --dataset sn --data_type
 
 | Scenario | Baseline F1 | P | R | Trace F1 | P | R | Δ F1 |
 |:---|---:|---:|---:|---:|---:|---:|:---:|
-| Code_Stop_MediaService | 0,500 | 0,333 | 1,000 | **0,600** | 0,429 | 1,000 | +0,100 |
-| Code_Stop_TextService | 0,462 | 0,300 | 1,000 | **0,632** | 0,462 | 1,000 | +0,170 |
-| Code_Stop_UserService | 0,462 | 0,300 | 1,000 | **0,615** | 0,571 | 0,667 | +0,154 |
-| DB_Redis_CacheLimit_HomeTimeline | 0,333 | 0,200 | 1,000 | **0,375** | 0,231 | 1,000 | +0,042 |
-| DB_Redis_CacheLimit_SocialGraph | 0,462 | 0,300 | 1,000 | 0,435 | 0,294 | 0,833 | −0,027 |
-| DB_Redis_CacheLimit_UserTimeline | 0,200 | 0,250 | 0,167 | **0,276** | 0,174 | 0,667 | +0,076 |
-| Perf_CPU_Contention | 0,333 | 0,200 | 1,000 | 0,345 | 0,217 | 0,833 | +0,012 |
-| Perf_Disk_IO_Stress | 0,333 | 0,200 | 1,000 | 0,345 | 0,217 | 0,833 | +0,012 |
-| Perf_Network_Loss | 0,200 | 0,250 | 0,167 | **0,345** | 0,217 | 0,833 | +0,145 |
-| Svc_Kill_Media | 0,242 | 0,138 | 1,000 | 0,267 | 0,154 | 1,000 | +0,025 |
-| Svc_Kill_SocialGraph | 0,286 | 0,167 | 1,000 | 0,320 | 0,190 | 1,000 | +0,034 |
-| Svc_Kill_UserTimeline | 0,296 | 0,174 | 1,000 | 0,333 | 0,200 | 1,000 | +0,037 |
-| **Trung bình** | **0,342** | 0,234 | 0,861 | **0,407** | 0,280 | 0,889 | **+0,065** |
-| Độ lệch chuẩn | 0,102 | 0,061 | 0,311 | 0,127 | 0,128 | 0,124 | |
+| Code_Stop_MediaService | 0,899 | 0,831 | 0,980 | 0,899 | 0,831 | 0,980 | 0,000 |
+| Code_Stop_TextService | 0,867 | 0,765 | 1,000 | **0,897** | 0,812 | 1,000 | +0,030 |
+| Code_Stop_UserService | 0,879 | 0,784 | 1,000 | 0,857 | 0,765 | 0,975 | −0,022 |
+| DB_Redis_CacheLimit_HomeTimeline | 0,692 | 0,529 | 1,000 | **0,762** | 0,667 | 0,889 | +0,070 |
+| DB_Redis_CacheLimit_SocialGraph | 0,900 | 0,818 | 1,000 | 0,900 | 0,818 | 1,000 | 0,000 |
+| DB_Redis_CacheLimit_UserTimeline | 0,667 | 0,583 | 0,778 | **0,762** | 0,667 | 0,889 | +0,095 |
+| Perf_CPU_Contention | 0,667 | 0,533 | 0,889 | **0,783** | 0,643 | 1,000 | +0,116 |
+| Perf_Disk_IO_Stress | 0,769 | 0,625 | 1,000 | **0,833** | 0,714 | 1,000 | +0,064 |
+| Perf_Network_Loss | 0,636 | 0,583 | 0,700 | **0,952** | 0,909 | 1,000 | +0,316 |
+| Svc_Kill_Media | 0,444 | 0,400 | 0,500 | **0,889** | 0,800 | 1,000 | +0,445 |
+| Svc_Kill_SocialGraph | 0,444 | 0,333 | 0,667 | **0,750** | 0,600 | 1,000 | +0,306 |
+| Svc_Kill_UserTimeline | 0,800 | 1,000 | 0,667 | **1,000** | 1,000 | 1,000 | +0,200 |
+| **Trung bình** | **0,722** | 0,649 | 0,848 | **0,857** | 0,769 | 0,978 | **+0,135** |
+| Độ lệch chuẩn F1 | 0,154 | | | 0,077 | | | |
 
-F1 trung bình tăng từ 0,342 (baseline) lên 0,407 (trace); trace cao hơn ở 11/12 scenario.
+F1 trung bình tăng từ 0,722 (baseline) lên 0,857 (trace). Trace cao hơn ở 9/12 scenario, bằng ở 2 (`Code_Stop_MediaService`, `DB_Redis_CacheLimit_SocialGraph`) và thấp hơn ở 1 (`Code_Stop_UserService`, −0,022).
 
 ### Nhóm lỗi luồng gọi hệ thống (service kill / dừng)
 
 | Scenario | Baseline F1 | Trace F1 | Δ |
 |---|---:|---:|:---:|
-| Code_Stop_MediaService | 0,500 | 0,600 | +0,100 |
-| Code_Stop_TextService | 0,462 | 0,632 | +0,170 |
-| Code_Stop_UserService | 0,462 | 0,615 | +0,154 |
-| Svc_Kill_Media | 0,242 | 0,267 | +0,025 |
-| Svc_Kill_SocialGraph | 0,286 | 0,320 | +0,034 |
-| Svc_Kill_UserTimeline | 0,296 | 0,333 | +0,037 |
-| **Trung bình** | **0,375** | **0,461** | **+0,087** |
+| Code_Stop_MediaService | 0,899 | 0,899 | 0,000 |
+| Code_Stop_TextService | 0,867 | 0,897 | +0,030 |
+| Code_Stop_UserService | 0,879 | 0,857 | −0,022 |
+| Svc_Kill_Media | 0,444 | 0,889 | +0,445 |
+| Svc_Kill_SocialGraph | 0,444 | 0,750 | +0,306 |
+| Svc_Kill_UserTimeline | 0,800 | 1,000 | +0,200 |
+| **Trung bình** | **0,722** | **0,882** | **+0,160** |
 
-F1 trung bình nhóm này tăng từ 0,375 lên 0,461; trace cao hơn ở cả 6/6. `Code_Stop_*` tăng +0,10 đến +0,17; `Svc_Kill_*` (tín hiệu chỉ ~2 phút) tăng +0,03 đến +0,04.
+F1 trung bình nhóm này tăng từ 0,722 lên 0,882. `Code_Stop_*` (cả session là anomaly, tín hiệu mạnh): baseline đã đạt 0,87–0,90 nên trace chỉ chênh −0,02 đến +0,03. `Svc_Kill_*` (tín hiệu ~2 phút): baseline 0,44–0,80, trace 0,75–1,00.
 
 ## 7. Ablation
 
@@ -124,27 +129,28 @@ F1 trung bình nhóm này tăng từ 0,375 lên 0,461; trace cao hơn ở cả 6
 
 | Cấu hình | epoch/patience | `gate_delta_lr_mult` | F1 TB (12) | F1 TB nhóm luồng gọi (6) | So với baseline cùng epoch |
 |:---|:---:|:---:|---:|---:|:---:|
-| Baseline | 50/15 | – | 0,342 | 0,375 | – |
-| Trace | 50/15 | 1 | 0,355 | 0,421 | 5 thắng / 3 hòa / 4 thua |
-| Trace | 10/5 | 10 | 0,372 | 0,418 | 6 thắng / 1 hòa / 5 thua |
-| **Trace** | 50/15 | 10 | **0,407** | **0,461** | 11 thắng / 1 thua |
+| Baseline | 50/15 | – | 0,722 | 0,722 | – |
+| Trace | 50/15 | 1 | 0,796 | 0,813 | 10 thắng / 1 hòa / 1 thua |
+| Trace | 10/5 | 10 | 0,823 | 0,821 | 10 thắng / 1 hòa / 1 thua |
+| **Trace** | 50/15 | 10 | **0,857** | **0,882** | 9 thắng / 2 hòa / 1 thua |
 
-`Code_Stop_*` không nhạy với hai tham số này (trace cao hơn baseline ở mọi dòng). Ở các scenario còn lại, tăng epoch hoặc `gate_delta_lr_mult` riêng lẻ chưa đủ để trace vượt baseline nhất quán (VD không có `gate_delta_lr_mult`, trace 0,160 so với baseline 0,286 ở `Svc_Kill_SocialGraph`); dùng cả hai thì F1 nhóm luồng gọi tăng từ 0,375 (baseline) lên 0,461.
+Riêng tăng epoch (10/5 → 50/15) hoặc riêng `gate_delta_lr_mult` (1 → 10) đều đưa trace lên trên baseline (F1 12 scenario 0,796 và 0,823 so với 0,722); dùng cả hai đạt 0,857.
 
-### 7.2 Các thành phần khác (đo trên baseline, 10 epoch, 6 scenario luồng gọi)
+### 7.2 Các thành phần khác (đo trên baseline, 10 epoch)
 
 | `activity_penalty_weight` | 0 | 1,0 | 1,5 |
 |---|---:|---:|---:|
-| F1 trung bình | 0,036 | 0,296 | 0,320 |
+| F1 TB nhóm luồng gọi (6) | 0,105 | 0,425 | 0,628 |
+| F1 TB 12 scenario | 0,321 | 0,530 | 0,657 |
 
-Baseline: `epoches/patience` 10/5 → 50/15 (weight 1,5) tăng F1 trung bình 12 scenario từ 0,289 lên 0,342. Phần clip `latency_dev` (mục 4.3) chưa được ablation riêng (cần preprocess lại).
+Baseline (weight 1,5): `epoches/patience` 10/5 → 50/15 tăng F1 trung bình 12 scenario từ 0,657 lên 0,722. Phần clip `latency_dev` (mục 4.3) chưa được ablation riêng (cần preprocess lại).
 
 ## 8. Giới hạn
 
-- **1 seed, ít cửa sổ anomaly**: mỗi file test chỉ có 4–6 cửa sổ anomaly nên lệch 1 cửa sổ đổi F1 khoảng 0,05–0,1; các chênh lệch +0,01 đến +0,04 (`Svc_Kill_*`, `Perf_*`) nằm trong nhiễu. Kết luận vững nhất là nhóm `Code_Stop_*`.
+- **File test nhỏ**: 10/12 scenario chỉ có 32–80 cửa sổ; `Svc_Kill_*` chỉ có 4 cửa sổ anomaly, lệch 1 cửa sổ đổi F1 hơn 0,1. F1 cũng phụ thuộc số normal và tỉ lệ anomaly của file test, chỉ so sánh được trong cùng thiết lập này.
+- **1 seed** (`run_end 1`); các chênh lệch nhỏ (≤ 0,03 ở `Code_Stop_*`) nằm trong nhiễu.
 - **Val chỉ 8 cửa sổ** nên ngưỡng percentile 95 kém ổn định.
-- **Precision thấp** (0,15–0,57): `activity_penalty_weight` đổi precision lấy recall.
-- `DB_Redis_CacheLimit_SocialGraph` là scenario duy nhất trace thấp hơn baseline (−0,027).
+- **Chồng lấn train/test**: pool normal của test có gồm vài cửa sổ `Normal_Baseline` (cũng nằm trong train/val).
 - Dataset chỉ có 1 session `Normal_Baseline` thật nên train luôn nhỏ (31 cửa sổ).
 - `gate_delta_lr_mult` không có đối tượng tương ứng ở baseline; đây là điểm bất đối xứng còn lại giữa hai cấu hình.
 
@@ -152,7 +158,7 @@ Baseline: `epoches/patience` 10/5 → 50/15 (weight 1,5) tăng F1 trung bình 12
 
 | Nội dung | File |
 |---|---|
-| `FAULT_WINDOWS`, hai pool normal, `latency_dev` clip | `codes/common/preprocess_sn.py` |
+| `FAULT_WINDOWS`, hai pool normal, `target_anomaly_rate`, `latency_dev` clip | `codes/common/preprocess_sn.py` |
 | `activity_penalty_weight`, `gate_delta_lr_mult` | `codes/models/basev3.py`, `codes/run.py` |
 | Chuyển tiếp tham số qua wrapper | `codes/common/eval_per_scenario_sn.py` |
 | Checkpoint | `data/sn/result_per_scenario_fuse_{baseline,trace}/` |

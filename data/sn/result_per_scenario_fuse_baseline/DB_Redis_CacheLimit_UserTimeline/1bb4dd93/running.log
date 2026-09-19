@@ -1,95 +1,176 @@
-2026-09-18 18:34:38,605 P2852 INFO ^^^^^^^^^^ Current Model:hades, 1bb4dd93 ^^^^^^^^^^
-2026-09-18 18:34:38,605 P2852 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
-2026-09-18 18:34:39,386 P2852 INFO 373 unique log templates found.
-2026-09-18 18:34:39,390 P2852 INFO Transforming unlabel train data.
-2026-09-18 18:34:39,408 P2852 INFO Transforming test data.
-2026-09-18 18:34:39,538 P2852 INFO 6154 new templates show.
-2026-09-18 18:34:39,696 P2852 INFO Transforming val data.
-2026-09-18 18:34:39,706 P2852 INFO 78 new templates show.
-2026-09-18 18:34:39,716 P2852 INFO Data loaded done!
-2026-09-18 18:34:39,748 P2852 INFO Known word number: 373
-2026-09-18 18:34:40,319 P2852 INFO Activity baseline (train): mean=90.5470 std=20.5385
-2026-09-18 18:34:42,154 P2852 INFO Epoch 0/50, train generator loss: 1.34531
-2026-09-18 18:34:42,234 P2852 INFO Epoch 0/50, train discriminator loss: 2.59560
-2026-09-18 18:34:42,408 P2852 INFO *** Test time is 0.17436623573303223
-2026-09-18 18:34:42,419 P2852 INFO Epoch 0/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.53s]
-2026-09-18 18:34:42,528 P2852 INFO Epoch 1/50, train generator loss: 1.28033
-2026-09-18 18:34:42,621 P2852 INFO Epoch 1/50, train discriminator loss: 2.02121
-2026-09-18 18:34:42,812 P2852 INFO *** Test time is 0.19097352027893066
-2026-09-18 18:34:42,821 P2852 INFO Epoch 1/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.20s]
-2026-09-18 18:34:42,821 P2852 INFO early stopping epoch 1/15
-2026-09-18 18:34:42,915 P2852 INFO Epoch 2/50, train generator loss: 1.27289
-2026-09-18 18:34:43,006 P2852 INFO Epoch 2/50, train discriminator loss: 1.59025
-2026-09-18 18:34:43,165 P2852 INFO *** Test time is 0.15781927108764648
-2026-09-18 18:34:43,165 P2852 INFO Epoch 2/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
-2026-09-18 18:34:43,165 P2852 INFO early stopping epoch 2/15
-2026-09-18 18:34:43,280 P2852 INFO Epoch 3/50, train generator loss: 1.26544
-2026-09-18 18:34:43,386 P2852 INFO Epoch 3/50, train discriminator loss: 1.32321
-2026-09-18 18:34:43,540 P2852 INFO *** Test time is 0.1540539264678955
-2026-09-18 18:34:43,544 P2852 INFO Epoch 3/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.22s]
-2026-09-18 18:34:43,544 P2852 INFO early stopping epoch 3/15
-2026-09-18 18:34:43,659 P2852 INFO Epoch 4/50, train generator loss: 1.27211
-2026-09-18 18:34:43,758 P2852 INFO Epoch 4/50, train discriminator loss: 1.14554
-2026-09-18 18:34:43,941 P2852 INFO *** Test time is 0.18332290649414062
-2026-09-18 18:34:43,941 P2852 INFO Epoch 4/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.21s]
-2026-09-18 18:34:43,941 P2852 INFO early stopping epoch 4/15
-2026-09-18 18:34:44,051 P2852 INFO Epoch 5/50, train generator loss: 1.29024
-2026-09-18 18:34:44,134 P2852 INFO Epoch 5/50, train discriminator loss: 1.02389
-2026-09-18 18:34:44,379 P2852 INFO *** Test time is 0.2452080249786377
-2026-09-18 18:34:44,379 P2852 INFO Epoch 5/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
-2026-09-18 18:34:44,379 P2852 INFO early stopping epoch 5/15
-2026-09-18 18:34:44,540 P2852 INFO Epoch 6/50, train generator loss: 1.30716
-2026-09-18 18:34:44,647 P2852 INFO Epoch 6/50, train discriminator loss: 0.93888
-2026-09-18 18:34:44,935 P2852 INFO *** Test time is 0.28614115715026855
-2026-09-18 18:34:44,951 P2852 INFO Epoch 6/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.27s]
-2026-09-18 18:34:44,951 P2852 INFO early stopping epoch 6/15
-2026-09-18 18:34:45,091 P2852 INFO Epoch 7/50, train generator loss: 1.32167
-2026-09-18 18:34:45,220 P2852 INFO Epoch 7/50, train discriminator loss: 0.87493
-2026-09-18 18:34:45,489 P2852 INFO *** Test time is 0.264265775680542
-2026-09-18 18:34:45,489 P2852 INFO Epoch 7/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.27s]
-2026-09-18 18:34:45,489 P2852 INFO early stopping epoch 7/15
-2026-09-18 18:34:45,607 P2852 INFO Epoch 8/50, train generator loss: 1.34259
-2026-09-18 18:34:45,672 P2852 INFO Epoch 8/50, train discriminator loss: 0.81972
-2026-09-18 18:34:45,852 P2852 INFO *** Test time is 0.17990970611572266
-2026-09-18 18:34:45,866 P2852 INFO Epoch 8/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.18s]
-2026-09-18 18:34:45,866 P2852 INFO early stopping epoch 8/15
-2026-09-18 18:34:45,977 P2852 INFO Epoch 9/50, train generator loss: 1.36378
-2026-09-18 18:34:46,057 P2852 INFO Epoch 9/50, train discriminator loss: 0.76954
-2026-09-18 18:34:46,247 P2852 INFO *** Test time is 0.19034600257873535
-2026-09-18 18:34:46,263 P2852 INFO Epoch 9/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
-2026-09-18 18:34:46,263 P2852 INFO early stopping epoch 9/15
-2026-09-18 18:34:46,370 P2852 INFO Epoch 10/50, train generator loss: 1.37878
-2026-09-18 18:34:46,469 P2852 INFO Epoch 10/50, train discriminator loss: 0.72218
-2026-09-18 18:34:46,644 P2852 INFO *** Test time is 0.1750636100769043
-2026-09-18 18:34:46,644 P2852 INFO Epoch 10/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.21s]
-2026-09-18 18:34:46,644 P2852 INFO early stopping epoch 10/15
-2026-09-18 18:34:46,759 P2852 INFO Epoch 11/50, train generator loss: 1.39330
-2026-09-18 18:34:46,846 P2852 INFO Epoch 11/50, train discriminator loss: 0.67623
-2026-09-18 18:34:47,001 P2852 INFO *** Test time is 0.1547563076019287
-2026-09-18 18:34:47,003 P2852 INFO Epoch 11/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.20s]
-2026-09-18 18:34:47,003 P2852 INFO early stopping epoch 11/15
-2026-09-18 18:34:47,120 P2852 INFO Epoch 12/50, train generator loss: 1.40721
-2026-09-18 18:34:47,196 P2852 INFO Epoch 12/50, train discriminator loss: 0.63423
-2026-09-18 18:34:47,379 P2852 INFO *** Test time is 0.18346762657165527
-2026-09-18 18:34:47,385 P2852 INFO Epoch 12/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
-2026-09-18 18:34:47,385 P2852 INFO early stopping epoch 12/15
-2026-09-18 18:34:47,514 P2852 INFO Epoch 13/50, train generator loss: 1.41449
-2026-09-18 18:34:47,602 P2852 INFO Epoch 13/50, train discriminator loss: 0.60125
-2026-09-18 18:34:47,806 P2852 INFO *** Test time is 0.20415616035461426
-2026-09-18 18:34:47,814 P2852 INFO Epoch 13/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.22s]
-2026-09-18 18:34:47,814 P2852 INFO early stopping epoch 13/15
-2026-09-18 18:34:47,914 P2852 INFO Epoch 14/50, train generator loss: 1.42077
-2026-09-18 18:34:47,996 P2852 INFO Epoch 14/50, train discriminator loss: 0.57393
-2026-09-18 18:34:48,225 P2852 INFO *** Test time is 0.224609375
-2026-09-18 18:34:48,231 P2852 INFO Epoch 14/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.18s]
-2026-09-18 18:34:48,233 P2852 INFO early stopping epoch 14/15
-2026-09-18 18:34:48,332 P2852 INFO Epoch 15/50, train generator loss: 1.42194
-2026-09-18 18:34:48,428 P2852 INFO Epoch 15/50, train discriminator loss: 0.54998
-2026-09-18 18:34:48,617 P2852 INFO *** Test time is 0.18940186500549316
-2026-09-18 18:34:48,617 P2852 INFO Epoch 15/50, test f1: 0.20000 rc: 0.16667 pc: 0.25000. [0.19s]
-2026-09-18 18:34:48,617 P2852 INFO early stopping epoch 15/15
-2026-09-18 18:34:48,617 P2852 INFO Early stopping
-2026-09-18 18:34:48,728 P2852 INFO Threshold (p=95.0, src=val): 2.497112
-2026-09-18 18:34:48,784 P2852 INFO *** Test F1 0.0870  of unsupervised traning
-2026-09-18 18:34:48,784 P2852 INFO *** Best F1 {'f1': 0.2, 'rc': 0.16666666666666666, 'pc': 0.25, 'threshold': np.float64(6.563484649658201)}  of unsupervised traning
-2026-09-18 18:34:48,787 P2852 INFO Current hash id 1bb4dd93
+2026-09-19 10:43:10,865 P5128 INFO ^^^^^^^^^^ Current Model:hades, 1bb4dd93 ^^^^^^^^^^
+2026-09-19 10:43:10,866 P5128 INFO Load from D:\UAM-AD\.claude\worktrees\reval-sn-deepdive\data\sn
+2026-09-19 10:43:11,567 P5128 INFO 368 unique log templates found.
+2026-09-19 10:43:11,571 P5128 INFO Transforming unlabel train data.
+2026-09-19 10:43:11,602 P5128 INFO Transforming test data.
+2026-09-19 10:43:11,713 P5128 INFO 1548 new templates show.
+2026-09-19 10:43:11,831 P5128 INFO Transforming val data.
+2026-09-19 10:43:11,844 P5128 INFO 83 new templates show.
+2026-09-19 10:43:11,871 P5128 INFO Data loaded done!
+2026-09-19 10:43:11,883 P5128 INFO Known word number: 368
+2026-09-19 10:43:12,033 P5128 INFO Activity baseline (train): mean=88.5108 std=23.3650
+2026-09-19 10:43:15,271 P5128 INFO Epoch 0/50, train generator loss: 1.41305
+2026-09-19 10:43:15,400 P5128 INFO Epoch 0/50, train discriminator loss: 2.83880
+2026-09-19 10:43:15,620 P5128 INFO *** Test time is 0.21991944313049316
+2026-09-19 10:43:15,620 P5128 INFO Epoch 0/50, test f1: 0.56000 rc: 0.77778 pc: 0.43750. [0.96s]
+2026-09-19 10:43:15,797 P5128 INFO Epoch 1/50, train generator loss: 1.39225
+2026-09-19 10:43:15,922 P5128 INFO Epoch 1/50, train discriminator loss: 2.22948
+2026-09-19 10:43:16,144 P5128 INFO *** Test time is 0.22014808654785156
+2026-09-19 10:43:16,144 P5128 INFO Epoch 1/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.29s]
+2026-09-19 10:43:16,315 P5128 INFO Epoch 2/50, train generator loss: 1.31790
+2026-09-19 10:43:16,443 P5128 INFO Epoch 2/50, train discriminator loss: 1.87188
+2026-09-19 10:43:16,657 P5128 INFO *** Test time is 0.2138664722442627
+2026-09-19 10:43:16,657 P5128 INFO Epoch 2/50, test f1: 0.57143 rc: 0.66667 pc: 0.50000. [0.28s]
+2026-09-19 10:43:16,657 P5128 INFO early stopping epoch 1/15
+2026-09-19 10:43:16,823 P5128 INFO Epoch 3/50, train generator loss: 1.32002
+2026-09-19 10:43:16,940 P5128 INFO Epoch 3/50, train discriminator loss: 1.60044
+2026-09-19 10:43:17,156 P5128 INFO *** Test time is 0.21596217155456543
+2026-09-19 10:43:17,156 P5128 INFO Epoch 3/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.28s]
+2026-09-19 10:43:17,156 P5128 INFO early stopping epoch 2/15
+2026-09-19 10:43:17,318 P5128 INFO Epoch 4/50, train generator loss: 1.34839
+2026-09-19 10:43:17,445 P5128 INFO Epoch 4/50, train discriminator loss: 1.40735
+2026-09-19 10:43:17,656 P5128 INFO *** Test time is 0.21047282218933105
+2026-09-19 10:43:17,656 P5128 INFO Epoch 4/50, test f1: 0.57143 rc: 0.66667 pc: 0.50000. [0.29s]
+2026-09-19 10:43:17,656 P5128 INFO early stopping epoch 3/15
+2026-09-19 10:43:17,844 P5128 INFO Epoch 5/50, train generator loss: 1.39104
+2026-09-19 10:43:17,970 P5128 INFO Epoch 5/50, train discriminator loss: 1.26110
+2026-09-19 10:43:18,186 P5128 INFO *** Test time is 0.2164473533630371
+2026-09-19 10:43:18,186 P5128 INFO Epoch 5/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.31s]
+2026-09-19 10:43:18,186 P5128 INFO early stopping epoch 4/15
+2026-09-19 10:43:18,357 P5128 INFO Epoch 6/50, train generator loss: 1.43744
+2026-09-19 10:43:18,479 P5128 INFO Epoch 6/50, train discriminator loss: 1.12906
+2026-09-19 10:43:18,695 P5128 INFO *** Test time is 0.21578168869018555
+2026-09-19 10:43:18,695 P5128 INFO Epoch 6/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.29s]
+2026-09-19 10:43:18,695 P5128 INFO early stopping epoch 5/15
+2026-09-19 10:43:18,865 P5128 INFO Epoch 7/50, train generator loss: 1.48570
+2026-09-19 10:43:18,994 P5128 INFO Epoch 7/50, train discriminator loss: 1.00642
+2026-09-19 10:43:19,206 P5128 INFO *** Test time is 0.21099281311035156
+2026-09-19 10:43:19,207 P5128 INFO Epoch 7/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.30s]
+2026-09-19 10:43:19,207 P5128 INFO early stopping epoch 6/15
+2026-09-19 10:43:19,374 P5128 INFO Epoch 8/50, train generator loss: 1.54072
+2026-09-19 10:43:19,505 P5128 INFO Epoch 8/50, train discriminator loss: 0.89956
+2026-09-19 10:43:19,718 P5128 INFO *** Test time is 0.21369028091430664
+2026-09-19 10:43:19,719 P5128 INFO Epoch 8/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.30s]
+2026-09-19 10:43:19,719 P5128 INFO early stopping epoch 7/15
+2026-09-19 10:43:19,884 P5128 INFO Epoch 9/50, train generator loss: 1.59414
+2026-09-19 10:43:20,003 P5128 INFO Epoch 9/50, train discriminator loss: 0.81859
+2026-09-19 10:43:20,229 P5128 INFO *** Test time is 0.22547578811645508
+2026-09-19 10:43:20,229 P5128 INFO Epoch 9/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.28s]
+2026-09-19 10:43:20,229 P5128 INFO early stopping epoch 8/15
+2026-09-19 10:43:20,396 P5128 INFO Epoch 10/50, train generator loss: 1.64416
+2026-09-19 10:43:20,526 P5128 INFO Epoch 10/50, train discriminator loss: 0.75626
+2026-09-19 10:43:20,735 P5128 INFO *** Test time is 0.20783257484436035
+2026-09-19 10:43:20,735 P5128 INFO Epoch 10/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.30s]
+2026-09-19 10:43:20,735 P5128 INFO early stopping epoch 9/15
+2026-09-19 10:43:20,901 P5128 INFO Epoch 11/50, train generator loss: 1.68842
+2026-09-19 10:43:21,026 P5128 INFO Epoch 11/50, train discriminator loss: 0.71303
+2026-09-19 10:43:21,246 P5128 INFO *** Test time is 0.21947550773620605
+2026-09-19 10:43:21,246 P5128 INFO Epoch 11/50, test f1: 0.60870 rc: 0.77778 pc: 0.50000. [0.29s]
+2026-09-19 10:43:21,428 P5128 INFO Epoch 12/50, train generator loss: 1.72469
+2026-09-19 10:43:21,555 P5128 INFO Epoch 12/50, train discriminator loss: 0.68038
+2026-09-19 10:43:21,763 P5128 INFO *** Test time is 0.2081003189086914
+2026-09-19 10:43:21,763 P5128 INFO Epoch 12/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.29s]
+2026-09-19 10:43:21,764 P5128 INFO early stopping epoch 1/15
+2026-09-19 10:43:21,930 P5128 INFO Epoch 13/50, train generator loss: 1.75642
+2026-09-19 10:43:22,055 P5128 INFO Epoch 13/50, train discriminator loss: 0.65238
+2026-09-19 10:43:22,267 P5128 INFO *** Test time is 0.21158933639526367
+2026-09-19 10:43:22,268 P5128 INFO Epoch 13/50, test f1: 0.58333 rc: 0.77778 pc: 0.46667. [0.29s]
+2026-09-19 10:43:22,268 P5128 INFO early stopping epoch 2/15
+2026-09-19 10:43:22,433 P5128 INFO Epoch 14/50, train generator loss: 1.78642
+2026-09-19 10:43:22,551 P5128 INFO Epoch 14/50, train discriminator loss: 0.62321
+2026-09-19 10:43:22,773 P5128 INFO *** Test time is 0.2221975326538086
+2026-09-19 10:43:22,773 P5128 INFO Epoch 14/50, test f1: 0.60870 rc: 0.77778 pc: 0.50000. [0.28s]
+2026-09-19 10:43:22,773 P5128 INFO early stopping epoch 3/15
+2026-09-19 10:43:22,932 P5128 INFO Epoch 15/50, train generator loss: 1.81610
+2026-09-19 10:43:23,044 P5128 INFO Epoch 15/50, train discriminator loss: 0.58816
+2026-09-19 10:43:23,265 P5128 INFO *** Test time is 0.22134089469909668
+2026-09-19 10:43:23,265 P5128 INFO Epoch 15/50, test f1: 0.63636 rc: 0.77778 pc: 0.53846. [0.27s]
+2026-09-19 10:43:23,450 P5128 INFO Epoch 16/50, train generator loss: 1.84234
+2026-09-19 10:43:23,586 P5128 INFO Epoch 16/50, train discriminator loss: 0.54764
+2026-09-19 10:43:23,796 P5128 INFO *** Test time is 0.20885777473449707
+2026-09-19 10:43:23,797 P5128 INFO Epoch 16/50, test f1: 0.63636 rc: 0.77778 pc: 0.53846. [0.30s]
+2026-09-19 10:43:23,797 P5128 INFO early stopping epoch 1/15
+2026-09-19 10:43:23,947 P5128 INFO Epoch 17/50, train generator loss: 1.85465
+2026-09-19 10:43:24,074 P5128 INFO Epoch 17/50, train discriminator loss: 0.50667
+2026-09-19 10:43:24,304 P5128 INFO *** Test time is 0.22974920272827148
+2026-09-19 10:43:24,304 P5128 INFO Epoch 17/50, test f1: 0.66667 rc: 0.77778 pc: 0.58333. [0.28s]
+2026-09-19 10:43:24,477 P5128 INFO Epoch 18/50, train generator loss: 1.86314
+2026-09-19 10:43:24,611 P5128 INFO Epoch 18/50, train discriminator loss: 0.46906
+2026-09-19 10:43:24,826 P5128 INFO *** Test time is 0.21384215354919434
+2026-09-19 10:43:24,826 P5128 INFO Epoch 18/50, test f1: 0.63636 rc: 0.77778 pc: 0.53846. [0.29s]
+2026-09-19 10:43:24,827 P5128 INFO early stopping epoch 1/15
+2026-09-19 10:43:25,022 P5128 INFO Epoch 19/50, train generator loss: 1.87054
+2026-09-19 10:43:25,146 P5128 INFO Epoch 19/50, train discriminator loss: 0.43254
+2026-09-19 10:43:25,361 P5128 INFO *** Test time is 0.21525335311889648
+2026-09-19 10:43:25,362 P5128 INFO Epoch 19/50, test f1: 0.63636 rc: 0.77778 pc: 0.53846. [0.32s]
+2026-09-19 10:43:25,362 P5128 INFO early stopping epoch 2/15
+2026-09-19 10:43:25,521 P5128 INFO Epoch 20/50, train generator loss: 1.88364
+2026-09-19 10:43:25,645 P5128 INFO Epoch 20/50, train discriminator loss: 0.39227
+2026-09-19 10:43:25,866 P5128 INFO *** Test time is 0.2205648422241211
+2026-09-19 10:43:25,866 P5128 INFO Epoch 20/50, test f1: 0.60870 rc: 0.77778 pc: 0.50000. [0.28s]
+2026-09-19 10:43:25,866 P5128 INFO early stopping epoch 3/15
+2026-09-19 10:43:26,035 P5128 INFO Epoch 21/50, train generator loss: 1.90004
+2026-09-19 10:43:26,162 P5128 INFO Epoch 21/50, train discriminator loss: 0.34050
+2026-09-19 10:43:26,372 P5128 INFO *** Test time is 0.20969939231872559
+2026-09-19 10:43:26,372 P5128 INFO Epoch 21/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.30s]
+2026-09-19 10:43:26,372 P5128 INFO early stopping epoch 4/15
+2026-09-19 10:43:26,529 P5128 INFO Epoch 22/50, train generator loss: 1.92656
+2026-09-19 10:43:26,657 P5128 INFO Epoch 22/50, train discriminator loss: 0.28806
+2026-09-19 10:43:26,869 P5128 INFO *** Test time is 0.21077322959899902
+2026-09-19 10:43:26,869 P5128 INFO Epoch 22/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.29s]
+2026-09-19 10:43:26,869 P5128 INFO early stopping epoch 5/15
+2026-09-19 10:43:27,052 P5128 INFO Epoch 23/50, train generator loss: 1.95063
+2026-09-19 10:43:27,174 P5128 INFO Epoch 23/50, train discriminator loss: 0.25240
+2026-09-19 10:43:27,384 P5128 INFO *** Test time is 0.21025300025939941
+2026-09-19 10:43:27,385 P5128 INFO Epoch 23/50, test f1: 0.64000 rc: 0.88889 pc: 0.50000. [0.31s]
+2026-09-19 10:43:27,385 P5128 INFO early stopping epoch 6/15
+2026-09-19 10:43:27,545 P5128 INFO Epoch 24/50, train generator loss: 1.96754
+2026-09-19 10:43:27,686 P5128 INFO Epoch 24/50, train discriminator loss: 0.22922
+2026-09-19 10:43:27,921 P5128 INFO *** Test time is 0.23493385314941406
+2026-09-19 10:43:27,921 P5128 INFO Epoch 24/50, test f1: 0.66667 rc: 0.88889 pc: 0.53333. [0.30s]
+2026-09-19 10:43:27,922 P5128 INFO early stopping epoch 7/15
+2026-09-19 10:43:28,097 P5128 INFO Epoch 25/50, train generator loss: 1.96922
+2026-09-19 10:43:28,221 P5128 INFO Epoch 25/50, train discriminator loss: 0.21262
+2026-09-19 10:43:28,433 P5128 INFO *** Test time is 0.21183323860168457
+2026-09-19 10:43:28,433 P5128 INFO Epoch 25/50, test f1: 0.64000 rc: 0.88889 pc: 0.50000. [0.30s]
+2026-09-19 10:43:28,433 P5128 INFO early stopping epoch 8/15
+2026-09-19 10:43:28,600 P5128 INFO Epoch 26/50, train generator loss: 1.96241
+2026-09-19 10:43:28,737 P5128 INFO Epoch 26/50, train discriminator loss: 0.21023
+2026-09-19 10:43:28,953 P5128 INFO *** Test time is 0.21553277969360352
+2026-09-19 10:43:28,954 P5128 INFO Epoch 26/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.30s]
+2026-09-19 10:43:28,954 P5128 INFO early stopping epoch 9/15
+2026-09-19 10:43:29,115 P5128 INFO Epoch 27/50, train generator loss: 1.94576
+2026-09-19 10:43:29,243 P5128 INFO Epoch 27/50, train discriminator loss: 0.27997
+2026-09-19 10:43:29,473 P5128 INFO *** Test time is 0.22915434837341309
+2026-09-19 10:43:29,473 P5128 INFO Epoch 27/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.29s]
+2026-09-19 10:43:29,473 P5128 INFO early stopping epoch 10/15
+2026-09-19 10:43:29,637 P5128 INFO Epoch 28/50, train generator loss: 1.90165
+2026-09-19 10:43:29,765 P5128 INFO Epoch 28/50, train discriminator loss: 0.50045
+2026-09-19 10:43:29,984 P5128 INFO *** Test time is 0.21944379806518555
+2026-09-19 10:43:29,984 P5128 INFO Epoch 28/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.29s]
+2026-09-19 10:43:29,984 P5128 INFO early stopping epoch 11/15
+2026-09-19 10:43:30,159 P5128 INFO Epoch 29/50, train generator loss: 1.83760
+2026-09-19 10:43:30,288 P5128 INFO Epoch 29/50, train discriminator loss: 1.04477
+2026-09-19 10:43:30,508 P5128 INFO *** Test time is 0.21960830688476562
+2026-09-19 10:43:30,508 P5128 INFO Epoch 29/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.30s]
+2026-09-19 10:43:30,508 P5128 INFO early stopping epoch 12/15
+2026-09-19 10:43:30,682 P5128 INFO Epoch 30/50, train generator loss: 1.75245
+2026-09-19 10:43:30,820 P5128 INFO Epoch 30/50, train discriminator loss: 2.00633
+2026-09-19 10:43:31,032 P5128 INFO *** Test time is 0.21170997619628906
+2026-09-19 10:43:31,033 P5128 INFO Epoch 30/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.31s]
+2026-09-19 10:43:31,033 P5128 INFO early stopping epoch 13/15
+2026-09-19 10:43:31,202 P5128 INFO Epoch 31/50, train generator loss: 1.67546
+2026-09-19 10:43:31,347 P5128 INFO Epoch 31/50, train discriminator loss: 2.97288
+2026-09-19 10:43:31,636 P5128 INFO *** Test time is 0.2890753746032715
+2026-09-19 10:43:31,636 P5128 INFO Epoch 31/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.31s]
+2026-09-19 10:43:31,636 P5128 INFO early stopping epoch 14/15
+2026-09-19 10:43:31,811 P5128 INFO Epoch 32/50, train generator loss: 1.61110
+2026-09-19 10:43:31,934 P5128 INFO Epoch 32/50, train discriminator loss: 3.35544
+2026-09-19 10:43:32,139 P5128 INFO *** Test time is 0.2049703598022461
+2026-09-19 10:43:32,139 P5128 INFO Epoch 32/50, test f1: 0.60000 rc: 0.66667 pc: 0.54545. [0.30s]
+2026-09-19 10:43:32,139 P5128 INFO early stopping epoch 15/15
+2026-09-19 10:43:32,139 P5128 INFO Early stopping
+2026-09-19 10:43:32,272 P5128 INFO Threshold (p=95.0, src=val): 2.226027
+2026-09-19 10:43:32,320 P5128 INFO *** Test F1 0.3077  of unsupervised traning
+2026-09-19 10:43:32,320 P5128 INFO *** Best F1 {'f1': 0.6666666666666666, 'rc': 0.7777777777777778, 'pc': 0.5833333333333334, 'threshold': np.float64(1.646002869606018)}  of unsupervised traning
+2026-09-19 10:43:32,331 P5128 INFO Current hash id 1bb4dd93
