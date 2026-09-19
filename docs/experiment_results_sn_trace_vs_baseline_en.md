@@ -105,7 +105,18 @@ python common/eval_per_scenario_sn.py \
 | **Mean** | **0.342** | **0.234** | **0.861** | **0.407** | **0.280** | **0.889** | **+0.065** |
 | Std | 0.102 | 0.061 | 0.311 | 0.127 | 0.128 | 0.124 | |
 
-**Trace still wins on all 12/12 scenarios** even after giving baseline the same training budget, but the win margin is **noticeably thinner** on the `Svc_Kill_*`/`Perf_*` group than in the earlier (corrected) report.
+**Trace still wins on 11/12 scenarios** (loses `DB_Redis_CacheLimit_SocialGraph`, -0.027) even after giving baseline the same training budget, but the win margin is **noticeably thinner** on the `Svc_Kill_*`/`Perf_*` group than in the earlier (corrected) report. Caveat: single run (`run_end=1`, one seed) and only 4–6 anomaly windows per test file, so one flipped window moves F1 by ~0.05–0.1; margins of +0.01–0.04 are within noise.
+
+### 5.2 Ablation: which ingredient matters (trace, all 12 scenarios, mean F1)
+
+| Config | epochs/patience | `gate_delta_lr_mult` | Mean F1 (12) | Call-flow mean F1 (6) | Wins vs fair baseline |
+|:---|:---:|:---:|---:|---:|:---:|
+| Baseline (no trace) | 50/15 | – | 0.342 | 0.375 | – |
+| Trace, no LR fix | 50/15 | 1 | 0.355 | 0.421 | 5 win / 3 tie / 4 lose |
+| Trace, no extra epochs | 10/5 | 10 | 0.372 | 0.418 | 6 win / 1 tie / 5 lose |
+| **Trace, final** | 50/15 | 10 | **0.407** | **0.461** | 11 win / 1 lose |
+
+Reading: `Code_Stop_*` is insensitive to both knobs (trace wins in every row). Neither the extra epochs nor `gate_delta_lr_mult` alone lets trace beat baseline consistently — e.g. without the LR fix trace *loses* `Svc_Kill_SocialGraph` (0.160 vs 0.286) and `Perf_Disk_IO_Stress` (0.200 vs 0.333) — but together they do. The two effects are roughly additive (~+0.05 each on the call-flow mean). Not isolated: Fix A (`latency_dev` clip to ±10) — it only binds on ~0.1–0.2% of test values (none in train/val), so its contribution is expected to be small but was not ablated (would need re-preprocessing).
 
 ### 5.1 "Call-flow" fault group (primary target: service kill/stop)
 

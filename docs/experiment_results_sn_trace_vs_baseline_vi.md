@@ -105,7 +105,18 @@ python common/eval_per_scenario_sn.py \
 | **Trung bình** | **0.342** | **0.234** | **0.861** | **0.407** | **0.280** | **0.889** | **+0.065** |
 | Độ lệch chuẩn | 0.102 | 0.061 | 0.311 | 0.127 | 0.128 | 0.124 | |
 
-**Trace vẫn thắng dương cả 12/12 scenario** ngay cả khi baseline được cho cùng ngân sách train, nhưng biên thắng **mỏng hơn đáng kể** ở nhóm `Svc_Kill_*`/`Perf_*` so với báo cáo trước (đã sửa).
+**Trace vẫn thắng 11/12 scenario** (thua `DB_Redis_CacheLimit_SocialGraph`, -0.027) ngay cả khi baseline được cho cùng ngân sách train, nhưng biên thắng **mỏng hơn đáng kể** ở nhóm `Svc_Kill_*`/`Perf_*` so với báo cáo trước (đã sửa). Lưu ý: chỉ chạy 1 lần (`run_end=1`, 1 seed) và mỗi file test chỉ có 4–6 window anomaly, nên lệch 1 window làm F1 đổi ~0.05–0.1; các biên +0.01–0.04 nằm trong nhiễu.
+
+### 5.2 Ablation: yếu tố nào đóng góp (trace, 12 scenario, F1 trung bình)
+
+| Cấu hình | epoch/patience | `gate_delta_lr_mult` | F1 TB (12) | F1 TB nhóm luồng gọi (6) | Thắng so với baseline công bằng |
+|:---|:---:|:---:|---:|---:|:---:|
+| Baseline (không trace) | 50/15 | – | 0.342 | 0.375 | – |
+| Trace, không LR fix | 50/15 | 1 | 0.355 | 0.421 | 5 thắng / 3 hòa / 4 thua |
+| Trace, không tăng epoch | 10/5 | 10 | 0.372 | 0.418 | 6 thắng / 1 hòa / 5 thua |
+| **Trace, cấu hình cuối** | 50/15 | 10 | **0.407** | **0.461** | 11 thắng / 1 thua |
+
+Nhận xét: `Code_Stop_*` không nhạy với cả 2 tham số (trace thắng ở mọi dòng). Riêng tăng epoch hay riêng `gate_delta_lr_mult` đều **không** đủ để trace thắng baseline nhất quán — VD không có LR fix thì trace *thua* `Svc_Kill_SocialGraph` (0.160 vs 0.286) và `Perf_Disk_IO_Stress` (0.200 vs 0.333) — kết hợp cả hai mới đạt. Hai hiệu ứng gần như cộng dồn (~+0.05 mỗi cái trên nhóm luồng gọi). Chưa tách riêng: Fix A (clip `latency_dev` ±10) — chỉ chạm ~0.1–0.2% giá trị test (0% ở train/val) nên dự kiến đóng góp nhỏ, nhưng chưa ablation (cần preprocess lại).
 
 ### 5.1 Nhóm "lỗi luồng gọi hệ thống" (mục tiêu chính: service kill/dừng)
 
