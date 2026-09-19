@@ -1,0 +1,57 @@
+2026-09-16 11:09:36,695 P6160 INFO ^^^^^^^^^^ Current Model:hades, a7a1613a ^^^^^^^^^^
+2026-09-16 11:09:36,695 P6160 INFO Load from D:\UAM-AD\data\sn
+2026-09-16 11:09:37,039 P6160 INFO 375 unique log templates found.
+2026-09-16 11:09:37,046 P6160 INFO Transforming unlabel train data.
+2026-09-16 11:09:37,125 P6160 INFO Transforming test data.
+2026-09-16 11:09:37,170 P6160 INFO 193 new templates show.
+2026-09-16 11:09:37,190 P6160 INFO Transforming val data.
+2026-09-16 11:09:37,190 P6160 INFO 77 new templates show.
+2026-09-16 11:09:37,205 P6160 INFO Data loaded done!
+2026-09-16 11:09:37,237 P6160 INFO Known word number: 375
+2026-09-16 11:09:37,427 P6160 INFO Epoch 0/10, train generator loss: 1.50357
+2026-09-16 11:09:37,525 P6160 INFO Epoch 0/10, train discriminator loss: 5.77013
+2026-09-16 11:09:37,664 P6160 INFO *** Test time is 0.1397097110748291
+2026-09-16 11:09:37,664 P6160 INFO Epoch 0/10, test f1: 0.83333 rc: 0.83333 pc: 0.83333. [0.22s]
+2026-09-16 11:09:37,797 P6160 INFO Epoch 1/10, train generator loss: 1.42216
+2026-09-16 11:09:37,886 P6160 INFO Epoch 1/10, train discriminator loss: 5.18982
+2026-09-16 11:09:38,028 P6160 INFO *** Test time is 0.14194178581237793
+2026-09-16 11:09:38,028 P6160 INFO Epoch 1/10, test f1: 0.85714 rc: 1.00000 pc: 0.75000. [0.21s]
+2026-09-16 11:09:38,186 P6160 INFO Epoch 2/10, train generator loss: 1.39617
+2026-09-16 11:09:38,267 P6160 INFO Epoch 2/10, train discriminator loss: 4.74178
+2026-09-16 11:09:38,397 P6160 INFO *** Test time is 0.13048362731933594
+2026-09-16 11:09:38,397 P6160 INFO Epoch 2/10, test f1: 0.85714 rc: 1.00000 pc: 0.75000. [0.22s]
+2026-09-16 11:09:38,397 P6160 INFO early stopping epoch 1/5
+2026-09-16 11:09:38,513 P6160 INFO Epoch 3/10, train generator loss: 1.40658
+2026-09-16 11:09:38,613 P6160 INFO Epoch 3/10, train discriminator loss: 4.42929
+2026-09-16 11:09:38,756 P6160 INFO *** Test time is 0.142897367477417
+2026-09-16 11:09:38,756 P6160 INFO Epoch 3/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.22s]
+2026-09-16 11:09:38,882 P6160 INFO Epoch 4/10, train generator loss: 1.43964
+2026-09-16 11:09:38,988 P6160 INFO Epoch 4/10, train discriminator loss: 4.21963
+2026-09-16 11:09:39,127 P6160 INFO *** Test time is 0.13968324661254883
+2026-09-16 11:09:39,127 P6160 INFO Epoch 4/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.22s]
+2026-09-16 11:09:39,127 P6160 INFO early stopping epoch 1/5
+2026-09-16 11:09:39,241 P6160 INFO Epoch 5/10, train generator loss: 1.47630
+2026-09-16 11:09:39,339 P6160 INFO Epoch 5/10, train discriminator loss: 4.07037
+2026-09-16 11:09:39,476 P6160 INFO *** Test time is 0.1366126537322998
+2026-09-16 11:09:39,476 P6160 INFO Epoch 5/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.21s]
+2026-09-16 11:09:39,476 P6160 INFO early stopping epoch 2/5
+2026-09-16 11:09:39,595 P6160 INFO Epoch 6/10, train generator loss: 1.51794
+2026-09-16 11:09:39,694 P6160 INFO Epoch 6/10, train discriminator loss: 3.96357
+2026-09-16 11:09:39,841 P6160 INFO *** Test time is 0.1470179557800293
+2026-09-16 11:09:39,841 P6160 INFO Epoch 6/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.22s]
+2026-09-16 11:09:39,841 P6160 INFO early stopping epoch 3/5
+2026-09-16 11:09:39,978 P6160 INFO Epoch 7/10, train generator loss: 1.56174
+2026-09-16 11:09:40,096 P6160 INFO Epoch 7/10, train discriminator loss: 3.88690
+2026-09-16 11:09:40,235 P6160 INFO *** Test time is 0.13843917846679688
+2026-09-16 11:09:40,235 P6160 INFO Epoch 7/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.25s]
+2026-09-16 11:09:40,235 P6160 INFO early stopping epoch 4/5
+2026-09-16 11:09:40,351 P6160 INFO Epoch 8/10, train generator loss: 1.59774
+2026-09-16 11:09:40,450 P6160 INFO Epoch 8/10, train discriminator loss: 3.83610
+2026-09-16 11:09:40,613 P6160 INFO *** Test time is 0.16102266311645508
+2026-09-16 11:09:40,613 P6160 INFO Epoch 8/10, test f1: 0.92308 rc: 1.00000 pc: 0.85714. [0.22s]
+2026-09-16 11:09:40,613 P6160 INFO early stopping epoch 5/5
+2026-09-16 11:09:40,613 P6160 INFO Early stopping
+2026-09-16 11:09:40,781 P6160 INFO Threshold (p=95.0, src=val): 1.669924
+2026-09-16 11:09:40,829 P6160 INFO *** Test F1 0.8000  of unsupervised traning
+2026-09-16 11:09:40,829 P6160 INFO *** Best F1 {'f1': 0.9230769230769231, 'rc': 1.0, 'pc': 0.8571428571428571, 'threshold': np.float64(1.7718029022216797)}  of unsupervised traning
+2026-09-16 11:09:40,845 P6160 INFO Current hash id a7a1613a

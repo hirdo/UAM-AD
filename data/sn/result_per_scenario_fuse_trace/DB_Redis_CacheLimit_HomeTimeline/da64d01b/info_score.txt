@@ -1,0 +1,4 @@
+Experiment da64d01b: 2026/09/16-19:09:21
+Train time/epoch 0.3739
+* Test -- f1:1.0000	rc:1.0000	pc:1.0000	threshold:1.9385
+

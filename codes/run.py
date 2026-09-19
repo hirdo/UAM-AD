@@ -5,6 +5,7 @@ import torch
 import logging
 from tqdm import tqdm
 from models.basev3 import BaseModel
+from models.rca import compute_hit_rate_at_k
 from common.data_processing_utils import *
 
 def str2bool(v):
@@ -79,16 +80,24 @@ parser.add_argument("--data_type", default="kpi", choices=["fuse", "log", "kpi"]
 parser.add_argument("--open_trace", default=False, type=str2bool,
                     help="Enable trace branch (GAT Structure Autoencoder). "
                          "Requires trace_node_features and trace_adj in the data.")
-parser.add_argument("--num_services", default=10, type=int,
-                    help="Number of service nodes in the Service Trace Graph (STG)")
-parser.add_argument("--trace_c", default=5, type=int,
-                    help="Feature dimension per node in the STG (e.g. response_time, cpu, mem, ...)")
+parser.add_argument("--num_services", default=0, type=int,
+                    help="Number of service nodes in the Service Trace Graph (STG). "
+                         "Leave at 0 to auto-fill from meta.pkl.")
+parser.add_argument("--trace_c", default=0, type=int,
+                    help="Feature dimension per node in the STG (e.g. response_time, cpu, mem, ...). "
+                         "Leave at 0 to auto-fill from meta.pkl.")
 parser.add_argument("--trace_dropout", default=0.1, type=float,
                     help="Dropout rate inside GAT layers")
 parser.add_argument("--gate_lambda", default=0.01, type=float,
                     help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
 parser.add_argument("--fuse_type", default="multi_modal_self_attn", choices=["concat", "cross_attn", "sep_attn","multi_modal_self_attn"])
 parser.add_argument("--attn_type", default="add", choices=["dot", "add","qkv"])
+parser.add_argument("--enable_rca", default=False, type=str2bool,
+                    help="Root Cause Localization (TraceDAE §E): rank service nodes by "
+                         "per-node reconstruction score for every window flagged anomalous. "
+                         "Requires open_trace=True.")
+parser.add_argument("--rca_top_k", default=3, type=int,
+                    help="Number of top-ranked candidate services to report per anomalous window.")
 
 ### Kpi params
 parser.add_argument("--inner_dropout", default=0.5, type=float)
@@ -126,6 +135,7 @@ if os.path.exists(_meta_path):
         params["num_services"] = _meta["num_services"]
     if params.get("trace_c", 0) == 0 and "trace_c" in _meta:
         params["trace_c"] = _meta["trace_c"]
+    params["service2idx"] = _meta.get("service2idx", {})
     logging.info(f"Loaded meta.pkl: num_services={params['num_services']}, "
                  f"trace_c={params['trace_c']}")
 
@@ -185,10 +195,19 @@ def main(var_nums):
             scores = model.unsupervised_fit(unlabel_loader, test_loader, val_loader=val_loader)
     else:
         model.load_model(params["pre_model"])
-        scores = model.evaluate(test_loader)
-    
+        scores, test_embeds = model.evaluate(test_loader)
+        if params.get("enable_rca") and model.open_trace:
+            rca_records = model.localize_root_causes(
+                test_loader, threshold=scores.get("threshold"),
+                top_k=params.get("rca_top_k", 3))
+            scores["rca_records"] = rca_records
+            scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
+
     ##### Record results #####
     dump_scores(params["result_dir"], params["hash_id"], scores, model.train_time)
+    if scores.get("rca_records"):
+        dump_rca_results(params["result_dir"], params["hash_id"],
+                          scores["rca_records"], scores.get("rca_metrics"))
     logging.info("Current hash id {}".format(params["hash_id"]))
 
 for run_times in range(params["run_start"], params["run_end"]):

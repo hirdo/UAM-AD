@@ -10,73 +10,85 @@
       "scenario": "Code_Stop_MediaService_20251104_024819",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 21.83105539999997
     },
     {
       "scenario": "Code_Stop_TextService_20251104_022416",
       "f1": 0.9091,
       "precision": 1.0,
-      "recall": 0.8333
+      "recall": 0.8333,
+      "elapsed_sec": 13.24220719999903
     },
     {
       "scenario": "Code_Stop_UserService_20251104_020019",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.15556370000013
     },
     {
       "scenario": "DB_Redis_CacheLimit_HomeTimeline_20251104_004905",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.525502899999992
     },
     {
       "scenario": "DB_Redis_CacheLimit_SocialGraph_20251104_013615",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 16.296605600000476
     },
     {
       "scenario": "DB_Redis_CacheLimit_UserTimeline_20251104_011238",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.11208280000028
     },
     {
       "scenario": "Perf_CPU_Contention_20251103_222601",
       "f1": 0.7692,
       "precision": 0.7143,
-      "recall": 0.8333
+      "recall": 0.8333,
+      "elapsed_sec": 13.617485099999612
     },
     {
       "scenario": "Perf_Disk_IO_Stress_20251103_231335",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 15.665797499999826
     },
     {
       "scenario": "Perf_Network_Loss_20251103_224954",
       "f1": 0.8571,
       "precision": 0.75,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.570490300000529
     },
     {
       "scenario": "Svc_Kill_Media_20251104_000111",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.347855899999558
     },
     {
       "scenario": "Svc_Kill_SocialGraph_20251104_002506",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 13.735894100000223
     },
     {
       "scenario": "Svc_Kill_UserTimeline_20251103_233717",
       "f1": 1.0,
       "precision": 1.0,
-      "recall": 1.0
+      "recall": 1.0,
+      "elapsed_sec": 14.465715500000442
     }
   ],
   "aggregate": {
@@ -85,6 +97,7 @@
     "precision_mean": 0.9553583333333333,
     "precision_std": 0.1000874405901604,
     "recall_mean": 0.9722166666666666,
-    "recall_std": 0.06212542197486914
+    "recall_std": 0.06212542197486914,
+    "total_elapsed_sec": 176.01475329999994
   }
 }

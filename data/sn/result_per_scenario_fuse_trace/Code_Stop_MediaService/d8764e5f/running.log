@@ -1,0 +1,63 @@
+2026-09-16 11:08:32,197 P3732 INFO ^^^^^^^^^^ Current Model:hades, d8764e5f ^^^^^^^^^^
+2026-09-16 11:08:32,197 P3732 INFO Load from D:\UAM-AD\data\sn
+2026-09-16 11:08:32,836 P3732 INFO 375 unique log templates found.
+2026-09-16 11:08:32,842 P3732 INFO Transforming unlabel train data.
+2026-09-16 11:08:32,879 P3732 INFO Transforming test data.
+2026-09-16 11:08:32,911 P3732 INFO 170 new templates show.
+2026-09-16 11:08:32,942 P3732 INFO Transforming val data.
+2026-09-16 11:08:32,942 P3732 INFO 77 new templates show.
+2026-09-16 11:08:32,942 P3732 INFO Data loaded done!
+2026-09-16 11:08:32,974 P3732 INFO Known word number: 375
+2026-09-16 11:08:37,445 P3732 INFO Epoch 0/10, train generator loss: 1.49564
+2026-09-16 11:08:37,698 P3732 INFO Epoch 0/10, train discriminator loss: 5.62023
+2026-09-16 11:08:37,856 P3732 INFO *** Test time is 0.1583247184753418
+2026-09-16 11:08:37,856 P3732 INFO Epoch 0/10, test f1: 0.80000 rc: 0.80000 pc: 0.80000. [2.35s]
+2026-09-16 11:08:38,016 P3732 INFO Epoch 1/10, train generator loss: 1.39791
+2026-09-16 11:08:38,095 P3732 INFO Epoch 1/10, train discriminator loss: 4.97998
+2026-09-16 11:08:38,238 P3732 INFO *** Test time is 0.14358139038085938
+2026-09-16 11:08:38,238 P3732 INFO Epoch 1/10, test f1: 0.80000 rc: 0.80000 pc: 0.80000. [0.21s]
+2026-09-16 11:08:38,238 P3732 INFO early stopping epoch 1/5
+2026-09-16 11:08:38,381 P3732 INFO Epoch 2/10, train generator loss: 1.36479
+2026-09-16 11:08:38,472 P3732 INFO Epoch 2/10, train discriminator loss: 4.60155
+2026-09-16 11:08:38,618 P3732 INFO *** Test time is 0.14648723602294922
+2026-09-16 11:08:38,618 P3732 INFO Epoch 2/10, test f1: 0.80000 rc: 0.80000 pc: 0.80000. [0.23s]
+2026-09-16 11:08:38,618 P3732 INFO early stopping epoch 2/5
+2026-09-16 11:08:38,746 P3732 INFO Epoch 3/10, train generator loss: 1.37287
+2026-09-16 11:08:38,840 P3732 INFO Epoch 3/10, train discriminator loss: 4.29933
+2026-09-16 11:08:38,972 P3732 INFO *** Test time is 0.13227319717407227
+2026-09-16 11:08:38,972 P3732 INFO Epoch 3/10, test f1: 0.80000 rc: 0.80000 pc: 0.80000. [0.22s]
+2026-09-16 11:08:38,972 P3732 INFO early stopping epoch 3/5
+2026-09-16 11:08:39,091 P3732 INFO Epoch 4/10, train generator loss: 1.39566
+2026-09-16 11:08:39,185 P3732 INFO Epoch 4/10, train discriminator loss: 4.11354
+2026-09-16 11:08:39,338 P3732 INFO *** Test time is 0.137725830078125
+2026-09-16 11:08:39,338 P3732 INFO Epoch 4/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.23s]
+2026-09-16 11:08:39,469 P3732 INFO Epoch 5/10, train generator loss: 1.41901
+2026-09-16 11:08:39,579 P3732 INFO Epoch 5/10, train discriminator loss: 4.02727
+2026-09-16 11:08:39,722 P3732 INFO *** Test time is 0.1427001953125
+2026-09-16 11:08:39,722 P3732 INFO Epoch 5/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.24s]
+2026-09-16 11:08:39,722 P3732 INFO early stopping epoch 1/5
+2026-09-16 11:08:39,848 P3732 INFO Epoch 6/10, train generator loss: 1.44179
+2026-09-16 11:08:39,926 P3732 INFO Epoch 6/10, train discriminator loss: 3.99542
+2026-09-16 11:08:40,054 P3732 INFO *** Test time is 0.12757229804992676
+2026-09-16 11:08:40,054 P3732 INFO Epoch 6/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.20s]
+2026-09-16 11:08:40,054 P3732 INFO early stopping epoch 2/5
+2026-09-16 11:08:40,180 P3732 INFO Epoch 7/10, train generator loss: 1.46005
+2026-09-16 11:08:40,259 P3732 INFO Epoch 7/10, train discriminator loss: 3.98473
+2026-09-16 11:08:40,402 P3732 INFO *** Test time is 0.14334678649902344
+2026-09-16 11:08:40,402 P3732 INFO Epoch 7/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.20s]
+2026-09-16 11:08:40,402 P3732 INFO early stopping epoch 3/5
+2026-09-16 11:08:40,522 P3732 INFO Epoch 8/10, train generator loss: 1.47284
+2026-09-16 11:08:40,626 P3732 INFO Epoch 8/10, train discriminator loss: 3.97226
+2026-09-16 11:08:40,758 P3732 INFO *** Test time is 0.1320037841796875
+2026-09-16 11:08:40,758 P3732 INFO Epoch 8/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.22s]
+2026-09-16 11:08:40,758 P3732 INFO early stopping epoch 4/5
+2026-09-16 11:08:40,885 P3732 INFO Epoch 9/10, train generator loss: 1.48175
+2026-09-16 11:08:40,979 P3732 INFO Epoch 9/10, train discriminator loss: 3.95277
+2026-09-16 11:08:41,105 P3732 INFO *** Test time is 0.1255202293395996
+2026-09-16 11:08:41,105 P3732 INFO Epoch 9/10, test f1: 0.88889 rc: 0.80000 pc: 1.00000. [0.22s]
+2026-09-16 11:08:41,105 P3732 INFO early stopping epoch 5/5
+2026-09-16 11:08:41,105 P3732 INFO Early stopping
+2026-09-16 11:08:41,215 P3732 INFO Threshold (p=95.0, src=val): 1.710157
+2026-09-16 11:08:41,262 P3732 INFO *** Test F1 0.7273  of unsupervised traning
+2026-09-16 11:08:41,262 P3732 INFO *** Best F1 {'f1': 0.8888888888888888, 'rc': 0.8, 'pc': 1.0, 'threshold': np.float64(1.865660433769226)}  of unsupervised traning
+2026-09-16 11:08:41,262 P3732 INFO Current hash id d8764e5f

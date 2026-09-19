@@ -547,16 +547,19 @@ class MultiModel(nn.Module):
         adj_hat_4d   = None   # [B,W,N,N] — để Discriminator dùng làm "fake trace_adj"
         feats_hat_4d = None   # [B,W,N,2] — error_rate & latency_dev (CHANGE 7)
 
+        node_scores_4d = None   # [B,W,N] — per-node RCA score (TraceDAE §E)
+
         if self.open_trace and trace_nodes is not None and trace_adj is not None:
             B, W, N, _ = trace_nodes.shape
-            _, adj_hat, trace_dis_flat, feats_hat_slice = self.trace_model(
+            _, adj_hat, trace_dis_flat, feats_hat_slice, node_scores_flat = self.trace_model(
                 trace_nodes.reshape(B * W, N, -1),
                 trace_adj.reshape(B * W, N, N)
-            )  # adj_hat: [B*W,N,N], trace_dis_flat: [B*W], feats_hat_slice: [B*W,N,2]
+            )  # adj_hat: [B*W,N,N], trace_dis_flat: [B*W], feats_hat_slice: [B*W,N,2], node_scores_flat: [B*W,N]
 
             trace_dis    = trace_dis_flat.reshape(B, W)           # [B, W]
             adj_hat_4d   = adj_hat.reshape(B, W, N, N)            # [B, W, N, N]  (CHANGE 3)
             feats_hat_4d = feats_hat_slice.reshape(B, W, N, 2)    # [B, W, N, 2]  (CHANGE 7)
+            node_scores_4d = node_scores_flat.reshape(B, W, N)    # [B, W, N]
 
             trace_d = trace_dis * self.expand_anomaly_gap(trace_dis)
 
@@ -586,6 +589,7 @@ class MultiModel(nn.Module):
             "dis":         dis_tuple,
             "features":    (fused_log, fused_kpi, concat_feature),
             "output":      (log_out, kpi_out),
-            "adj_hat":     adj_hat_4d,    # CHANGE 3: [B,W,N,N] hoặc None
-            "feats_hat":   feats_hat_4d,  # CHANGE 7: [B,W,N,2] hoặc None
+            "adj_hat":     adj_hat_4d,      # CHANGE 3: [B,W,N,N] hoặc None
+            "feats_hat":   feats_hat_4d,    # CHANGE 7: [B,W,N,2] hoặc None
+            "node_scores": node_scores_4d,  # RCA: [B,W,N] hoặc None
         }
