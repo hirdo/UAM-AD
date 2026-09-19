@@ -139,6 +139,34 @@ Tỉ lệ `Code_Stop_*` ban đầu là 12,5% (13,5% với `MediaService`), sau �
 
 Ở 12,5% trace và baseline gần như bằng nhau (`UserService` trace thấp hơn 0,022); ở 15% trace bằng hoặc cao hơn ở cả 3. Chỉ lấy mẫu con 53 window normal (280 → 227) đã làm F1 baseline đổi hơn 0,09, lớn hơn nhiều so với khoảng cách trace–baseline (≤ 0,03) ở nhóm này.
 
+### 6.2 Vì sao trace tăng: bằng chứng đo được và giới hạn
+
+Phân tích tín hiệu đơn lẻ (chỉ để giải thích, không dùng để chọn tham số). Với mỗi đặc trưng trace (`call_count`, `avg_dur`, `max_dur`, `error_rate`, `root_rate`, `latency_dev`) lấy độ lệch chuẩn hoá lớn nhất trên 12 node (so với thống kê của train) rồi tính AUC tách anomaly/normal của file test. "Tổng thiếu hụt call_count" là tổng mức call_count của các node thấp hơn normal. Cột KPI là KPI đơn lẻ tốt nhất trong 59 KPI (chọn theo test nên là cận trên lạc quan).
+
+| Scenario | Δ F1 | Đặc trưng trace tốt nhất (AUC) | Tổng thiếu hụt call_count | KPI đơn lẻ tốt nhất (AUC) |
+|:---|:---:|:---|---:|:---|
+| Code_Stop_MediaService | 0,000 | call_count 0,81; avg_dur 0,80 | 0,80 | disk_usage_percent 1,00 |
+| Code_Stop_TextService | +0,024 | max_dur 0,85; avg_dur 0,85 | 0,76 | disk_usage_percent 1,00 |
+| Code_Stop_UserService | +0,024 | avg_dur 0,92; max_dur 0,91 | 0,72 | disk_usage_percent 0,99 |
+| DB_Redis_CacheLimit_HomeTimeline | +0,070 | root_rate 0,69; call_count 0,60 | 0,70 | container_net_tx (user-service) 0,97 |
+| DB_Redis_CacheLimit_SocialGraph | 0,000 | root_rate 0,76; call_count 0,60 | 0,83 | container_cpu (home-timeline) 0,98 |
+| DB_Redis_CacheLimit_UserTimeline | +0,095 | root_rate 0,64; error_rate 0,50 | 0,71 | container_net_rx (home-timeline) 0,95 |
+| Perf_CPU_Contention | +0,116 | latency_dev 0,83; avg_dur 0,83 | 0,64 | cpu_usage 1,00 |
+| Perf_Disk_IO_Stress | +0,064 | root_rate 0,67; latency_dev 0,50 | 0,75 | container_net_tx (user-service) 0,98 |
+| Perf_Network_Loss | +0,316 | root_rate 0,75; latency_dev 0,66 | 0,84 | container_cpu (text-service) 0,99 |
+| Svc_Kill_Media | +0,445 | root_rate 0,57; max_dur 0,56 | 0,63 | container_net_tx (user-service) 1,00 |
+| Svc_Kill_SocialGraph | +0,306 | root_rate 0,95; call_count 0,88 | 0,95 | disk_write_bytes 1,00 |
+| Svc_Kill_UserTimeline | +0,200 | error_rate 0,50; root_rate 0,45 | 0,64 | load1 1,00 |
+
+Diễn giải theo nhóm:
+
+- **Cơ chế chung**: khi một service biến mất hoặc giảm lưu lượng, các đặc trưng của node đó (`call_count`, `root_rate`, thời lượng) lệch khỏi normal; khi hệ thống chậm đồng loạt thì `latency_dev`/`avg_dur` của nhiều node tăng. Nhánh trace đưa các lệch này vào điểm bất thường qua số hạng lỗi tái tạo trace nhân với cổng `g` và qua `delta_head` của decoder, phần KPI/nhật ký không có thông tin theo từng node.
+- **`Perf_*`**: tăng lớn nhất ở `Perf_Network_Loss` (+0,316) và `Perf_CPU_Contention` (+0,116), nơi baseline yếu (0,64–0,67) và trace có tín hiệu tương ứng: CPU stress làm độ trễ tăng đồng loạt (`latency_dev` 0,83), mất gói làm lưu lượng giảm (thiếu hụt call_count 0,84; `root_rate` 0,75).
+- **`DB_Redis_*`**: tăng nhỏ (+0,07 và +0,095) ở `HomeTimeline`/`UserTimeline` với tín hiệu trace yếu (AUC ≤ 0,71); `SocialGraph` bằng nhau vì baseline đã 0,90.
+- **`Code_Stop_*`**: chênh ≤ 0,024 vì baseline đã 0,96–0,99; KPI của chính container bị dừng đã có AUC 0,98–0,999 còn tín hiệu trace yếu hơn (0,72–0,92, trace chỉ lấy mẫu 20%), nên trace không có thêm thông tin.
+- **`Svc_Kill_*`**: `Svc_Kill_SocialGraph` có tín hiệu trace rõ (`root_rate` 0,95, `call_count` 0,88), khớp mức tăng +0,306. Ngược lại `Svc_Kill_Media` (+0,445) và `Svc_Kill_UserTimeline` (+0,200) không có đặc trưng trace đơn lẻ nào mạnh (AUC ≤ 0,64) và mỗi file chỉ có 4 anomaly (1 cửa sổ đổi F1 hơn 0,1), nên mức tăng ở hai scenario này chưa có bằng chứng cơ chế; có thể một phần do nhiễu mẫu nhỏ hoặc do dung lượng mô hình, không nên diễn giải là trace thấy đứt gãy luồng gọi.
+- Bảng trên chỉ cho thấy tương quan giữa tín hiệu trace và mức tăng F1; bằng chứng nhân quả duy nhất là so sánh trace với baseline cùng cấu hình (mục 6 và 7).
+
 ## 7. Ablation
 
 ### 7.1 Trace (12 scenario)
@@ -166,6 +194,7 @@ Baseline (weight 1,5): `epoches/patience` 10/5 → 50/15 tăng F1 trung bình 12
 - **File test nhỏ**: 9/12 scenario chỉ có 32–80 cửa sổ; `Svc_Kill_*` chỉ có 4 cửa sổ anomaly, lệch 1 cửa sổ đổi F1 hơn 0,1. F1 cũng phụ thuộc số normal và tỉ lệ anomaly của file test (mục 6.1), chỉ so sánh được trong cùng thiết lập này.
 - **1 seed** (`run_end 1`); các chênh lệch nhỏ (≤ 0,03 ở `Code_Stop_*`) nằm trong nhiễu.
 - **Val chỉ 8 cửa sổ** nên ngưỡng percentile 95 kém ổn định.
+- **KPI hệ thống mang dấu vết không đặc hiệu với lỗi**: `load1` cao ở đầu mỗi session (khởi động stack; cửa sổ anomaly 1,6–10,5 so với 0,45–1,2 của pool normal) và `disk_usage_percent` tăng dần qua các session (`Normal_Baseline` 37,85; cửa sổ anomaly `Code_Stop_*` 38,7–38,8; pool normal 38,23) tách anomaly/normal với AUC 0,99–1,00. Baseline và trace đều nhận các KPI này nên so sánh trace–baseline vẫn cùng điều kiện, nhưng F1 tuyệt đối (nhất là baseline ở `Code_Stop_*`) có thể được nâng bởi dấu vết thời gian/session chứ không chỉ bởi lỗi. Chưa có ablation bỏ các KPI này.
 - **Tỉ lệ `Code_Stop_*` được đổi sau lần chạy đầu** (12,5% → 15%); kết quả 12,5% có ở mục 6.1.
 - **Chồng lấn train/test**: pool normal của test có gồm vài cửa sổ `Normal_Baseline` (cũng nằm trong train/val).
 - **Chọn epoch theo test**: checkpoint tốt nhất của mỗi lần chạy được chọn theo F1 trên test (áp dụng như nhau cho baseline và trace), nên số tuyệt đối có thể hơi lạc quan.

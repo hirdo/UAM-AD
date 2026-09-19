@@ -139,6 +139,34 @@ The `Code_Stop_*` rate was first 12.5% (13.5% for `MediaService`) and was then c
 
 At 12.5% trace and baseline are nearly equal (`UserService`: trace 0.022 lower); at 15% trace is equal or higher in all 3. Dropping just 53 normal windows (280 → 227) moved baseline F1 by more than 0.09, far larger than the trace–baseline gap (≤ 0.03) in this group.
 
+### 6.2 Why trace improves: measured evidence and limits
+
+Single-signal analysis (for explanation only, not used to choose parameters). For each trace feature (`call_count`, `avg_dur`, `max_dur`, `error_rate`, `root_rate`, `latency_dev`), take the largest standardised deviation over the 12 nodes (against train statistics) and compute the AUC separating anomaly from normal in the test file. "Call-count deficit" sums how far each node's `call_count` is below normal. The KPI column is the best single KPI out of 59 (selected on test, so an optimistic upper bound).
+
+| Scenario | Δ F1 | Best trace features (AUC) | Call-count deficit | Best single KPI (AUC) |
+|:---|:---:|:---|---:|:---|
+| Code_Stop_MediaService | 0.000 | call_count 0.81; avg_dur 0.80 | 0.80 | disk_usage_percent 1.00 |
+| Code_Stop_TextService | +0.024 | max_dur 0.85; avg_dur 0.85 | 0.76 | disk_usage_percent 1.00 |
+| Code_Stop_UserService | +0.024 | avg_dur 0.92; max_dur 0.91 | 0.72 | disk_usage_percent 0.99 |
+| DB_Redis_CacheLimit_HomeTimeline | +0.070 | root_rate 0.69; call_count 0.60 | 0.70 | container_net_tx (user-service) 0.97 |
+| DB_Redis_CacheLimit_SocialGraph | 0.000 | root_rate 0.76; call_count 0.60 | 0.83 | container_cpu (home-timeline) 0.98 |
+| DB_Redis_CacheLimit_UserTimeline | +0.095 | root_rate 0.64; error_rate 0.50 | 0.71 | container_net_rx (home-timeline) 0.95 |
+| Perf_CPU_Contention | +0.116 | latency_dev 0.83; avg_dur 0.83 | 0.64 | cpu_usage 1.00 |
+| Perf_Disk_IO_Stress | +0.064 | root_rate 0.67; latency_dev 0.50 | 0.75 | container_net_tx (user-service) 0.98 |
+| Perf_Network_Loss | +0.316 | root_rate 0.75; latency_dev 0.66 | 0.84 | container_cpu (text-service) 0.99 |
+| Svc_Kill_Media | +0.445 | root_rate 0.57; max_dur 0.56 | 0.63 | container_net_tx (user-service) 1.00 |
+| Svc_Kill_SocialGraph | +0.306 | root_rate 0.95; call_count 0.88 | 0.95 | disk_write_bytes 1.00 |
+| Svc_Kill_UserTimeline | +0.200 | error_rate 0.50; root_rate 0.45 | 0.64 | load1 1.00 |
+
+Interpretation by group:
+
+- **General mechanism**: when a service disappears or its traffic drops, that node's features (`call_count`, `root_rate`, durations) deviate from normal; when the whole system slows down, `latency_dev`/`avg_dur` rise across many nodes. The trace branch feeds these deviations into the anomaly score through the trace reconstruction-error term scaled by the gate `g` and through the decoder's `delta_head`; KPI/log carry no per-node information.
+- **`Perf_*`**: the largest gains are `Perf_Network_Loss` (+0.316) and `Perf_CPU_Contention` (+0.116), where baseline is weak (0.64–0.67) and trace has a matching signal: CPU stress raises latency everywhere (`latency_dev` 0.83), packet loss lowers traffic (call-count deficit 0.84; `root_rate` 0.75).
+- **`DB_Redis_*`**: small gains (+0.07 and +0.095) on `HomeTimeline`/`UserTimeline` with weak trace signal (AUC ≤ 0.71); `SocialGraph` is equal because baseline is already 0.90.
+- **`Code_Stop_*`**: difference ≤ 0.024 because baseline is already 0.96–0.99; the stopped container's own KPI has AUC 0.98–0.999 while the trace signal is weaker (0.72–0.92, trace is sampled at 20%), so trace adds no new information.
+- **`Svc_Kill_*`**: `Svc_Kill_SocialGraph` has a clear trace signal (`root_rate` 0.95, `call_count` 0.88), consistent with its +0.306 gain. By contrast `Svc_Kill_Media` (+0.445) and `Svc_Kill_UserTimeline` (+0.200) have no strong single trace feature (AUC ≤ 0.64) and each file has only 4 anomaly windows (one window moves F1 by more than 0.1), so the gain on these two has no mechanistic evidence; it may partly come from small-sample noise or model capacity and should not be read as trace seeing a broken call flow.
+- The table shows correlation between trace signal and F1 gain only; the sole causal evidence is the trace-vs-baseline comparison under the same configuration (§6 and §7).
+
 ## 7. Ablation
 
 ### 7.1 Trace (12 scenarios)
@@ -166,6 +194,7 @@ Baseline (weight 1.5): `epoches/patience` 10/5 → 50/15 raises the 12-scenario 
 - **Small test files**: 9 of 12 scenarios have only 32–80 windows; `Svc_Kill_*` has just 4 anomaly windows, so one flipped window moves F1 by more than 0.1. F1 also depends on the number of normal windows and the anomaly rate of the test file (§6.1), so it is comparable only within this setup.
 - **One seed** (`run_end 1`); small differences (≤ 0.03 on `Code_Stop_*`) are within noise.
 - **Val has only 8 windows**, so the 95th-percentile threshold is unstable.
+- **System KPIs carry fault-unspecific traces**: `load1` is high at the start of every session (stack start-up; anomaly windows 1.6–10.5 vs 0.45–1.2 in the normal pool) and `disk_usage_percent` grows across sessions (`Normal_Baseline` 37.85; `Code_Stop_*` anomaly windows 38.7–38.8; normal pool 38.23), separating anomaly from normal with AUC 0.99–1.00. Baseline and trace both receive these KPIs, so the trace-vs-baseline comparison is still like-for-like, but absolute F1 (especially baseline on `Code_Stop_*`) may be lifted by time/session traces rather than the fault alone. No ablation dropping these KPIs has been run.
 - **The `Code_Stop_*` rate was changed after the first run** (12.5% → 15%); the 12.5% results are in §6.1.
 - **Train/test overlap**: the test normal pool includes a few `Normal_Baseline` windows (which are also in train/val).
 - **Epoch selected on test**: each run's best checkpoint is chosen by test F1 (applied equally to baseline and trace), so absolute numbers may be slightly optimistic.
