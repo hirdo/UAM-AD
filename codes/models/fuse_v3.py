@@ -7,6 +7,7 @@ from models.kpi_model_v3 import KpiEncoder, KpiEncoder_low
 from models.log_model_v3 import LogEncoder, LogEncoder_low
 from models.utils import MultiHeadAttention
 from models.trace_model_v3 import TraceEncoder, TraceEncoder_low, TraceModel
+from models.async_trace_model_v3 import AsyncTraceModel, async_encoder_inputs
 
 class AddAttention(nn.Module): #k=V
     def __init__(self, dimensions,windows_lens=100):
@@ -72,6 +73,17 @@ class MultiEncoder(nn.Module):
         self.open_trace = kwargs.get("open_trace", False)
         if self.open_trace:
             self.trace_encoder = TraceEncoder(device, **kwargs)
+        # CHANGE 9: async counterpart of trace_encoder above -- feeds the async
+        # node embedding into the Fused decoder (MultiModel._decode). Own
+        # weights; MultiModel.forward calls it directly (this class's forward
+        # is untouched). Distinct from AsyncTraceModel.encoder, which serves
+        # the async structure/attribute autoencoder, exactly as the sync
+        # branch has both trace_encoder (here) and TraceModel.encoder.
+        self.open_async_trace = kwargs.get("open_async_trace", False)
+        if self.open_async_trace:
+            async_kwargs = dict(kwargs)
+            async_kwargs["trace_c"] = kwargs["async_c"] + (kwargs["num_services"] if kwargs.get("async_order") else 0)
+            self.async_trace_encoder = TraceEncoder(device, **async_kwargs)
         if self.fuse_type == "cross_attn" or self.fuse_type == "sep_attn":
             if kwargs["attn_type"] == "add":
                 self.attn_alpha = AddAttention(self.hidden_size, kwargs["window_size"])
@@ -421,6 +433,28 @@ class MultiModel(nn.Module):
         if self.open_trace:
             self.trace_model = TraceModel(device, **kwargs)
 
+        # CHANGE 9 (additive): the async trace branch -- ONE branch, symmetric with
+        # the sync one: its own autoencoder (AsyncTraceModel: encoder + structure
+        # heads [message counts, precedence order] + attribute decoder), its
+        # sanction into the fused score through trace_dis_async_count / trace_dis_async_order,
+        # and its node embedding feeding the Fused decoder
+        # through the EXISTING delta_head (no second decoder head: an earlier
+        # separate delta_head_async added decoder capacity and hurt the log
+        # anomaly signal). The gate below only weights the async autoencoder's
+        # training loss. When open_async_trace is off nothing here exists, so the
+        # sync path is untouched.
+        self.open_async_trace = kwargs.get("open_async_trace", False)
+        if self.open_async_trace:
+            self.async_trace_model = AsyncTraceModel(device, **kwargs)
+            self.async_trace_gate = nn.Sequential(
+                nn.Linear(6, 16), nn.ReLU(),
+                nn.Linear(16, 1),
+            )
+            nn.init.zeros_(self.async_trace_gate[-1].weight)
+            # 0.0 -> g_async = 0.5: it weights the async AE's training loss and
+            # gets no gradient reason to open on its own.
+            nn.init.constant_(self.async_trace_gate[-1].bias, float(kwargs.get("async_gate_init_bias", 0.0)))
+
         # ── Residual-gated trace fusion (CHANGE 8) ──────────────────────────────
         # y = fuse_decoder(fm) + g * Δ_trace, g∈[0,1] per-sample từ trace-quality.
         # Δ-head zero-init + L1 trên g → khởi điểm chính xác bằng baseline log+KPI;
@@ -428,8 +462,9 @@ class MultiModel(nn.Module):
         self.gate_lambda = float(kwargs.get("gate_lambda", 0.01))
         if self.open_trace:
             # Δ-head: nhận cat([fm, ZV]) = 3H, zero-init lớp cuối để khởi điểm Δ≈0
+            # (with the async branch: cat([fm, ZV, ZV_async]) = 4H -- same head, wider input)
             self.delta_head = nn.Sequential(
-                nn.Linear(3 * H, 2 * H), nn.ReLU(),
+                nn.Linear(3 * H + (H if self.open_async_trace else 0), 2 * H), nn.ReLU(),
                 nn.Linear(2 * H, self.kpi_c + self.log_c),
             )
             nn.init.zeros_(self.delta_head[-1].weight)
@@ -477,9 +512,36 @@ class MultiModel(nn.Module):
         ], dim=-1)
         return feats
 
+    @staticmethod
+    def _async_trace_quality_feats(async_trace_nodes, async_msg_count_adj):
+        """CHANGE 9 (additive): async-branch analogue of _trace_quality_feats
+        above, reading only async_trace_node_features/async_msg_count_adj — the
+        sync gate above never sees these, and this gate never sees the sync
+        ones. async_trace_nodes cols: [0]async_out_count [1]async_in_count
+        [2]avg_lag. Returns: [B, W, 6]
+        """
+        out_count = async_trace_nodes[..., 0]                        # [B,W,N]
+        in_count  = async_trace_nodes[..., 1]
+        mean_out  = out_count.mean(dim=-1)                           # [B,W]
+        mean_in   = in_count.mean(dim=-1)
+        coverage  = ((out_count > 0) | (in_count > 0)).float().mean(dim=-1)
+        avg_lag   = async_trace_nodes[..., 2].mean(dim=-1)
+        adj_density = async_msg_count_adj.float().mean(dim=(-1, -2))
+        count_var   = out_count.var(dim=-1, unbiased=False)
+        feats = torch.stack([mean_out, mean_in, coverage, avg_lag,
+                             adj_density, torch.log1p(count_var)], dim=-1)  # [B,W,6]
+        return feats
+
     def forward(self, input_dict, flag=False):
         trace_nodes = input_dict.get("trace_node_features", None)
         trace_adj   = input_dict.get("trace_adj", None)
+        # CHANGE 9 (additive): async branch's own inputs, read only here and
+        # in the async-only blocks below — never merged into trace_nodes/
+        # trace_adj above, so the sync branch's tensors are byte-identical
+        # to before this change.
+        async_trace_nodes = input_dict.get("async_trace_node_features", None)
+        async_msg_count_adj   = input_dict.get("async_msg_count_adj", None)
+        async_temporal_order_adj   = input_dict.get("async_temporal_order_adj", None)
 
         # ── Encoder ────────────────────────────────────────────────────────────
         # fused_modal: [B,W,2H]  (log+KPI self-attention, không có trace)
@@ -495,6 +557,32 @@ class MultiModel(nn.Module):
                 trace_adj.reshape(B_t * W_t, N_t, N_t)
             )
             cached_ZV = trace_z.mean(dim=1).reshape(B_t, W_t, self.hidden_size)
+
+        # CHANGE 9: whether the async branch has usable input this batch, and
+        # its node embedding for the Fused decoder (ZV_async, async analogue of
+        # cached_ZV). Same graph as AsyncTraceModel sees (attention mask = union
+        # of the message and order relations). Pooled over the services PRESENT
+        # in the trace (diagonal of the order relation; falls back to services
+        # with async messages when there is no order relation): a plain mean
+        # over all 35 nodes would dilute the signal of the few active ones.
+        has_async_input = (self.open_async_trace and async_trace_nodes is not None
+                            and async_msg_count_adj is not None)
+        has_order_input = has_async_input and self.async_trace_model.use_order and async_temporal_order_adj is not None
+        cached_ZV_async = None
+        if has_async_input:
+            Ba_, Wa_, Na_, Ca_ = async_trace_nodes.shape
+            if has_order_input:
+                present = (torch.diagonal(async_temporal_order_adj, dim1=-2, dim2=-1) > 0).float()                  # [B,W,N]
+            else:
+                present = ((async_trace_nodes[..., 0] > 0) | (async_trace_nodes[..., 1] > 0)).float()      # [B,W,N]
+            x_in, mask_a = async_encoder_inputs(
+                async_trace_nodes.reshape(Ba_ * Wa_, Na_, Ca_),
+                async_msg_count_adj.reshape(Ba_ * Wa_, Na_, Na_),
+                async_temporal_order_adj.reshape(Ba_ * Wa_, Na_, Na_) if has_order_input else None,
+                self.async_trace_model.use_order)
+            az = self.encoder.async_trace_encoder(x_in, mask_a.float()).reshape(Ba_, Wa_, Na_, self.hidden_size)   # [B,W,N,H]
+            cached_ZV_async = ((az * present.unsqueeze(-1)).sum(dim=2)
+                               / present.sum(dim=2, keepdim=True).clamp(min=1.0))                           # [B,W,H]
 
         fused_kpi, fused_log, fused_modal, ZV = self.encoder(
             input_dict["log_features"], input_dict["kpi_features"],
@@ -512,15 +600,29 @@ class MultiModel(nn.Module):
             q_feats = self._trace_quality_feats(trace_nodes, trace_adj)   # [B,W,6]
             gate_g  = torch.sigmoid(self.trace_gate(q_feats))             # [B,W,1] ∈ (0,1)
 
-        def _decode(fm, zv):
-            y_base = self.fuse_decoder(fm)                                # [B,W,kpi_c+log_c]
-            if zv is not None and gate_g is not None:
-                delta = self.delta_head(torch.cat([fm, zv], dim=-1))      # [B,W,kpi_c+log_c]
-                return y_base + gate_g * delta
-            return y_base
+        # CHANGE 9 (additive): async branch's own gate, from its own quality
+        # features only (_async_trace_quality_feats never reads trace_nodes/
+        # trace_adj, and _trace_quality_feats above never reads the async
+        # tensors) — this is what keeps the two branches from cross-talking.
+        gate_g_async = None
+        if has_async_input:
+            q_feats_async = self._async_trace_quality_feats(async_trace_nodes, async_msg_count_adj)  # [B,W,6]
+            gate_g_async  = torch.sigmoid(self.async_trace_gate(q_feats_async))                    # [B,W,1]
 
-        fused_out           = _decode(fused_modal, ZV)
-        fused_out_unmatched = _decode(fused_modal_unmatched, ZV_unmatched)
+        def _decode(fm, zv, zv_async=None):
+            y = self.fuse_decoder(fm)                                     # [B,W,kpi_c+log_c]
+            if zv is not None and gate_g is not None:
+                parts = [fm, zv]
+                if self.open_async_trace:
+                    # CHANGE 9: the async embedding rides in the SAME delta_head
+                    # (zeros when this batch has no async input). With the async
+                    # branch off, parts == [fm, zv] and y is exactly the pre-async value.
+                    parts.append(zv_async if zv_async is not None else torch.zeros_like(zv))
+                y = y + gate_g * self.delta_head(torch.cat(parts, dim=-1))   # [B,W,kpi_c+log_c]
+            return y
+
+        fused_out           = _decode(fused_modal, ZV, cached_ZV_async)
+        fused_out_unmatched = _decode(fused_modal_unmatched, ZV_unmatched, cached_ZV_async)
 
         kpi_out           = fused_out[:, :, :self.kpi_c]
         log_out           = fused_out[:, :, self.kpi_c:]
@@ -530,7 +632,7 @@ class MultiModel(nn.Module):
         # Fake pass (cycle re-encode) — trace input không đổi, tái dùng cached_ZV
         fused_kpi_fake, fused_log_fake, fused_modal_fake, ZV_fake = self.encoder(
             log_out, kpi_out, trace_nodes, trace_adj, precomputed_ZV=cached_ZV)
-        fused_out_fake = _decode(fused_modal_fake, ZV_fake)
+        fused_out_fake = _decode(fused_modal_fake, ZV_fake, cached_ZV_async)
 
         # ── Reconstruction losses ───────────────────────────────────────────────
         kpi_dis = self.criterion2(kpi_out, input_dict["kpi_features"]).mean(dim=-1)  # [B,W]
@@ -571,6 +673,40 @@ class MultiModel(nn.Module):
         else:
             fusion_loss = log_kpi_loss
 
+        # CHANGE 9 (additive): async Structure Autoencoder — same pattern as
+        # the sync block above, fully independent model/gate/score term.
+        # Applied whether or not the sync block ran, so an async-only
+        # experiment (open_trace=False, open_async_trace=True) also works.
+        trace_dis_async_count      = None
+        adj_hat_async_4d     = None   # [B,W,N,N]
+        feats_hat_async_4d   = None   # [B,W,N,async_c]
+        node_scores_async_4d = None   # [B,W,N]
+
+        trace_dis_async_order      = None   # [B,W] precedence-relation error of the same async branch
+
+        if self.open_async_trace and async_trace_nodes is not None and async_msg_count_adj is not None:
+            Ba, Wa, Na, _ = async_trace_nodes.shape
+            _, adj_hat_a, trace_dis_a_flat, feats_hat_a, node_scores_a_flat, loss_order_flat = self.async_trace_model(
+                async_trace_nodes.reshape(Ba * Wa, Na, -1),
+                async_msg_count_adj.reshape(Ba * Wa, Na, Na),
+                async_temporal_order_adj.reshape(Ba * Wa, Na, Na) if has_order_input else None
+            )
+            trace_dis_async_count      = trace_dis_a_flat.reshape(Ba, Wa)                              # [B,W] message-count + attribute
+            adj_hat_async_4d     = adj_hat_a.reshape(Ba, Wa, Na, Na)                              # [B,W,N,N]
+            feats_hat_async_4d   = feats_hat_a.reshape(Ba, Wa, Na, self.async_trace_model.async_c)
+            node_scores_async_4d = node_scores_a_flat.reshape(Ba, Wa, Na)                         # [B,W,N]
+            if loss_order_flat is not None:
+                trace_dis_async_order = loss_order_flat.reshape(Ba, Wa)                                 # [B,W]
+
+            # One branch, one raw-fusion/training term: count + attribute + order.
+            # (The calibrated score, score_rule=norm_sum, standardises the count
+            # and order parts separately -- see BaseModel.evaluate_norm_sum.)
+            trace_dis_async_total = trace_dis_async_count if trace_dis_async_order is None else trace_dis_async_count + trace_dis_async_order
+            trace_d_async = trace_dis_async_total * self.expand_anomaly_gap(trace_dis_async_total)
+            g2d_async = gate_g_async.squeeze(-1)                          # [B,W]
+            fusion_loss = fusion_loss + g2d_async * trace_d_async + self.gate_lambda * g2d_async
+            loss        = loss + (g2d_async * trace_dis_async_total).mean() + self.gate_lambda * g2d_async.mean()
+
         # ── Contrastive loss ────────────────────────────────────────────────────
         if flag:
             loss += max(0, self.criterion4(input_dict["kpi_features"], kpi_out)
@@ -582,9 +718,15 @@ class MultiModel(nn.Module):
                           if ZV is not None else fused_modal)
 
         dis_tuple = (log_dis, kpi_dis) if trace_dis is None else (log_dis, kpi_dis, trace_dis)
+        # CHANGE 9 (additive): appended only when present, so dis_tuple is
+        # byte-identical to before this change whenever the async branch is
+        # off or the data has no async keys.
+        if trace_dis_async_count is not None:
+            dis_tuple = dis_tuple + (trace_dis_async_count,)
 
         return {
             "fusion_loss": fusion_loss,
+            "log_kpi_loss": log_kpi_loss,   # [B,W] log+kpi term alone, before any trace term is added
             "loss":        loss,
             "dis":         dis_tuple,
             "features":    (fused_log, fused_kpi, concat_feature),
@@ -592,4 +734,16 @@ class MultiModel(nn.Module):
             "adj_hat":     adj_hat_4d,      # CHANGE 3: [B,W,N,N] hoặc None
             "feats_hat":   feats_hat_4d,    # CHANGE 7: [B,W,N,2] hoặc None
             "node_scores": node_scores_4d,  # RCA: [B,W,N] hoặc None
+            # CHANGE 9 (additive): async-branch equivalents, always None
+            # unless open_async_trace=True and the data has async keys.
+            "adj_hat_async":     adj_hat_async_4d,
+            "feats_hat_async":   feats_hat_async_4d,
+            "node_scores_async": node_scores_async_4d,
+            # CHANGE 9 (additive): named (unambiguous) access to the two
+            # trace-branch scalar scores, alongside the existing positional
+            # "dis" tuple -- dis_tuple's length alone can't tell apart
+            # "sync-only" from "async-only" when it has 3 entries.
+            "trace_dis":       trace_dis,        # [B,W] or None
+            "trace_dis_async_count": trace_dis_async_count,  # [B,W] or None
+            "trace_dis_async_order": trace_dis_async_order,  # [B,W] or None (async branch, precedence relation)
         }

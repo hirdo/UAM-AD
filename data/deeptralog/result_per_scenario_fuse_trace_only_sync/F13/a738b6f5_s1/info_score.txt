@@ -1,0 +1,4 @@
+Experiment a738b6f5: 2026/09/26-22:58:34
+Train time/epoch 20.3423
+* Test -- f1:0.7767	rc:0.8454	pc:0.7182	threshold:1.2953	auroc:0.9793	auprc:0.8419	oracle_f1:0.5081	oracle_rc:0.4739	oracle_pc:0.5478	oracle_threshold:0.2745	raw_sum_f1:0.2635	raw_sum_pc:0.3986	raw_sum_rc:0.1967	raw_sum_auroc:0.7313	raw_sum_auprc:0.3788	raw_sum_threshold:0.3535
+

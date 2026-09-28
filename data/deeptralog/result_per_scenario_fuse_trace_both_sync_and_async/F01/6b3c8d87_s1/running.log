@@ -1,0 +1,49 @@
+2026-09-27 09:17:58,708 P16388 INFO ^^^^^^^^^^ Current Model:hades, 6b3c8d87 ^^^^^^^^^^
+2026-09-27 09:17:58,708 P16388 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:18:02,873 P16388 INFO 642 unique log templates found.
+2026-09-27 09:18:02,878 P16388 INFO Transforming unlabel train data.
+2026-09-27 09:18:03,302 P16388 INFO Transforming test data.
+2026-09-27 09:18:03,473 P16388 INFO 572 new templates show.
+2026-09-27 09:18:04,707 P16388 INFO Transforming val data.
+2026-09-27 09:18:04,723 P16388 INFO 53 new templates show.
+2026-09-27 09:18:05,086 P16388 INFO Data loaded done!
+2026-09-27 09:22:28,782 P16388 INFO Known word number: 642
+2026-09-27 09:22:44,455 P16388 INFO Epoch 0/10, train generator loss: 0.62063
+2026-09-27 09:22:56,034 P16388 INFO Epoch 0/10, train discriminator loss: 4.54146
+2026-09-27 09:22:57,523 P16388 INFO Epoch 0/10, val score: 0.34287. [24.52s]
+2026-09-27 09:23:08,732 P16388 INFO Epoch 1/10, train generator loss: 0.34235
+2026-09-27 09:23:19,983 P16388 INFO Epoch 1/10, train discriminator loss: 6.15887
+2026-09-27 09:23:21,343 P16388 INFO Epoch 1/10, val score: 0.25625. [22.41s]
+2026-09-27 09:23:32,369 P16388 INFO Epoch 2/10, train generator loss: 0.28543
+2026-09-27 09:23:43,587 P16388 INFO Epoch 2/10, train discriminator loss: 5.01555
+2026-09-27 09:23:44,969 P16388 INFO Epoch 2/10, val score: 0.21551. [22.20s]
+2026-09-27 09:23:56,375 P16388 INFO Epoch 3/10, train generator loss: 0.23811
+2026-09-27 09:24:07,407 P16388 INFO Epoch 3/10, train discriminator loss: 4.06652
+2026-09-27 09:24:08,772 P16388 INFO Epoch 3/10, val score: 0.18143. [22.40s]
+2026-09-27 09:24:20,000 P16388 INFO Epoch 4/10, train generator loss: 0.18914
+2026-09-27 09:24:31,080 P16388 INFO Epoch 4/10, train discriminator loss: 3.23595
+2026-09-27 09:24:32,428 P16388 INFO Epoch 4/10, val score: 0.14905. [22.27s]
+2026-09-27 09:24:43,654 P16388 INFO Epoch 5/10, train generator loss: 0.15004
+2026-09-27 09:24:55,359 P16388 INFO Epoch 5/10, train discriminator loss: 3.13945
+2026-09-27 09:24:56,732 P16388 INFO Epoch 5/10, val score: 0.12693. [22.92s]
+2026-09-27 09:25:07,992 P16388 INFO Epoch 6/10, train generator loss: 0.12004
+2026-09-27 09:25:19,723 P16388 INFO Epoch 6/10, train discriminator loss: 2.91134
+2026-09-27 09:25:21,229 P16388 INFO Epoch 6/10, val score: 0.10852. [22.95s]
+2026-09-27 09:25:33,261 P16388 INFO Epoch 7/10, train generator loss: 0.10002
+2026-09-27 09:25:45,194 P16388 INFO Epoch 7/10, train discriminator loss: 2.63106
+2026-09-27 09:25:46,742 P16388 INFO Epoch 7/10, val score: 0.09902. [23.93s]
+2026-09-27 09:25:58,660 P16388 INFO Epoch 8/10, train generator loss: 0.09027
+2026-09-27 09:26:11,990 P16388 INFO Epoch 8/10, train discriminator loss: 2.49534
+2026-09-27 09:26:13,608 P16388 INFO Epoch 8/10, val score: 0.09611. [25.20s]
+2026-09-27 09:26:25,516 P16388 INFO Epoch 9/10, train generator loss: 0.08252
+2026-09-27 09:26:37,563 P16388 INFO Epoch 9/10, train discriminator loss: 2.34770
+2026-09-27 09:26:39,063 P16388 INFO Epoch 9/10, val score: 0.09210. [23.91s]
+2026-09-27 09:26:40,785 P16388 INFO Threshold (p=95.0, src=val, n=7475): 0.376223
+2026-09-27 09:26:46,623 P16388 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F01_s1\6b3c8d87\trace_scores.npz
+2026-09-27 09:26:51,509 P16388 INFO *** Oracle F1 0.4615 (test-swept threshold, point_adjust)
+2026-09-27 09:26:55,898 P16388 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F01_s1.npz
+2026-09-27 09:26:55,898 P16388 INFO *** (reference) raw fusion_loss sum: F1 0.1170 P 0.2151 R 0.0804 AUROC 0.8358 AUPRC 0.2896
+2026-09-27 09:27:00,654 P16388 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:27:00,656 P16388 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0230, scale 0.1903; z=0 without messages
+2026-09-27 09:27:00,679 P16388 INFO *** Test F1 0.7710 P 0.7176 R 0.8329 AUROC 0.9684 AUPRC 0.8610 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0227, 'trace_dis': 0.922, 'trace_dis_async': 0.0002, 'trace_dis_order': 0.0151, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.3177, 'trace_dis': 0.0131, 'trace_dis_async': 0.0227, 'trace_dis_order': 0.6058, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:27:00,726 P16388 INFO Current hash id 6b3c8d87

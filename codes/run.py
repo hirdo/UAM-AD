@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from common.data_loads import load_sessions, Process
 from common.utils import *
 import torch
+import numpy as np
 import logging
 from tqdm import tqdm
 from models.basev3 import BaseModel
@@ -44,7 +45,7 @@ parser.add_argument("--sigma_matrix", default=False, type=str2bool)
 parser.add_argument("--feature_type", default="template_appear", type=str, choices=["word2vec", "sequential","template_count","template_appear"])
 parser.add_argument("--data", type=str, required=True)
 parser.add_argument("--dataset", type=str, required=True,
-                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "sn"])
+                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "sn", "deeptralog"])
 parser.add_argument("--open_kpi_normalization", default=True, type=str2bool)
 parser.add_argument("--open_log_normalization", default=False, type=str2bool)
 # parser.add_argument("--open_narrowing_modal_gap", default=False, type=str2bool) 
@@ -89,6 +90,31 @@ parser.add_argument("--trace_c", default=0, type=int,
                          "Leave at 0 to auto-fill from meta.pkl.")
 parser.add_argument("--trace_dropout", default=0.1, type=float,
                     help="Dropout rate inside GAT layers")
+### Async trace params (Step 4 — additive second branch, see async_trace_model_v3.py)
+parser.add_argument("--open_async_trace", default=False, type=str2bool,
+                    help="Enable the async trace branch (separate model, own weights, "
+                         "only additive to the score). Requires async_trace_node_features "
+                         "and async_msg_count_adj in the data. Independent of --open_trace: "
+                         "either, both, or neither may be on.")
+parser.add_argument("--async_c", default=0, type=int,
+                    help="Feature dimension per node in the async branch's input "
+                         "(async_out_count, async_in_count, avg_lag). Leave at 0 to "
+                         "auto-fill from meta.pkl.")
+parser.add_argument("--score_rule", default="raw_sum", choices=["raw_sum", "norm_sum"],
+                    help="raw_sum (default, original behaviour): anomaly score = fusion_loss, threshold = "
+                         "val percentile of it. norm_sum: one fused score, but log_kpi_loss / trace_dis / "
+                         "trace_dis_async_count (those present) are each standardised with normal-only val "
+                         "statistics, z=max(0,(T-median)/(p95-median)), before being summed; threshold = "
+                         "val percentile of the sum. Replaces the primary f1/pc/rc/auroc/auprc "
+                         "(raw numbers kept as raw_sum_*). Use it for BOTH the sync-only and the "
+                         "sync+async run of a comparison.")
+parser.add_argument("--async_order", default=None, type=str2bool,
+                    help="Use the async graph's second relation (service-level precedence order, key "
+                         "async_temporal_order_adj, see preprocess_deeptralog.py). Default (None): on when "
+                         "meta.pkl says async_order.")
+parser.add_argument("--async_gate_init_bias", default=0.0, type=float,
+                    help="Initial bias of the async gate's sigmoid (0.0 -> g_async = 0.5). The async gate "
+                         "only weights the async autoencoder's training loss.")
 parser.add_argument("--gate_lambda", default=0.01, type=float,
                     help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
 parser.add_argument("--gate_delta_lr_mult", default=1.0, type=float,
@@ -126,6 +152,10 @@ parser.add_argument("--word2vec_epoch", default=50, type=int)
 
 ### Control params
 parser.add_argument("--pre_model", default=None, type=str)
+parser.add_argument("--dump_components", default=None, type=str,
+                    help="With --pre_model: skip evaluation and save per-window score components "
+                         "(log_kpi_loss / trace_dis / trace_dis_async_count / fusion / labels, for val and "
+                         "test) to this .npz, so score-combination rules can be compared offline.")
 parser.add_argument("--word2vec_save_dir", default="../trained_wv/", type=str)
 parser.add_argument("--result_dir", default="../result21/", type=str)
 parser.add_argument("--test_pkl",   default=None, type=str,
@@ -146,7 +176,16 @@ if os.path.exists(_meta_path):
         params["num_services"] = _meta["num_services"]
     if params.get("trace_c", 0) == 0 and "trace_c" in _meta:
         params["trace_c"] = _meta["trace_c"]
+    if params.get("async_c", 0) == 0 and "async_c" in _meta:
+        params["async_c"] = _meta["async_c"]
     params["service2idx"] = _meta.get("service2idx", {})
+    if params.get("async_order") is None:
+        params["async_order"] = bool(_meta.get("async_order", False))
+    _async_mask = _meta.get("async_edge_mask")
+    # list, not ndarray: dump_params() JSON-dumps the whole params dict for
+    # params.json, and json can't serialize an ndarray. torch.as_tensor()
+    # (async_trace_model_v3.py) accepts a nested list just as well.
+    params["async_edge_mask"] = _async_mask.tolist() if _async_mask is not None else None
     logging.info(f"Loaded meta.pkl: num_services={params['num_services']}, "
                  f"trace_c={params['trace_c']}")
 
@@ -206,6 +245,14 @@ def main(var_nums):
             scores = model.unsupervised_fit(unlabel_loader, test_loader, val_loader=val_loader)
     else:
         model.load_model(params["pre_model"])
+        if params.get("dump_components"):
+            comps = {}
+            for split, loader in (("val", val_loader), ("test", test_loader)):
+                for k, v in model._score_components(loader).items():
+                    comps[f"{split}_{k}"] = v
+            np.savez(params["dump_components"], **comps)
+            logging.info(f"Dumped score components -> {params['dump_components']}")
+            return
         scores, test_embeds = model.evaluate(test_loader)
         if params.get("enable_rca") and model.open_trace:
             rca_records = model.localize_root_causes(

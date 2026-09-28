@@ -1,0 +1,49 @@
+2026-09-27 09:45:56,494 P25460 INFO ^^^^^^^^^^ Current Model:hades, fa59ebe8 ^^^^^^^^^^
+2026-09-27 09:45:56,494 P25460 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:46:01,769 P25460 INFO 642 unique log templates found.
+2026-09-27 09:46:01,773 P25460 INFO Transforming unlabel train data.
+2026-09-27 09:46:02,081 P25460 INFO Transforming test data.
+2026-09-27 09:46:02,229 P25460 INFO 572 new templates show.
+2026-09-27 09:46:03,275 P25460 INFO Transforming val data.
+2026-09-27 09:46:03,275 P25460 INFO 53 new templates show.
+2026-09-27 09:46:03,658 P25460 INFO Data loaded done!
+2026-09-27 09:50:22,322 P25460 INFO Known word number: 642
+2026-09-27 09:50:38,350 P25460 INFO Epoch 0/10, train generator loss: 0.62762
+2026-09-27 09:50:50,385 P25460 INFO Epoch 0/10, train discriminator loss: 4.50308
+2026-09-27 09:50:52,027 P25460 INFO Epoch 0/10, val score: 0.35449. [24.75s]
+2026-09-27 09:51:03,260 P25460 INFO Epoch 1/10, train generator loss: 0.34420
+2026-09-27 09:51:14,439 P25460 INFO Epoch 1/10, train discriminator loss: 5.62180
+2026-09-27 09:51:15,806 P25460 INFO Epoch 1/10, val score: 0.25170. [22.37s]
+2026-09-27 09:51:27,250 P25460 INFO Epoch 2/10, train generator loss: 0.27662
+2026-09-27 09:51:38,251 P25460 INFO Epoch 2/10, train discriminator loss: 5.41544
+2026-09-27 09:51:39,646 P25460 INFO Epoch 2/10, val score: 0.20817. [22.41s]
+2026-09-27 09:51:50,906 P25460 INFO Epoch 3/10, train generator loss: 0.23634
+2026-09-27 09:52:02,382 P25460 INFO Epoch 3/10, train discriminator loss: 4.59297
+2026-09-27 09:52:03,799 P25460 INFO Epoch 3/10, val score: 0.18145. [22.69s]
+2026-09-27 09:52:15,201 P25460 INFO Epoch 4/10, train generator loss: 0.19456
+2026-09-27 09:52:26,340 P25460 INFO Epoch 4/10, train discriminator loss: 4.30883
+2026-09-27 09:52:27,740 P25460 INFO Epoch 4/10, val score: 0.15078. [22.50s]
+2026-09-27 09:52:38,881 P25460 INFO Epoch 5/10, train generator loss: 0.16408
+2026-09-27 09:52:49,979 P25460 INFO Epoch 5/10, train discriminator loss: 3.25136
+2026-09-27 09:52:51,355 P25460 INFO Epoch 5/10, val score: 0.13243. [22.21s]
+2026-09-27 09:53:02,676 P25460 INFO Epoch 6/10, train generator loss: 0.12896
+2026-09-27 09:53:13,931 P25460 INFO Epoch 6/10, train discriminator loss: 2.87689
+2026-09-27 09:53:15,324 P25460 INFO Epoch 6/10, val score: 0.11755. [22.54s]
+2026-09-27 09:53:26,516 P25460 INFO Epoch 7/10, train generator loss: 0.10323
+2026-09-27 09:53:37,706 P25460 INFO Epoch 7/10, train discriminator loss: 2.61678
+2026-09-27 09:53:39,060 P25460 INFO Epoch 7/10, val score: 0.10563. [22.34s]
+2026-09-27 09:53:50,340 P25460 INFO Epoch 8/10, train generator loss: 0.08780
+2026-09-27 09:54:01,880 P25460 INFO Epoch 8/10, train discriminator loss: 2.28930
+2026-09-27 09:54:03,280 P25460 INFO Epoch 8/10, val score: 0.09558. [22.78s]
+2026-09-27 09:54:14,978 P25460 INFO Epoch 9/10, train generator loss: 0.07582
+2026-09-27 09:54:27,169 P25460 INFO Epoch 9/10, train discriminator loss: 2.04772
+2026-09-27 09:54:28,670 P25460 INFO Epoch 9/10, val score: 0.08765. [23.85s]
+2026-09-27 09:54:30,460 P25460 INFO Threshold (p=95.0, src=val, n=7475): 0.353096
+2026-09-27 09:54:35,973 P25460 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F01_s2\fa59ebe8\trace_scores.npz
+2026-09-27 09:54:41,007 P25460 INFO *** Oracle F1 0.5498 (test-swept threshold, point_adjust)
+2026-09-27 09:54:45,829 P25460 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F01_s2.npz
+2026-09-27 09:54:45,829 P25460 INFO *** (reference) raw fusion_loss sum: F1 0.1059 P 0.1921 R 0.0731 AUROC 0.8613 AUPRC 0.3331
+2026-09-27 09:54:50,419 P25460 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:54:50,421 P25460 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0276, scale 0.1869; z=0 without messages
+2026-09-27 09:54:50,433 P25460 INFO *** Test F1 0.7766 P 0.7274 R 0.8329 AUROC 0.9677 AUPRC 0.8563 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0233, 'trace_dis': 0.9523, 'trace_dis_async': 0.0002, 'trace_dis_order': 0.0044, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.2991, 'trace_dis': 0.012, 'trace_dis_async': 0.0262, 'trace_dis_order': 0.6065, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:54:50,477 P25460 INFO Current hash id fa59ebe8

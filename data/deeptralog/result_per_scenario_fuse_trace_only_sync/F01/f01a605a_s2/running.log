@@ -1,0 +1,50 @@
+2026-09-26 15:11:24,476 P5600 INFO ^^^^^^^^^^ Current Model:hades, f01a605a ^^^^^^^^^^
+2026-09-26 15:11:24,476 P5600 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-26 15:11:27,283 P5600 INFO 642 unique log templates found.
+2026-09-26 15:11:27,283 P5600 INFO Transforming unlabel train data.
+2026-09-26 15:11:27,552 P5600 INFO Transforming test data.
+2026-09-26 15:11:27,677 P5600 INFO 572 new templates show.
+2026-09-26 15:11:28,594 P5600 INFO Transforming val data.
+2026-09-26 15:11:28,601 P5600 INFO 53 new templates show.
+2026-09-26 15:11:28,832 P5600 INFO Data loaded done!
+2026-09-26 15:15:52,785 P5600 INFO Known word number: 642
+2026-09-26 15:16:04,285 P5600 INFO Epoch 0/10, train generator loss: 0.23359
+2026-09-26 15:16:14,036 P5600 INFO Epoch 0/10, train discriminator loss: 4.51910
+2026-09-26 15:16:15,274 P5600 INFO Epoch 0/10, val score: 0.17335. [19.30s]
+2026-09-26 15:16:25,177 P5600 INFO Epoch 1/10, train generator loss: 0.18172
+2026-09-26 15:16:35,206 P5600 INFO Epoch 1/10, train discriminator loss: 6.47612
+2026-09-26 15:16:36,371 P5600 INFO Epoch 1/10, val score: 0.16219. [19.90s]
+2026-09-26 15:16:46,196 P5600 INFO Epoch 2/10, train generator loss: 0.14699
+2026-09-26 15:16:56,548 P5600 INFO Epoch 2/10, train discriminator loss: 5.19989
+2026-09-26 15:16:57,749 P5600 INFO Epoch 2/10, val score: 0.14119. [20.16s]
+2026-09-26 15:17:07,561 P5600 INFO Epoch 3/10, train generator loss: 0.12256
+2026-09-26 15:17:17,639 P5600 INFO Epoch 3/10, train discriminator loss: 4.25142
+2026-09-26 15:17:18,801 P5600 INFO Epoch 3/10, val score: 0.12573. [19.86s]
+2026-09-26 15:17:28,691 P5600 INFO Epoch 4/10, train generator loss: 0.11387
+2026-09-26 15:17:38,784 P5600 INFO Epoch 4/10, train discriminator loss: 3.34641
+2026-09-26 15:17:39,956 P5600 INFO Epoch 4/10, val score: 0.11365. [19.95s]
+2026-09-26 15:17:49,760 P5600 INFO Epoch 5/10, train generator loss: 0.10988
+2026-09-26 15:17:59,846 P5600 INFO Epoch 5/10, train discriminator loss: 3.13286
+2026-09-26 15:18:01,008 P5600 INFO Epoch 5/10, val score: 0.10225. [19.86s]
+2026-09-26 15:18:10,835 P5600 INFO Epoch 6/10, train generator loss: 0.10371
+2026-09-26 15:18:20,847 P5600 INFO Epoch 6/10, train discriminator loss: 2.75416
+2026-09-26 15:18:22,006 P5600 INFO Epoch 6/10, val score: 0.10819. [19.81s]
+2026-09-26 15:18:22,006 P5600 INFO early stopping epoch 1/5
+2026-09-26 15:18:31,811 P5600 INFO Epoch 7/10, train generator loss: 0.11135
+2026-09-26 15:18:41,830 P5600 INFO Epoch 7/10, train discriminator loss: 2.18415
+2026-09-26 15:18:43,038 P5600 INFO Epoch 7/10, val score: 0.09544. [19.82s]
+2026-09-26 15:18:53,065 P5600 INFO Epoch 8/10, train generator loss: 0.12433
+2026-09-26 15:19:04,228 P5600 INFO Epoch 8/10, train discriminator loss: 3.10914
+2026-09-26 15:19:05,512 P5600 INFO Epoch 8/10, val score: 0.09935. [21.16s]
+2026-09-26 15:19:05,512 P5600 INFO early stopping epoch 1/5
+2026-09-26 15:19:16,497 P5600 INFO Epoch 9/10, train generator loss: 0.13070
+2026-09-26 15:19:27,511 P5600 INFO Epoch 9/10, train discriminator loss: 2.62430
+2026-09-26 15:19:28,813 P5600 INFO Epoch 9/10, val score: 0.09550. [22.00s]
+2026-09-26 15:19:28,813 P5600 INFO early stopping epoch 2/5
+2026-09-26 15:19:30,237 P5600 INFO Threshold (p=95.0, src=val, n=7475): 0.334026
+2026-09-26 15:19:33,409 P5600 INFO Saved trace_scores.npz -> D:/ClaudeWork/e2/res_A_F01_s2\f01a605a\trace_scores.npz
+2026-09-26 15:19:37,836 P5600 INFO *** Oracle F1 0.6115 (test-swept threshold, point_adjust)
+2026-09-26 15:19:41,578 P5600 INFO Dumped score components -> D:/ClaudeWork/e2/comp_A_F01_s2.npz
+2026-09-26 15:19:41,578 P5600 INFO *** (reference) raw fusion_loss sum: F1 0.2048 P 0.3179 R 0.1510 AUROC 0.8758 AUPRC 0.3869
+2026-09-26 15:19:45,391 P5600 INFO *** Test F1 0.7639 P 0.7054 R 0.8329 AUROC 0.9221 AUPRC 0.8268 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis'], val-median={'log_kpi_loss': 0.0406, 'trace_dis': 0.941}, val-p95.0-minus-median={'log_kpi_loss': 0.2793, 'trace_dis': 0.0122})
+2026-09-26 15:19:45,422 P5600 INFO Current hash id f01a605a

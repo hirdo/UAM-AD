@@ -1,0 +1,4 @@
+Experiment c3f1ada3: 2026/09/27-18:05:32
+Train time/epoch 29.6775
+* Test -- f1:0.1441	rc:0.1023	pc:0.2436	threshold:2.5301	auroc:0.7688	auprc:0.2245	oracle_f1:0.3609	oracle_rc:0.4670	oracle_pc:0.2941	oracle_threshold:0.1892	raw_sum_f1:0.0000	raw_sum_pc:0.0000	raw_sum_rc:0.0000	raw_sum_auroc:0.7176	raw_sum_auprc:0.1910	raw_sum_threshold:0.3428
+
