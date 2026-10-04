@@ -1,0 +1,4 @@
+Experiment fb3d51a7: 2026/09/27-17:08:40
+Train time/epoch 23.2800
+* Test -- f1:0.1226	rc:0.0860	pc:0.2131	threshold:3.1722	auroc:0.8628	auprc:0.3279	oracle_f1:0.3662	oracle_rc:0.4753	oracle_pc:0.2978	oracle_threshold:0.1943	raw_sum_f1:0.0817	raw_sum_pc:0.1527	raw_sum_rc:0.0558	raw_sum_auroc:0.7429	raw_sum_auprc:0.2099	raw_sum_threshold:0.3675
+

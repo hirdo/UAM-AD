@@ -1,0 +1,49 @@
+2026-09-27 09:08:57,068 P19148 INFO ^^^^^^^^^^ Current Model:hades, 088fd09b ^^^^^^^^^^
+2026-09-27 09:08:57,068 P19148 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:09:00,814 P19148 INFO 642 unique log templates found.
+2026-09-27 09:09:00,830 P19148 INFO Transforming unlabel train data.
+2026-09-27 09:09:01,312 P19148 INFO Transforming test data.
+2026-09-27 09:09:01,402 P19148 INFO 742 new templates show.
+2026-09-27 09:09:02,506 P19148 INFO Transforming val data.
+2026-09-27 09:09:02,518 P19148 INFO 53 new templates show.
+2026-09-27 09:09:02,860 P19148 INFO Data loaded done!
+2026-09-27 09:13:07,284 P19148 INFO Known word number: 642
+2026-09-27 09:13:23,661 P19148 INFO Epoch 0/10, train generator loss: 0.65941
+2026-09-27 09:13:34,984 P19148 INFO Epoch 0/10, train discriminator loss: 4.63518
+2026-09-27 09:13:36,378 P19148 INFO Epoch 0/10, val score: 0.35674. [24.71s]
+2026-09-27 09:13:47,606 P19148 INFO Epoch 1/10, train generator loss: 0.36513
+2026-09-27 09:13:58,725 P19148 INFO Epoch 1/10, train discriminator loss: 6.65410
+2026-09-27 09:14:00,101 P19148 INFO Epoch 1/10, val score: 0.26259. [22.29s]
+2026-09-27 09:14:11,106 P19148 INFO Epoch 2/10, train generator loss: 0.31029
+2026-09-27 09:14:22,187 P19148 INFO Epoch 2/10, train discriminator loss: 4.93876
+2026-09-27 09:14:23,576 P19148 INFO Epoch 2/10, val score: 0.22156. [22.05s]
+2026-09-27 09:14:34,709 P19148 INFO Epoch 3/10, train generator loss: 0.25411
+2026-09-27 09:14:45,846 P19148 INFO Epoch 3/10, train discriminator loss: 3.71370
+2026-09-27 09:14:47,191 P19148 INFO Epoch 3/10, val score: 0.19497. [22.23s]
+2026-09-27 09:14:58,220 P19148 INFO Epoch 4/10, train generator loss: 0.20370
+2026-09-27 09:15:09,315 P19148 INFO Epoch 4/10, train discriminator loss: 3.39779
+2026-09-27 09:15:10,659 P19148 INFO Epoch 4/10, val score: 0.16535. [22.08s]
+2026-09-27 09:15:21,770 P19148 INFO Epoch 5/10, train generator loss: 0.16294
+2026-09-27 09:15:32,755 P19148 INFO Epoch 5/10, train discriminator loss: 3.07145
+2026-09-27 09:15:34,057 P19148 INFO Epoch 5/10, val score: 0.13874. [22.05s]
+2026-09-27 09:15:45,325 P19148 INFO Epoch 6/10, train generator loss: 0.13530
+2026-09-27 09:15:57,224 P19148 INFO Epoch 6/10, train discriminator loss: 2.98952
+2026-09-27 09:15:58,746 P19148 INFO Epoch 6/10, val score: 0.12142. [23.12s]
+2026-09-27 09:16:15,503 P19148 INFO Epoch 7/10, train generator loss: 0.12550
+2026-09-27 09:16:28,844 P19148 INFO Epoch 7/10, train discriminator loss: 2.64565
+2026-09-27 09:16:30,410 P19148 INFO Epoch 7/10, val score: 0.11457. [30.05s]
+2026-09-27 09:16:42,277 P19148 INFO Epoch 8/10, train generator loss: 0.10945
+2026-09-27 09:16:54,052 P19148 INFO Epoch 8/10, train discriminator loss: 2.48183
+2026-09-27 09:16:55,556 P19148 INFO Epoch 8/10, val score: 0.10952. [23.60s]
+2026-09-27 09:17:07,507 P19148 INFO Epoch 9/10, train generator loss: 0.09456
+2026-09-27 09:17:19,831 P19148 INFO Epoch 9/10, train discriminator loss: 2.52416
+2026-09-27 09:17:21,338 P19148 INFO Epoch 9/10, val score: 0.10322. [24.23s]
+2026-09-27 09:17:23,060 P19148 INFO Threshold (p=95.0, src=val, n=7475): 0.367967
+2026-09-27 09:17:27,491 P19148 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F13_s0\088fd09b\trace_scores.npz
+2026-09-27 09:17:31,986 P19148 INFO *** Oracle F1 0.5081 (test-swept threshold, point_adjust)
+2026-09-27 09:17:36,175 P19148 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F13_s0.npz
+2026-09-27 09:17:36,175 P19148 INFO *** (reference) raw fusion_loss sum: F1 0.2630 P 0.3964 R 0.1967 AUROC 0.8232 AUPRC 0.3465
+2026-09-27 09:17:40,743 P19148 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:17:40,756 P19148 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0264, scale 0.1870; z=0 without messages
+2026-09-27 09:17:40,793 P19148 INFO *** Test F1 0.8647 P 0.7626 R 0.9983 AUROC 0.9887 AUPRC 0.8713 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0327, 'trace_dis': 0.9368, 'trace_dis_async': 0.0004, 'trace_dis_order': 0.0036, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.2808, 'trace_dis': 0.0196, 'trace_dis_async': 0.0256, 'trace_dis_order': 0.6078, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:17:40,824 P19148 INFO Current hash id 088fd09b
