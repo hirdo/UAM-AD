@@ -1,0 +1,4 @@
+Experiment 4c86206f: 2026/09/20-03:15:11
+Train time/epoch 0.2802
+* Test -- f1:0.6000	rc:1.0000	pc:0.4286	threshold:1.5375	auroc:0.9259	auprc:0.4778	oracle_f1:0.7500	oracle_rc:1.0000	oracle_pc:0.6000	oracle_threshold:2.9200
+

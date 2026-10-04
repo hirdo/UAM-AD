@@ -145,7 +145,11 @@ class FeatureExtractor(BaseEstimator):
             self.ulog_train.remove("padding") # for data3
         # self.id2log_train = {0: "oovlog"}
         self.id2log_train={}
-        self.id2log_train.update({idx: log for idx, log in enumerate(self.ulog_train, 1)})
+        # sorted(): iterating a set of str follows Python's per-process hash
+        # randomisation, so the template -> feature-column mapping used to change on
+        # every run and a checkpoint reloaded in another process (--pre_model) saw
+        # permuted log features. Any fixed order is equivalent for training.
+        self.id2log_train.update({idx: log for idx, log in enumerate(sorted(self.ulog_train), 1)})
         self.log2id_train = {v: k for k, v in self.id2log_train.items()}
 
         if self.feature_type in ("word2vec", "template_count"):

@@ -6,7 +6,7 @@ from tqdm import tqdm
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from sklearn.metrics import f1_score, recall_score, precision_score
+from sklearn.metrics import f1_score, recall_score, precision_score, roc_auc_score, average_precision_score
 import logging
 import warnings
 warnings.filterwarnings("ignore", module="sklearn")
@@ -15,6 +15,8 @@ import numpy as np
 from models.fuse_v3 import MultiModel, Loss_fuse_model, MultiDiscriminator
 from models.log_model_v3 import LogModel, LogDiscriminator
 from models.kpi_model_v3 import KpiModel, KpiDiscriminator
+from models.rca import (rank_top_k_services, parse_injected_service,
+                         compute_hit_rate_at_k, scenario_from_test_pkl)
 from sklearn.metrics import f1_score
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.cluster import DBSCAN
@@ -147,6 +149,8 @@ def get_best_f1_pred(distance,gt,ratios):
     return best_res,best_pred
 
 class BaseModel(nn.Module):
+    ERR_Z_ONE = 4.0  # norm_sum: z-value of one error span when normals have none (see evaluate_norm_sum)
+
     def __init__(self, device, var_nums, vocab_size=300, data_type="fuse", **kwargs):
         super(BaseModel, self).__init__()
         # Training
@@ -175,6 +179,19 @@ class BaseModel(nn.Module):
         self.open_trace = kwargs.get("open_trace", False)
         self.num_services = kwargs.get("num_services", 0)
         self.trace_c = kwargs.get("trace_c", 0)
+        self.gate_delta_lr_mult = float(kwargs.get("gate_delta_lr_mult", 1.0))
+        # "Went silent" faults (dead service -> near-empty kpi/log input) can score
+        # *lower* reconstruction loss than genuine normal windows, since a mostly-flat
+        # input is easier to reconstruct than one with real variation (verified on SN:
+        # e.g. Code_Stop_TextService anomaly mean loss 0.92 vs normal mean loss 1.29,
+        # in both the kpi and log components separately). activity_penalty_weight adds
+        # a reconstruction-independent term — how far *below* the normal training
+        # activity level (kpi_features.sum + log_features.sum) this window's raw input
+        # is — so a silent window is still flagged even though it reconstructs "well".
+        # 0.0 = no-op (default); only computed/applied when > 0.
+        self.activity_penalty_weight = float(kwargs.get("activity_penalty_weight", 0.0))
+        self._normal_activity_mean = None
+        self._normal_activity_std = None
         self.kwargs = kwargs
 
         self.model_save_dir = os.path.join(kwargs["result_dir"], kwargs["hash_id"])
@@ -229,6 +246,161 @@ class BaseModel(nn.Module):
         logging.info("Inference delay {:.4f}".format(np.mean(inference_time)))
         return pseudo_Dataset(data)
 
+    def _compute_activity_baseline(self, loader):
+        """Mean/std of raw per-window activity (kpi_features.sum + log_features.sum)
+        over a normal-only loader. Used by activity_penalty_weight (see __init__)."""
+        totals = []
+        for batch_input in loader:
+            activity = (batch_input["kpi_features"].sum(dim=-1)
+                        + batch_input["log_features"].sum(dim=-1))
+            totals.extend(activity.reshape(-1).cpu().numpy().tolist())
+        totals = np.array(totals)
+        return float(totals.mean()), float(totals.std() + 1e-6)
+
+    def _activity_deficit(self, batch_input):
+        """[B,W] how far *below* self._normal_activity_mean this batch's raw
+        activity is, in std units. 0 where activity is at/above normal."""
+        activity = (batch_input["kpi_features"].sum(dim=-1)
+                    + batch_input["log_features"].sum(dim=-1))
+        deficit = (self._normal_activity_mean - activity) / self._normal_activity_std
+        return torch.clamp(deficit, min=0.0)
+
+    def _score_loader(self, loader):
+        """Anomaly scores (fusion loss [+ activity penalty]) of every window in a loader,
+        computed in eval mode. Used for val-based model selection and the val threshold."""
+        scores = []
+        self.model.eval()
+        self.loss_fusion.eval()
+        with torch.no_grad():
+            for batch_input in loader:
+                result = self.model.forward(self.__input2device(batch_input))
+                distance = result["fusion_loss"] if self.data_type == "fuse" else result["loss"]
+                distance_cpu = distance.cpu()
+                if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                    distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                scores.extend(distance_cpu.numpy().reshape(-1).tolist())
+        return np.array(scores)
+
+    def _score_components(self, loader):
+        """Per-window scores of each separately-calibratable component:
+        fusion_loss (always), trace_dis / trace_dis_async_count (when the branch is on),
+        plus labels. Same eval-mode forward as _score_loader."""
+        comps = defaultdict(list)
+        self.model.eval()
+        self.loss_fusion.eval()
+        with torch.no_grad():
+            for batch_input in loader:
+                result = self.model.forward(self.__input2device(batch_input))
+                distance = result["fusion_loss"] if self.data_type == "fuse" else result["loss"]
+                distance_cpu = distance.cpu()
+                if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                    distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                comps["fusion"].extend(distance_cpu.numpy().reshape(-1).tolist())
+                # per-step log/kpi reconstruction error, WITHOUT the within-window
+                # expand_anomaly_gap weighting that log_kpi_loss carries
+                comps["log_dis"].extend(result["dis"][0].cpu().numpy().reshape(-1).tolist())
+                comps["kpi_dis"].extend(result["dis"][1].cpu().numpy().reshape(-1).tolist())
+                for key in ("log_kpi_loss", "trace_dis", "trace_dis_async_count", "trace_dis_async_order"):
+                    if result.get(key) is not None:
+                        comps[key].extend(result[key].cpu().numpy().reshape(-1).tolist())
+                if batch_input.get("async_trace_node_features") is not None:
+                    # total async messages of each step (col 0 of the async node
+                    # features is log1p(out-count per service)) -- the context the
+                    # async count term is normalised within (see evaluate_norm_sum)
+                    comps["async_msgs"].extend(
+                        torch.expm1(batch_input["async_trace_node_features"][..., 0]).sum(dim=-1)
+                        .numpy().reshape(-1).tolist())
+                if batch_input.get("trace_node_features") is not None:
+                    # error-span evidence of each step: sum over services of
+                    # call_count * error_rate (col 0 is log1p(count)/10, col 3 the
+                    # error rate); log1p-compressed
+                    tnf = batch_input["trace_node_features"]
+                    n_err = (torch.expm1(tnf[..., 0] * 10.0) * tnf[..., 3]).sum(dim=-1)
+                    comps["trace_err"].extend(torch.log1p(n_err).numpy().reshape(-1).tolist())
+                comps["labels"].extend(batch_input["labels"].cpu().numpy().reshape(-1).tolist())
+        return {k: np.array(v) for k, v in comps.items()}
+
+    def evaluate_norm_sum(self, val_loader, test_loader):
+        """score_rule="norm_sum": still ONE fused score and ONE threshold, but the
+        terms are put on a common scale before they are added.
+
+        The raw fusion_loss adds terms in arbitrary units (log/kpi error, a trace
+        autoencoder loss scaled by a gate that starts near 0.1, ...), so the
+        noisiest term decides the ranking and a strong signal in another term
+        (sync trace on F13: AUROC 0.97 alone, 0.74 inside the raw sum) is lost.
+        Here each term T_k in {log_kpi_loss, trace_dis, trace_dis_async_count,
+        trace_dis_async_order, trace_err} (the ones present; trace_dis_async_count and
+        trace_dis_async_order come from the one async branch, trace_err is log1p of the
+        number of error spans) is standardised with NORMAL-only validation statistics,
+            z_k = max(0, (T_k - median_k) / (p95_k - median_k)),
+        (the async count term within its own message-bearing context, see below)
+        and S = sum_k z_k; the threshold is the val p{val_percentile} of S. No
+        test labels are used anywhere. (Offline comparison on saved checkpoints:
+        T/p95 alone leaves baseline offsets in; an ECDF transform saturates on
+        outliers; L2/max aggregation did not beat the plain sum.)
+        """
+        val = self._score_components(val_loader)
+        test = self._score_components(test_loader)
+        keys = [k for k in ("log_kpi_loss", "trace_dis", "trace_dis_async_count", "trace_dis_async_order", "trace_err") if k in val and k in test]
+        eps = 1e-8
+        med = {k: float(np.median(val[k])) for k in keys}
+        q = {k: max(float(np.percentile(val[k], self.val_percentile)) - med[k], eps) for k in keys}
+        if "trace_err" in keys:
+            # Error-span evidence is a RARE-EVENT term: when (almost) no normal val
+            # trace has an error span, p95 - median is 0 and cannot serve as a
+            # scale. Floor it at log(2)/ERR_Z_ONE, i.e. a single error span counts as
+            # ERR_Z_ONE p95-units -- far outside anything normal. If normals do have
+            # errors, the measured p95 - median is larger and takes over.
+            q["trace_err"] = max(q["trace_err"], np.log(2.0) / self.ERR_Z_ONE)
+            logging.info(f"trace_err term: val median {med['trace_err']:.4f}, scale {q['trace_err']:.4f}; "
+                         f"one error span -> z={np.log(2.0) / q['trace_err']:.1f}")
+        z = lambda src, k: np.clip((src[k] - med[k]) / q[k], 0, None)
+
+        # The async COUNT term is only defined for traces that exchange async
+        # messages: it is ~0 for the ~91% that do not, and for the ~9% that do its
+        # natural error is orders of magnitude larger. Normalised globally, that small
+        # group (8.7% > 5% of val) sets the p95 of the term and of the summed score
+        # (threshold 4x higher than without it, recall on the message-free majority of
+        # F01/F13 anomalies collapsing), and normal message-bearing traces score
+        # z~2.9. So: z = 0 for traces without messages, and message-bearing traces are
+        # compared with the message-bearing val traces only, with a robust scale
+        # ((p90 - median) * 1.645 / 1.2816, i.e. the Gaussian-equivalent of the p95
+        # convention above but insensitive to the far tail of a ~130-trace sample).
+        ctx = None
+        if "trace_dis_async_count" in keys and "async_msgs" in val and "async_msgs" in test:
+            vm = val["async_msgs"] >= 0.5
+            if vm.sum() >= 40:
+                vv = val["trace_dis_async_count"][vm]
+                c_med = float(np.median(vv))
+                c_q = max((float(np.percentile(vv, 90)) - c_med) * 1.645 / 1.2816, eps)
+                ctx = (c_med, c_q)
+                logging.info(f"async count term normalised within message-bearing traces: {int(vm.sum())} val entries "
+                             f"({vm.mean():.1%}), median {c_med:.4f}, scale {c_q:.4f}; z=0 without messages")
+            else:
+                logging.warning(f"only {int(vm.sum())} message-bearing val entries (<40): async count term "
+                                f"falls back to global normalisation")
+
+        def z_term(src, k):
+            if k == "trace_dis_async_count" and ctx is not None:
+                return np.where(src["async_msgs"] >= 0.5, np.clip((src[k] - ctx[0]) / ctx[1], 0, None), 0.0)
+            return z(src, k)
+
+        z_val = np.sum([z_term(val, k) for k in keys], axis=0)
+        z_test = np.sum([z_term(test, k) for k in keys], axis=0)
+        thr = float(np.percentile(z_val, self.val_percentile))
+        y = test["labels"]
+        pred = (z_test > thr).astype(int)
+        both = len(set(y.tolist())) > 1
+        out = {
+            "f1": f1_score(y, pred, zero_division=0),
+            "pc": precision_score(y, pred, zero_division=0),
+            "rc": recall_score(y, pred, zero_division=0),
+            "auroc": roc_auc_score(y, z_test) if both else float("nan"),
+            "auprc": average_precision_score(y, z_test) if both else float("nan"),
+            "components": keys, "scale_q": q, "median": med, "threshold": thr,
+        }
+        return out
+
     def evaluate(self, test_loader, datatype="Test", threshold=None):
         res = defaultdict(list)
         kpi_inputs = []
@@ -250,6 +422,14 @@ class BaseModel(nn.Module):
                     embeds.append(result["features"][2].cpu().numpy())
                     kpi_outputs.append(result["output"][1].cpu().numpy())
                     log_outputs.append(result["output"][0].cpu().numpy())
+                    # CHANGE 9 (additive): per-window sync/async trace scores,
+                    # collected only when present (None otherwise) -- lets a
+                    # caller compare d_sync vs d_async per sample (plan Step
+                    # 5a) without needing to re-run the model.
+                    if result.get("trace_dis") is not None:
+                        res["trace_dis"].extend(result["trace_dis"].cpu().numpy().reshape(-1).tolist())
+                    if result.get("trace_dis_async_count") is not None:
+                        res["trace_dis_async_count"].extend(result["trace_dis_async_count"].cpu().numpy().reshape(-1).tolist())
                 elif self.data_type == "kpi":
                     kpi_outputs.append(result["output"].cpu().numpy())
                     log_outputs.append(log_inputs[-1])
@@ -258,7 +438,10 @@ class BaseModel(nn.Module):
                     kpi_outputs.append(kpi_inputs[-1])
                     log_outputs.append(result["output"].cpu().numpy())
                     distance = result["loss"]
-                res["loss"].extend(distance.cpu().numpy().reshape(-1).tolist())
+                distance_cpu = distance.cpu()
+                if self.activity_penalty_weight > 0 and self._normal_activity_mean is not None:
+                    distance_cpu = distance_cpu + self.activity_penalty_weight * self._activity_deficit(batch_input)
+                res["loss"].extend(distance_cpu.numpy().reshape(-1).tolist())
                 res["true"].extend(batch_input["labels"].cpu().numpy().reshape(-1).tolist())
 
         kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
@@ -266,20 +449,32 @@ class BaseModel(nn.Module):
         log_inputs = np.concatenate(log_inputs,axis=0).reshape(-1,self.log_c)
         log_outputs = np.concatenate(log_outputs,axis=0).reshape(-1,self.log_c)
         test_embeds = {"embeds":embeds,"distance":res["loss"],"labels":res["true"]}
-        
+        # CHANGE 9 (additive): expose the per-window component scores
+        # collected above, if any were collected.
+        if res.get("trace_dis"):
+            test_embeds["trace_dis"] = res["trace_dis"]
+        if res.get("trace_dis_async_count"):
+            test_embeds["trace_dis_async_count"] = res["trace_dis_async_count"]
+
         if threshold is not None:
-            # Fixed threshold from normal (train) distribution — no data leakage, no point_adjust
+            # Fixed threshold from normal (val) distribution — no test labels, no point_adjust.
+            # AUROC/AUPRC are threshold-free, computed on the same scores.
             pred = [1 if d > threshold else 0 for d in res["loss"]]
+            both_classes = len(set(res["true"])) > 1
             best_res = {
                 "f1": f1_score(res["true"], pred, zero_division=0),
                 "rc": recall_score(res["true"], pred, zero_division=0),
                 "pc": precision_score(res["true"], pred, zero_division=0),
+                "threshold": threshold,
+                "auroc": roc_auc_score(res["true"], res["loss"]) if both_classes else float("nan"),
+                "auprc": average_precision_score(res["true"], res["loss"]) if both_classes else float("nan"),
             }
         else:
             # Original sweep on test losses (backward compat for non-SN datasets)
             anomaly_ratio = range(1, self.anomaly_rate)
             best_res = {"f1": -1}
             best_pred = []
+            best_threshold = None
             for ano in anomaly_ratio:
                 threshold_i = np.percentile(res["loss"], 100 - ano)
                 pred = [1 if d > threshold_i else 0 for d in res["loss"]]
@@ -292,10 +487,60 @@ class BaseModel(nn.Module):
                 if eval_results["f1"] > best_res["f1"]:
                     best_res = eval_results
                     best_pred = pred
+                    best_threshold = threshold_i
+            best_res["threshold"] = best_threshold
                 
         # plot_labeled_2curve(kpi_outputs,kpi_inputs,best_pred,res["true"],f"test_kpi_pred_gt_label_{self.current_epoch}")
         # plot_labeled_2curve(log_outputs,log_inputs,best_pred,res["true"],f"test_log_pred_gt_label_{self.current_epoch}")
         return best_res,test_embeds
+
+    def localize_root_causes(self, test_loader, threshold, top_k=3):
+        """Root Cause Localization (TraceDAE §E): for every window/timestep
+        flagged anomalous (fusion_loss > threshold), rank service nodes by
+        their per-node reconstruction score and report the top-k candidates.
+        """
+        if not self.open_trace or threshold is None:
+            return []
+
+        dataset_name = self.kwargs.get("dataset")
+        # SN has no per-sample scenario metadata on disk (preprocess_sn.py's
+        # _to_dict strips it) — but every SN run points --test_pkl at one
+        # scenarios/test_<scenario_name>.pkl, so the scenario is unambiguous
+        # for the whole run.
+        scenario = scenario_from_test_pkl(self.kwargs.get("test_pkl"))
+        idx2id = test_loader.dataset.idx2id
+        window_size = test_loader.dataset.window_size
+        idx2service = {v: k for k, v in self.kwargs.get("service2idx", {}).items()}
+
+        records = []
+        self.model.eval()
+        with torch.no_grad():
+            for batch_i, batch_input in enumerate(test_loader):
+                result = self.model.forward(self.__input2device(batch_input))
+                node_scores = result.get("node_scores")
+                if node_scores is None:
+                    continue
+                node_scores = node_scores.cpu().numpy()             # [b, W, N]
+                fusion_loss = result["fusion_loss"].cpu().numpy()   # [b, W]
+                labels = batch_input["labels"].numpy()              # [b, W]
+                b = node_scores.shape[0]
+                for i in range(b):
+                    window_idx = batch_i * self.batch_size + i
+                    for t in range(window_size):
+                        if fusion_loss[i, t] <= threshold:
+                            continue
+                        flat_idx = window_idx * window_size + t
+                        sample_id = idx2id.get(flat_idx)
+                        true_label = int(labels[i, t])
+                        top = rank_top_k_services(node_scores[i, t], idx2service, k=top_k)
+                        records.append({
+                            "sample_id": sample_id,
+                            "true_label": true_label,
+                            "top_k_services": top,
+                            "gt_service": parse_injected_service(
+                                sample_id, dataset_name, scenario, true_label),
+                        })
+        return records
 
     def evaluate_sep(self, test_loader, datatype="Test"):
         self.model.eval()
@@ -465,10 +710,34 @@ class BaseModel(nn.Module):
         return best_test_scores
 
     def unsupervised_fit(self, unlabel_loader, test_loader, val_loader=None):
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        if self.activity_penalty_weight > 0:
+            self._normal_activity_mean, self._normal_activity_std = \
+                self._compute_activity_baseline(unlabel_loader)
+            logging.info(f"Activity baseline (train): mean={self._normal_activity_mean:.4f} "
+                         f"std={self._normal_activity_std:.4f}")
+        if self.open_trace and self.gate_delta_lr_mult != 1.0 and hasattr(self.model, "trace_gate"):
+            # Residual-gated trace fusion (fuse_v3.py CHANGE 8) has both gate and
+            # delta_head's last layer zero-initialized: d(loss)/d(gate_weight) is
+            # scaled by delta (~0 at init), and d(loss)/d(delta_weight) is scaled
+            # by gate_g (~0.12, small by design) — a multiplicative bottleneck that
+            # makes both escape the near-zero regime very slowly under one shared
+            # learning rate. --gate_delta_lr_mult compensates with a higher LR for
+            # just these two submodules; everything else (and other datasets, where
+            # this defaults to 1.0) is unaffected.
+            gate_delta_params = list(self.model.trace_gate.parameters()) + list(self.model.delta_head.parameters())
+            gate_delta_ids = {id(p) for p in gate_delta_params}
+            base_params = [p for p in self.model.parameters() if id(p) not in gate_delta_ids]
+            optimizer = torch.optim.Adam([
+                {"params": base_params, "lr": self.learning_rate},
+                {"params": gate_delta_params, "lr": self.learning_rate * self.gate_delta_lr_mult},
+            ])
+        else:
+            optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         optimizer2 = torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate)
-        best_res = {"f1":-1}
-        best_state, best_test_scores = None, None
+        # Model selection uses only normal data: early stopping on the mean anomaly score of
+        # the val windows (falls back to the train windows if no val set is provided).
+        best_val_score, best_state = float("inf"), None
+        select_loader = val_loader if val_loader is not None else unlabel_loader
         lr=self.learning_rate
 
         pre_loss, worse_count = float("inf"), 0
@@ -556,22 +825,11 @@ class BaseModel(nn.Module):
                
             epoch_time_elapsed = time.time() - epoch_time_start
             self.train_time.append(epoch_time_elapsed)
-            start_time = time.time()
-            if self.evaluation_sep:
-                test_results = self.evaluate_sep(test_loader, datatype="Test")
-            else:
-                test_results,test_embeds = self.evaluate(test_loader, datatype="Test")
-            logging.info("*** Test time is {}".format(time.time() - start_time))
-            logging.info("Epoch {}/{}, test f1: {:.5f} rc: {:.5f} pc: {:.5f}. [{:.2f}s]".format(epoch, self.epoches_1, test_results["f1"],test_results["rc"],test_results["pc"],epoch_time_elapsed))
+            val_score = float(self._score_loader(select_loader).mean())
+            logging.info("Epoch {}/{}, val score: {:.5f}. [{:.2f}s]".format(epoch, self.epoches_1, val_score, epoch_time_elapsed))
 
-            if test_results["f1"] > best_res["f1"]:
-                best_res = test_results
-                # best_embeds = test_embeds
-                # np.save(f"temp/embeds_{self.kwadrgs['dataset']}_{self.kwargs['open_gan']}_{self.kwargs['open_unmatch_zoomout']}_{self.kwargs['unmatch_k']}.npy",test_embeds["embeds"])
-                # np.save(f"temp/distance_{self.kwargs['dataset']}_{self.kwargs['open_gan']}_{self.kwargs['open_unmatch_zoomout']}_{self.kwargs['unmatch_k']}.npy",test_embeds["distance"])
-                # np.save(f"temp/labels_{self.kwargs['dataset']}.npy",test_embeds["labels"])
-
-                best_test_scores = test_results
+            if val_score < best_val_score:
+                best_val_score = val_score
                 best_state = copy.deepcopy(self.model.state_dict())
                 early_stopping_ct = 0
             else:
@@ -586,32 +844,74 @@ class BaseModel(nn.Module):
         self.save_model(best_state)
         self.load_model(self.model_save_file)
 
-        if self.val_percentile is not None:
-            # Compute threshold from unseen normal (val) losses — no test data leakage
-            # Fall back to unlabel_loader if val_loader not provided
-            threshold_loader = val_loader if val_loader is not None else unlabel_loader
-            source = "val" if val_loader is not None else "unlabel(fallback)"
-            normal_losses = []
-            self.model.eval()
-            self.loss_fusion.eval()
-            with torch.no_grad():
-                for batch_input in threshold_loader:
-                    result = self.model.forward(self.__input2device(batch_input))
-                    if self.data_type == "fuse":
-                        distance = result["fusion_loss"]
-                    else:
-                        distance = result["loss"]
-                    normal_losses.extend(distance.cpu().numpy().reshape(-1).tolist())
-            val_threshold = np.percentile(normal_losses, self.val_percentile)
-            logging.info(f"Threshold (p={self.val_percentile}, src={source}): {val_threshold:.6f}")
-            test_results, test_embeds = self.evaluate(test_loader, threshold=val_threshold)
+        # Threshold: percentile of the normal (val) scores of the selected model — no test labels.
+        source = "val" if val_loader is not None else "unlabel(fallback)"
+        normal_scores = self._score_loader(select_loader)
+        val_threshold = np.percentile(normal_scores, self.val_percentile)
+        logging.info(f"Threshold (p={self.val_percentile}, src={source}, n={len(normal_scores)}): {val_threshold:.6f}")
+
+        # Primary result: F1/P/R at the val threshold (no point_adjust) + threshold-free AUROC/AUPRC.
+        scores, test_embeds = self.evaluate(test_loader, threshold=val_threshold)
+        # CHANGE 9 (additive): persist per-window trace_dis/trace_dis_async_count
+        # alongside labels, so a separate script can read them (plan Step 5a
+        # cross-talk comparison) without re-running the model. No-op file
+        # (not written) when neither is present.
+        if test_embeds.get("trace_dis") is not None or test_embeds.get("trace_dis_async_count") is not None:
+            npz_path = os.path.join(self.model_save_dir, "trace_scores.npz")
+            np.savez(npz_path,
+                     labels=np.array(test_embeds["labels"]),
+                     trace_dis=np.array(test_embeds.get("trace_dis", [])),
+                     trace_dis_async_count=np.array(test_embeds.get("trace_dis_async_count", [])))
+            logging.info(f"Saved trace_scores.npz -> {npz_path}")
+        # Oracle result (labelled as such): threshold swept on the test scores with point_adjust.
+        oracle = self.evaluate_sep(test_loader, datatype="Test") if self.evaluation_sep \
+            else self.evaluate(test_loader)[0]
+        for k in ("f1", "rc", "pc", "threshold"):
+            if oracle.get(k) is not None:
+                scores["oracle_" + k] = oracle[k]
+
+        logging.info("*** Oracle F1 {:.4f} (test-swept threshold, point_adjust)".format(scores.get("oracle_f1", float("nan"))))
+
+        if self.kwargs.get("dump_components"):
+            # In-process dump (right after training): the log-feature index of a
+            # template comes from enumerate(set(...)) in common/semantics.py, whose
+            # order changes with every Python process (hash randomisation), so
+            # log_kpi_loss is only meaningful when scored in the process that
+            # trained the model (or with PYTHONHASHSEED fixed).
+            comps = {}
+            for split, loader in (("val", select_loader), ("test", test_loader)):
+                for k, v in self._score_components(loader).items():
+                    comps[f"{split}_{k}"] = v
+            np.savez(self.kwargs["dump_components"], **comps)
+            logging.info(f"Dumped score components -> {self.kwargs['dump_components']}")
+
+        if self.kwargs.get("score_rule", "raw_sum") == "norm_sum":
+            # norm_sum REPLACES the raw fusion_loss decision as the primary result
+            # (f1/pc/rc/auroc/auprc/threshold); the raw numbers stay under
+            # raw_sum_* for reference.
+            logging.info("*** (reference) raw fusion_loss sum: F1 {:.4f} P {:.4f} R {:.4f} AUROC {:.4f} AUPRC {:.4f}".format(
+                scores["f1"], scores["pc"], scores["rc"], scores["auroc"], scores["auprc"]))
+            cal = self.evaluate_norm_sum(select_loader, test_loader)
+            for k in ("f1", "pc", "rc", "auroc", "auprc", "threshold"):
+                scores["raw_sum_" + k] = scores.get(k)
+                scores[k] = cal[k]
+            logging.info("*** Test F1 {:.4f} P {:.4f} R {:.4f} AUROC {:.4f} AUPRC {:.4f} "
+                         "(norm_sum, val threshold; terms={}, val-median={}, val-p{}-minus-median={})".format(
+                             cal["f1"], cal["pc"], cal["rc"], cal["auroc"], cal["auprc"],
+                             cal["components"], {k: round(v, 4) for k, v in cal["median"].items()},
+                             self.val_percentile, {k: round(v, 4) for k, v in cal["scale_q"].items()}))
         else:
-            test_results, test_embeds = self.evaluate(test_loader)
+            logging.info("*** Test F1 {:.4f} P {:.4f} R {:.4f} AUROC {:.4f} AUPRC {:.4f} (val threshold)".format(
+                scores["f1"], scores["pc"], scores["rc"], scores["auroc"], scores["auprc"]))
 
-        logging.info("*** Test F1 {:.4f}  of unsupervised traning".format(test_results["f1"]))
-        logging.info(f"*** Best F1 {best_test_scores}  of unsupervised traning")
+        if self.kwargs.get("enable_rca") and self.open_trace:
+            rca_records = self.localize_root_causes(
+                test_loader, threshold=val_threshold,
+                top_k=self.kwargs.get("rca_top_k", 3))
+            scores["rca_records"] = rca_records
+            scores["rca_metrics"] = compute_hit_rate_at_k(rca_records)
 
-        return best_test_scores
+        return scores
     
 
     

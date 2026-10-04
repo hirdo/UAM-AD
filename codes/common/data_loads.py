@@ -11,19 +11,13 @@ from tqdm import tqdm
 from sklearn.cluster import KMeans
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
-# from src.pc import pc
-# from src.utils import get_causal_chains, plot
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 def load_sessions(data_dir, **keywds):  # both log and kpi
     logging.info("Load from {}".format(data_dir))
     with open(os.path.join(data_dir, "train.pkl"), "rb") as fr:
         train = pickle.load(fr)
-    if keywds["dataset"] == "yzh":
-        unlabel = {}
-    else:
-        with open(os.path.join(data_dir, "unlabel.pkl"), "rb") as fr:
-            unlabel = pickle.load(fr)
+    with open(os.path.join(data_dir, "unlabel.pkl"), "rb") as fr:
+        unlabel = pickle.load(fr)
     # Allow --test_pkl override for per-scenario evaluation
     test_pkl_path = keywds.get("test_pkl") or os.path.join(data_dir, "test.pkl")
     with open(test_pkl_path, "rb") as fr:
@@ -38,10 +32,18 @@ class myDataset(Dataset):
         self.data = []
         self.window=[]
         self.idx2id = {}
+        self.window_size = window_size
         self.test_flag = test_flag
         # Detect whether trace data is present in the dataset
         first_item = next(iter(sessions.values()))
         self.has_trace = "trace_node_features" in first_item and "trace_adj" in first_item
+        # Async trace branch (Step 4, additive, mirrors has_trace above): a
+        # second, independent set of keys a preprocessor may or may not write.
+        # See async_trace_model_v3.py.
+        self.has_async_trace = "async_trace_node_features" in first_item and "async_msg_count_adj" in first_item
+        # Second relation of the async graph (service-level "Sequence" relation,
+        # see preprocess_deeptralog._order_adj); optional on top of the async keys above.
+        self.has_async_order = self.has_async_trace and "async_temporal_order_adj" in first_item
         for idx, block_id in enumerate(sessions.keys()):
             self.idx2id[idx] = block_id
             item = sessions[block_id]
@@ -56,6 +58,11 @@ class myDataset(Dataset):
             if self.has_trace:
                 sample['trace_node_features'] = item['trace_node_features']  # [num_services, trace_c]
                 sample['trace_adj'] = item['trace_adj']                      # [num_services, num_services]
+            if self.has_async_trace:
+                sample['async_trace_node_features'] = item['async_trace_node_features']  # [num_services, async_c]
+                sample['async_msg_count_adj'] = item['async_msg_count_adj']                      # [num_services, num_services]
+            if self.has_async_order:
+                sample['async_temporal_order_adj'] = item['async_temporal_order_adj']                      # [num_services, num_services]
             self.data.append(sample)
         
         if test_flag:
@@ -79,6 +86,9 @@ class myDataset(Dataset):
         kpis2 = []
         trace_nodes_list = []
         trace_adjs_list = []
+        async_nodes_list = []
+        async_adjs_list = []
+        async_order_list = []
 
         for block in self.window[idx]:
             kpis.append(block["kpi_features"])
@@ -88,6 +98,11 @@ class myDataset(Dataset):
             if self.has_trace:
                 trace_nodes_list.append(block["trace_node_features"])  # [num_services, trace_c]
                 trace_adjs_list.append(block["trace_adj"])             # [num_services, num_services]
+            if self.has_async_trace:
+                async_nodes_list.append(block["async_trace_node_features"])  # [num_services, async_c]
+                async_adjs_list.append(block["async_msg_count_adj"])             # [num_services, num_services]
+            if self.has_async_order:
+                async_order_list.append(block["async_temporal_order_adj"])            # [num_services, num_services]
 
         result = {
             "kpi_features": torch.FloatTensor(np.array(kpis)),
@@ -100,6 +115,11 @@ class myDataset(Dataset):
             # trace_adj:           [window_size, num_services, num_services]
             result["trace_node_features"] = torch.FloatTensor(np.array(trace_nodes_list))
             result["trace_adj"] = torch.FloatTensor(np.array(trace_adjs_list))
+        if self.has_async_trace:
+            result["async_trace_node_features"] = torch.FloatTensor(np.array(async_nodes_list))
+            result["async_msg_count_adj"] = torch.FloatTensor(np.array(async_adjs_list))
+        if self.has_async_order:
+            result["async_temporal_order_adj"] = torch.FloatTensor(np.array(async_order_list))
         return result
     def __get_session_id__(self, idx):
         return self.idx2id[idx]
@@ -176,13 +196,6 @@ def normalization(train_chunks, unlabel_chunks, test_chunks, val_chunks=None, **
     unlabel_features = get_features(unlabel_chunks)
     test_features    = get_features(test_chunks)
     val_features     = get_features(val_chunks) if val_chunks else None
-
-    if params["dataset"] == "original":
-        train_features["kpis"]   = np.mean(train_features["kpis"],   axis=-2)
-        unlabel_features["kpis"] = np.mean(unlabel_features["kpis"], axis=-2)
-        test_features["kpis"]    = np.mean(test_features["kpis"],    axis=-2)
-        if val_features:
-            val_features["kpis"] = np.mean(val_features["kpis"], axis=-2)
 
     if params["open_kpi_normalization"]:
         train_features["kpis"],   scaler = normalize_data(train_features["kpis"],   scaler=None)
@@ -268,6 +281,24 @@ class Process():
             'test':    myDataset(self.test_chunks,   window_size=ws, test_flag=True),
             'val':     myDataset(val_chunks, window_size=ws) if val_chunks else None,
         }
+
+        # Tell the user, plainly, whether this dataset actually supports the async
+        # trace branch -- otherwise "--open_async_trace True" on a dataset without
+        # the keys silently builds nothing and no other log line says so.
+        probe = self.dataset['unlabel'] or self.dataset['test']
+        has_async, has_order = probe.has_async_trace, probe.has_async_order
+        if kwargs.get("open_async_trace"):
+            if has_async:
+                logging.info(f"Async trace branch: ACTIVE -- dataset has async_trace_node_features/"
+                              f"async_msg_count_adj (order relation {'present' if has_order else 'ABSENT'}).")
+            else:
+                logging.warning("Async trace branch: --open_async_trace True but this dataset has NO "
+                                 "async_trace_node_features/async_msg_count_adj -- the branch will NOT be built "
+                                 "and this run is equivalent to --open_async_trace False. Re-run the "
+                                 "dataset's preprocessor with async support, or drop --open_async_trace.")
+        elif has_async:
+            logging.info("Async trace branch: this dataset HAS async_trace_node_features/async_msg_count_adj "
+                          "but --open_async_trace is False this run -- branch not built.")
         
     def __train_ext(self, a, b):
         a.update(b)

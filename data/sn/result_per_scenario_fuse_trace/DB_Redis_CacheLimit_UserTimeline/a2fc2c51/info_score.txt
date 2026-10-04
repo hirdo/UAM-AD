@@ -1,0 +1,4 @@
+Experiment a2fc2c51: 2026/09/20-03:19:01
+Train time/epoch 0.3183
+* Test -- f1:0.7059	rc:0.7500	pc:0.6667	threshold:1.2926	auroc:0.9235	auprc:0.6955	oracle_f1:0.7778	oracle_rc:0.8750	oracle_pc:0.7000	oracle_threshold:1.2278
+

@@ -1,0 +1,49 @@
+2026-09-27 09:37:06,104 P12712 INFO ^^^^^^^^^^ Current Model:hades, 4364c040 ^^^^^^^^^^
+2026-09-27 09:37:06,104 P12712 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:37:10,476 P12712 INFO 642 unique log templates found.
+2026-09-27 09:37:10,492 P12712 INFO Transforming unlabel train data.
+2026-09-27 09:37:10,824 P12712 INFO Transforming test data.
+2026-09-27 09:37:10,919 P12712 INFO 742 new templates show.
+2026-09-27 09:37:11,818 P12712 INFO Transforming val data.
+2026-09-27 09:37:11,818 P12712 INFO 53 new templates show.
+2026-09-27 09:37:12,071 P12712 INFO Data loaded done!
+2026-09-27 09:41:15,755 P12712 INFO Known word number: 642
+2026-09-27 09:41:31,822 P12712 INFO Epoch 0/10, train generator loss: 0.62063
+2026-09-27 09:41:43,789 P12712 INFO Epoch 0/10, train discriminator loss: 4.54146
+2026-09-27 09:41:45,586 P12712 INFO Epoch 0/10, val score: 0.34287. [25.27s]
+2026-09-27 09:41:56,897 P12712 INFO Epoch 1/10, train generator loss: 0.34235
+2026-09-27 09:42:08,045 P12712 INFO Epoch 1/10, train discriminator loss: 6.15881
+2026-09-27 09:42:09,405 P12712 INFO Epoch 1/10, val score: 0.25625. [22.38s]
+2026-09-27 09:42:20,712 P12712 INFO Epoch 2/10, train generator loss: 0.28542
+2026-09-27 09:42:31,840 P12712 INFO Epoch 2/10, train discriminator loss: 5.01546
+2026-09-27 09:42:33,238 P12712 INFO Epoch 2/10, val score: 0.21549. [22.38s]
+2026-09-27 09:42:44,420 P12712 INFO Epoch 3/10, train generator loss: 0.23812
+2026-09-27 09:42:55,660 P12712 INFO Epoch 3/10, train discriminator loss: 4.06706
+2026-09-27 09:42:57,014 P12712 INFO Epoch 3/10, val score: 0.18141. [22.37s]
+2026-09-27 09:43:08,193 P12712 INFO Epoch 4/10, train generator loss: 0.18914
+2026-09-27 09:43:19,321 P12712 INFO Epoch 4/10, train discriminator loss: 3.23347
+2026-09-27 09:43:20,677 P12712 INFO Epoch 4/10, val score: 0.14912. [22.27s]
+2026-09-27 09:43:31,963 P12712 INFO Epoch 5/10, train generator loss: 0.15003
+2026-09-27 09:43:43,082 P12712 INFO Epoch 5/10, train discriminator loss: 3.13441
+2026-09-27 09:43:44,473 P12712 INFO Epoch 5/10, val score: 0.12689. [22.36s]
+2026-09-27 09:43:55,769 P12712 INFO Epoch 6/10, train generator loss: 0.12009
+2026-09-27 09:44:06,924 P12712 INFO Epoch 6/10, train discriminator loss: 2.90671
+2026-09-27 09:44:08,331 P12712 INFO Epoch 6/10, val score: 0.10858. [22.41s]
+2026-09-27 09:44:19,532 P12712 INFO Epoch 7/10, train generator loss: 0.10002
+2026-09-27 09:44:30,635 P12712 INFO Epoch 7/10, train discriminator loss: 2.63387
+2026-09-27 09:44:32,049 P12712 INFO Epoch 7/10, val score: 0.09901. [22.27s]
+2026-09-27 09:44:43,349 P12712 INFO Epoch 8/10, train generator loss: 0.09031
+2026-09-27 09:44:55,124 P12712 INFO Epoch 8/10, train discriminator loss: 2.49110
+2026-09-27 09:44:56,678 P12712 INFO Epoch 8/10, val score: 0.09618. [23.04s]
+2026-09-27 09:45:08,832 P12712 INFO Epoch 9/10, train generator loss: 0.08244
+2026-09-27 09:45:20,604 P12712 INFO Epoch 9/10, train discriminator loss: 2.33821
+2026-09-27 09:45:22,150 P12712 INFO Epoch 9/10, val score: 0.09209. [23.87s]
+2026-09-27 09:45:23,925 P12712 INFO Threshold (p=95.0, src=val, n=7475): 0.377000
+2026-09-27 09:45:28,239 P12712 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F13_s1\4364c040\trace_scores.npz
+2026-09-27 09:45:32,510 P12712 INFO *** Oracle F1 0.4949 (test-swept threshold, point_adjust)
+2026-09-27 09:45:36,597 P12712 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F13_s1.npz
+2026-09-27 09:45:36,597 P12712 INFO *** (reference) raw fusion_loss sum: F1 0.2641 P 0.4014 R 0.1967 AUROC 0.8244 AUPRC 0.3409
+2026-09-27 09:45:40,894 P12712 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:45:40,896 P12712 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0230, scale 0.1903; z=0 without messages
+2026-09-27 09:45:40,932 P12712 INFO *** Test F1 0.8618 P 0.7578 R 0.9989 AUROC 0.9902 AUPRC 0.8889 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0227, 'trace_dis': 0.922, 'trace_dis_async': 0.0002, 'trace_dis_order': 0.0151, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.3185, 'trace_dis': 0.0131, 'trace_dis_async': 0.0227, 'trace_dis_order': 0.6058, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:45:40,979 P12712 INFO Current hash id 4364c040

@@ -1,0 +1,4 @@
+Experiment fc6dfced: 2026/09/20-03:12:56
+Train time/epoch 0.2622
+* Test -- f1:0.4762	rc:0.6250	pc:0.3846	threshold:1.7978	auroc:0.6922	auprc:0.5441	oracle_f1:0.6667	oracle_rc:0.6250	oracle_pc:0.7143	oracle_threshold:1.9293
+

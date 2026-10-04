@@ -1,0 +1,4 @@
+Experiment bb0abe87: 2026/09/20-03:20:07
+Train time/epoch 0.3123
+* Test -- f1:0.6154	rc:0.8889	pc:0.4706	threshold:1.2585	auroc:0.9394	auprc:0.6414	oracle_f1:0.7273	oracle_rc:0.8889	oracle_pc:0.6154	oracle_threshold:1.7779
+

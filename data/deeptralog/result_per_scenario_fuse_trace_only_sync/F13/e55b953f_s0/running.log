@@ -1,0 +1,50 @@
+2026-09-26 13:30:25,201 P21988 INFO ^^^^^^^^^^ Current Model:hades, e55b953f ^^^^^^^^^^
+2026-09-26 13:30:25,201 P21988 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-26 13:30:28,502 P21988 INFO 642 unique log templates found.
+2026-09-26 13:30:28,502 P21988 INFO Transforming unlabel train data.
+2026-09-26 13:30:28,858 P21988 INFO Transforming test data.
+2026-09-26 13:30:28,951 P21988 INFO 742 new templates show.
+2026-09-26 13:30:29,862 P21988 INFO Transforming val data.
+2026-09-26 13:30:29,869 P21988 INFO 53 new templates show.
+2026-09-26 13:30:30,180 P21988 INFO Data loaded done!
+2026-09-26 13:35:01,750 P21988 INFO Known word number: 642
+2026-09-26 13:35:17,361 P21988 INFO Epoch 0/10, train generator loss: 0.22094
+2026-09-26 13:35:28,052 P21988 INFO Epoch 0/10, train discriminator loss: 4.48314
+2026-09-26 13:35:29,416 P21988 INFO Epoch 0/10, val score: 0.17295. [23.17s]
+2026-09-26 13:35:39,681 P21988 INFO Epoch 1/10, train generator loss: 0.18484
+2026-09-26 13:35:49,744 P21988 INFO Epoch 1/10, train discriminator loss: 6.04611
+2026-09-26 13:35:50,947 P21988 INFO Epoch 1/10, val score: 0.15384. [20.28s]
+2026-09-26 13:36:00,944 P21988 INFO Epoch 2/10, train generator loss: 0.14479
+2026-09-26 13:36:11,027 P21988 INFO Epoch 2/10, train discriminator loss: 5.15608
+2026-09-26 13:36:12,209 P21988 INFO Epoch 2/10, val score: 0.13276. [20.05s]
+2026-09-26 13:36:22,166 P21988 INFO Epoch 3/10, train generator loss: 0.11259
+2026-09-26 13:36:32,581 P21988 INFO Epoch 3/10, train discriminator loss: 4.18162
+2026-09-26 13:36:33,748 P21988 INFO Epoch 3/10, val score: 0.11577. [20.34s]
+2026-09-26 13:36:43,598 P21988 INFO Epoch 4/10, train generator loss: 0.10043
+2026-09-26 13:36:53,807 P21988 INFO Epoch 4/10, train discriminator loss: 3.58458
+2026-09-26 13:36:54,993 P21988 INFO Epoch 4/10, val score: 0.10243. [20.03s]
+2026-09-26 13:37:04,908 P21988 INFO Epoch 5/10, train generator loss: 0.09920
+2026-09-26 13:37:15,075 P21988 INFO Epoch 5/10, train discriminator loss: 3.49469
+2026-09-26 13:37:16,298 P21988 INFO Epoch 5/10, val score: 0.09267. [20.05s]
+2026-09-26 13:37:26,211 P21988 INFO Epoch 6/10, train generator loss: 0.10347
+2026-09-26 13:37:36,313 P21988 INFO Epoch 6/10, train discriminator loss: 2.93427
+2026-09-26 13:37:37,502 P21988 INFO Epoch 6/10, val score: 0.09023. [19.99s]
+2026-09-26 13:37:47,438 P21988 INFO Epoch 7/10, train generator loss: 0.09479
+2026-09-26 13:37:57,623 P21988 INFO Epoch 7/10, train discriminator loss: 2.53899
+2026-09-26 13:37:58,829 P21988 INFO Epoch 7/10, val score: 0.10146. [20.09s]
+2026-09-26 13:37:58,829 P21988 INFO early stopping epoch 1/5
+2026-09-26 13:38:08,731 P21988 INFO Epoch 8/10, train generator loss: 0.08390
+2026-09-26 13:38:18,877 P21988 INFO Epoch 8/10, train discriminator loss: 2.46430
+2026-09-26 13:38:20,061 P21988 INFO Epoch 8/10, val score: 0.09534. [20.05s]
+2026-09-26 13:38:20,061 P21988 INFO early stopping epoch 2/5
+2026-09-26 13:38:29,976 P21988 INFO Epoch 9/10, train generator loss: 0.07331
+2026-09-26 13:38:40,727 P21988 INFO Epoch 9/10, train discriminator loss: 2.62903
+2026-09-26 13:38:42,076 P21988 INFO Epoch 9/10, val score: 0.09047. [20.67s]
+2026-09-26 13:38:42,076 P21988 INFO early stopping epoch 3/5
+2026-09-26 13:38:43,570 P21988 INFO Threshold (p=95.0, src=val, n=7475): 0.338030
+2026-09-26 13:38:47,588 P21988 INFO Saved trace_scores.npz -> D:/ClaudeWork/e2/res_A_F13_s0\e55b953f\trace_scores.npz
+2026-09-26 13:38:51,560 P21988 INFO *** Oracle F1 0.5081 (test-swept threshold, point_adjust)
+2026-09-26 13:38:55,182 P21988 INFO Dumped score components -> D:/ClaudeWork/e2/comp_A_F13_s0.npz
+2026-09-26 13:38:55,182 P21988 INFO *** (reference) raw fusion_loss sum: F1 0.3788 P 0.4946 R 0.3069 AUROC 0.7561 AUPRC 0.4246
+2026-09-26 13:38:58,900 P21988 INFO *** Test F1 0.8494 P 0.7389 R 0.9989 AUROC 0.9863 AUPRC 0.8762 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis'], val-median={'log_kpi_loss': 0.0338, 'trace_dis': 0.9164}, val-p95.0-minus-median={'log_kpi_loss': 0.2904, 'trace_dis': 0.0128})
+2026-09-26 13:38:58,946 P21988 INFO Current hash id e55b953f
