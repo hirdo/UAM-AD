@@ -77,8 +77,8 @@ def parse_injected_service(sample_id, dataset, scenario=None, true_label=1):
     if true_label != 1 or not sample_id:
         return None
 
-    if dataset in ("rcaeval_re2_ob", "rcaeval_re3_ob"):
-        fault_types = RE2_OB_FAULT_TYPES if dataset == "rcaeval_re2_ob" else RE3_OB_FAULT_TYPES
+    if dataset in ("rcaeval_re2_ob", "rcaeval_re3_ob", "rcaeval_re2_tt", "rcaeval_re3_tt"):
+        fault_types = RE2_OB_FAULT_TYPES if dataset.startswith("rcaeval_re2") else RE3_OB_FAULT_TYPES
         # sid = f"{service}_{fault}_{run_id}_{i}"; service/fault never contain "_".
         parts = sample_id.split("_")
         if len(parts) != 4 or parts[1] not in fault_types:
