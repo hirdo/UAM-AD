@@ -45,7 +45,8 @@ parser.add_argument("--sigma_matrix", default=False, type=str2bool)
 parser.add_argument("--feature_type", default="template_appear", type=str, choices=["word2vec", "sequential","template_count","template_appear"])
 parser.add_argument("--data", type=str, required=True)
 parser.add_argument("--dataset", type=str, required=True,
-                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "sn", "deeptralog"])
+                    choices=["rcaeval_re2_ob", "rcaeval_re3_ob", "rcaeval_re2_tt", "rcaeval_re3_tt",
+                             "sn", "deeptralog"])
 parser.add_argument("--open_kpi_normalization", default=True, type=str2bool)
 parser.add_argument("--open_log_normalization", default=False, type=str2bool)
 # parser.add_argument("--open_narrowing_modal_gap", default=False, type=str2bool) 
