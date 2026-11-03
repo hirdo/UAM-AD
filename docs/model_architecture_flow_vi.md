@@ -214,17 +214,46 @@ UAM-AD/
 
 > **Bảo đảm**: khởi điểm `Δ ≈ 0` và `g ≈ 0.12`; gradient chỉ mở gate nếu
 > `Δ` giảm loss log+KPI hơn `gate_lambda` (mặc định 0.01).
-> Trên dataset mà trace nhiễu, gate đóng và mô hình *đúng bằng* baseline.
+> Trên dataset mà trace nhiễu, gate đóng và đường **bộ giải mã** *đúng bằng* baseline. Câu này chỉ đúng
+> cho bộ giải mã và cho luật điểm thô `raw_sum`: với `score_rule=norm_sum` (cấu hình đóng băng) điểm cuối còn cộng
+> z-score của `trace_dis` mà **không nhân gate** (xem 3.6.1).
 >
 > **CLI**: `--gate_lambda 0.01` (tự động áp dụng khi `--open_trace True`).
 >
 > **Kiểm chứng**: Trên RE3-OB (5 fault type code-defect), residual-gated recover baseline F1
 > trong phạm vi 0.015 trên mọi fault type.
-> Xem `experiment_results_re3_ob_trace_vs_baseline_vi.md`.
+> Xem `experiment_results_re3_ob_trace_vs_baseline_vi.md`. Các số đó tính theo luật điểm thô `raw_sum`; theo
+> `norm_sum` đóng băng, UAM-AD thấp hơn UAC-AD ở RE3-OB (xem 3.6.1).
+
+### 3.6.1 Gate tác động ở đâu (đọc từ mã)
+
+Gate `g` (per-sample, từ 6 trace-quality features) xuất hiện ở bốn chỗ:
+
+1. **Bộ giải mã**: `fused_out = y_base + g·Δ` (`fuse_v3.py`). Đây là chỗ duy nhất gate còn tác động tới điểm
+   `norm_sum`, một cách gián tiếp: nó đổi `log_out`/`kpi_out`, nên đổi số hạng `log_kpi_loss`.
+2. **Loss huấn luyện**: `loss = log_dis + kpi_dis + (g·trace_dis).mean() + gate_lambda·g.mean()`. Hai số hạng cuối chỉ
+   kéo `g` xuống; chỉ đường bộ giải mã (khi `Δ` giúp giảm loss log+KPI) kéo `g` lên.
+3. **Chọn epoch**: điểm val dùng cho early stopping là trung bình `fusion_loss` (`BaseModel._score_loader`),
+   tức có `g·trace_d + gate_lambda·g`.
+4. **Điểm `raw_sum`**: `fusion_loss = log_kpi_loss + g·trace_d + gate_lambda·g`; với `score_rule=norm_sum` nó chỉ còn là
+   số tham khảo `raw_sum_*`.
+
+**Không nằm trong điểm `norm_sum`:** `evaluate_norm_sum` cộng z-score của `log_kpi_loss`, `trace_dis`, các số hạng async
+và `trace_err` tính từ giá trị thô, không nhân `g`. Nên ở cấp điểm số, trace luôn đóng góp với trọng số chuẩn hoá;
+"gate đóng ⇒ đúng bằng baseline" chỉ đúng cho đường bộ giải mã.
+
+Gate được huấn luyện trên dữ liệu bình thường, nên nó học "trace có giúp tái tạo log/KPI bình thường không", không học
+"trace có giúp phát hiện bất thường không".
 
 ---
 
 ## 4. Discriminator — `MultiDiscriminator.get_loss()`
+
+> **Lưu ý (kiểm bằng gradient trên batch giả, lớp thật)**: mọi lần chạy đã lưu dùng `open_gan_sep=True`, nên bước
+> generator dùng `get_loss_sep`, không dùng các đầu structural (CHANGE 5), attribute (CHANGE 7) và async (CHANGE 10)
+> dưới đây. Các đầu này chỉ được huấn luyện ở bước discriminator (`get_loss`) và chỉ tác động lên generator khi
+> `open_gan_sep=False`. Ngay cả khi đó `adj_hat` không nhận gradient (GAT chỉ dùng adjacency làm mặt nạ), còn
+> `feats_hat` thì có.
 
 ### 4.1 Structural Trace Discrimination — [CHANGE 5] (không thay đổi)
 
@@ -300,7 +329,44 @@ UAM-AD/
 
 ---
 
+### 4.3 Đầu discriminator của nhánh async — [CHANGE 10] (chỉ khi `open_async_trace=True`)
+
+Ba đầu: hai đầu có đúng vai trò của CHANGE 5 và CHANGE 7, cho nhánh async (mục 10), và một đầu thứ ba cho quan hệ thứ tự. Chúng được dựng **sau cùng** trong
+`MultiDiscriminator.__init__`, nên mọi trọng số có sẵn khi không có nhánh async giữ nguyên giá trị khởi tạo (đã kiểm).
+Không có nhánh async thì không có tham số nào thêm.
+
+- **Đầu structural** (tương ứng CHANGE 5): `async_trace_encoder` (`TraceEncoder_low`, 1 lớp GAT; đầu vào, mặt nạ và cách gộp
+  theo service hiện diện giống `MultiModel.forward`) mã hoá đồ thị async thật
+  `(async_trace_node_features, async_msg_count_adj, async_temporal_order_adj)` thành `az_real`, và cùng đồ thị nhưng với
+  `adj_hat_async` (adjacency đếm message do `AsyncTraceModel` tái tạo) thành `az_fake`. `decoder5_async = Linear(W·H, 2)`.
+  `disc_loss += CE(decoder5_async(az_real), 1) + CE(decoder5_async(az_fake), 0)`; `deceive_loss += MSE(az_real, az_fake)`.
+- **Đầu attribute** (tương ứng CHANGE 7): REAL = `async_trace_node_features` trung bình theo N → `[B·W, async_c]`;
+  FAKE = `feats_hat_async` trung bình theo N. `attr_classifier_async = Linear(async_c,H) → ReLU → Linear(H,1)`, BCE như
+  CHANGE 7. Khác sync ở chỗ dùng cả `async_c = 3` cột, vì decoder thuộc tính async được huấn luyện bằng MSE trên cả 3 cột.
+- **Đầu order** (đầu structural cho quan hệ thứ hai của đồ thị async, chỉ khi `async_order=True`): `order_trace_encoder`
+  (`TraceEncoder_low`, 1 lớp GAT; cùng đầu vào node và cách gộp như `async_trace_encoder`) nhưng đồ thị của nó **chính là**
+  **quan hệ thứ tự**. REAL = `async_temporal_order_adj`; FAKE = `order_hat_async` (sigmoid của logit mà BCE của `order_decoder`
+  tính trên đó), giữ trên các cặp service có mặt (đúng các cặp BCE được huấn luyện) và giữ đường chéo thật (đường chéo = service
+  nào có mặt). `decoder5_order = Linear(W·H, 2)`, `disc_loss += CE(decoder5_order(oz_real), 1) + CE(decoder5_order(oz_fake), 0)`;
+  `deceive_loss += MSE(oz_real, oz_fake)`. Phải là đầu riêng: `async_encoder_inputs` cố ý **không** đưa quan hệ thứ tự vào mặt
+  nạ của encoder (nó là mục tiêu cần dự đoán), nên `async_trace_encoder` chỉ thấy đường chéo của quan hệ này (service nào có mặt),
+  không thấy phần service nào đứng trước service nào.
+
+Giống sync, với `open_gan_sep=True` các đầu này chỉ được huấn luyện ở bước discriminator và không tác động lên generator
+(gradient: `get_loss` huấn luyện `async_trace_encoder`, `decoder5_async`, `attr_classifier_async`, `order_trace_encoder`, `decoder5_order`; `get_loss_sep` không
+đụng tới chúng). Một thử nghiệm riêng (DeepTraLog F01/F02/F13, 2 seed), trong đó đầu attribute được cho tác động lên
+generator, cũng không đổi kết quả ngoài dao động giữa các seed. Đầu order chưa có thử nghiệm riêng như vậy.
+
+Mặt nạ của GAT là `(đồ thị + I) > 0` (`GATLayer`), nên đồ thị FAKE của các đầu structural (CHANGE 5, đầu đếm message, đầu order)
+có mặt nạ luôn đầy đủ (sigmoid/softplus luôn > 0, trừ khi logit âm cực đoan) còn đồ thị REAL thì không. Đây là tính chất sẵn có của
+CHANGE 5, các đầu async sao theo nó (đã kiểm trên batch giả; mật độ đồ thị REAL trên dữ liệu thật chưa đo). Cũng vì GAT chỉ dùng
+đồ thị làm mặt nạ, `adj_hat`, `adj_hat_async`, `order_hat_async` không nhận gradient từ các đầu này.
+
+---
+
 ## 5. Training Loop (mỗi epoch)
+
+> Với `open_gan_sep=True` (cấu hình đóng băng), `deceive_loss` ở bước ① lấy từ `get_loss_sep`, không phải `get_loss`.
 
 ```
   for batch in unlabel_loader:
@@ -349,6 +415,7 @@ UAM-AD/
 |  7  | **Attribute Discriminator**  | không có — node attributes không được discriminate | head riêng: REAL=trace_nodes[:,:,[3,5]], FAKE=feats_hat[:,:,[3,5]] → Linear(2,H)→ReLU→Linear(H,1) |
 |  8  | **Decoder fusion mode**      | luôn `cat([fm, ZV])` → noise rò vào kpi_out / log_out khi trace không informative | **Residual-gated**: `y_base(fm) + g · delta_head(cat[fm,ZV])`, `g∈[0,1]` per-sample từ 6 trace-quality features, `delta_head` zero-init, L1 reg trên g (`gate_lambda`) |
 |  9  | **Nhánh trace async**        | không có                                           | **Nhánh cộng thêm, độc lập** (mục 10): encoder/decoder/gate riêng cho quan hệ số lượng message + thứ tự thời gian giữa service; embedding của nó đi vào CÙNG `delta_head` với embedding sync (nới thêm một khối H); tắt mặc định (`open_async_trace=False` ⇒ giống hệt từng bit hành vi ở dòng 1-8) |
+| 10  | **Đầu discriminator async**  | không có                                           | Ba đầu cho nhánh async (mục 4.3): hai đầu giống CHANGE 5 và 7, và một đầu structural cho quan hệ thứ tự (khi `async_order=True`); chỉ dựng khi `open_async_trace=True` |
 
 ---
 
@@ -405,6 +472,11 @@ UAM-AD/
     attr_classifier: Linear(2,H) → ReLU → Linear(H,1)
     disc_loss    += BCE(attr_classifier(attr_real), 1) + BCE(attr_classifier(attr_fake), 0)
     deceive_loss += MSE(attr_classifier(attr_real), attr_classifier(attr_fake))
+
+  Đầu async (CHANGE 10 — chỉ khi open_async_trace=True, giống CHANGE 5 và 7):
+    structural: async_trace_encoder(đồ thị async thật) vs (với adj_hat_async) → decoder5_async
+    attribute:  async_trace_node_features.mean(N) vs feats_hat_async.mean(N)  → attr_classifier_async
+    order:      async_temporal_order_adj(thật) vs order_hat_async (cặp có mặt) → order_trace_encoder → decoder5_order  (khi async_order=True)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   OUTPUT: F1 / Recall / Precision (với point-adjustment)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -493,7 +565,7 @@ Không có danh tính node, hầu hết đặc trưng node async gần như 0 (s
 - **Decoder đếm dùng `Linear + bmm`, không dùng `nn.Bilinear` trên batch đã làm phẳng**: bản đầu dùng `nn.Bilinear(H,H,1)` trên các hàng `[B*N*N,H]` tạo tensor gradient trung gian `[B*N*N,H,H]` tràn RAM của GPU 3 GB (`B*W=640, N=35` ⇒ ≈3,2 GB) — `Linear+bmm` tính đúng dạng bilinear đó mà không bao giờ tạo tensor lớn hơn `[B,N,N]`.
 - **Mục tiêu loss là MSE so với giá trị có trọng số (log1p số lượng), không phải BCE so với cạnh nhị phân** — decoder có/không không thể thấy "vẫn cạnh đó, số lượng tăng lên".
 - **`cell_weight` giảm trọng số cho ~1.220/1.225 cặp (service,service) không bao giờ có cạnh async thật trong toàn dataset** (`unseen_edge_weight`, mặc định 0,05, từ `async_edge_mask` của `meta.pkl`): lấy trung bình đều trên mọi ô N×N khiến một ô hiếm dự đoán sai lấn át điểm số của cả trace — đây chính là lý do một số trace bình thường có điểm cao hơn mọi trace bất thường thật trước khi thêm cơ chế này (chẩn đoán ngày 23/9).
-- **Decoder thứ tự là một đầu bilinear riêng (`W_order ≠ W_edge`) với BCE riêng**, chỉ trung bình trên các cặp service *có mặt* (bỏ đường chéo) — giữ là số vô hướng riêng (`loss_order`), không cộng vào `loss_struct`, để có thể chuẩn hoá theo thang riêng ở bước sau (mục 10.5).
+- **Decoder thứ tự là một đầu bilinear riêng (`W_order ≠ W_edge`) với BCE riêng**, chỉ trung bình trên các cặp service *có mặt* (bỏ đường chéo) — giữ là số vô hướng riêng (`loss_order`), không cộng vào `loss_struct`, để có thể chuẩn hoá theo thang riêng ở bước sau (mục 10.5). `order_hat = sigmoid(logits)` cũng được trả ra (không dùng cho điểm), chỉ để đầu order của discriminator dùng (mục 4.3).
 
 ### 10.4 Gate riêng của nhánh async — `async_trace_gate`
 
@@ -545,6 +617,7 @@ Lúc khởi tạo, lớp cuối của `delta_head` khởi tạo bằng 0 (không
 - `open_async_trace=False`: không dựng tensor async nào, `delta_head` giữ đầu vào 3H gốc, `fusion_loss`/`loss` đúng bằng biểu thức trước CHANGE 9 — đã kiểm điểm số giống hệt từng bit trên một lần chấm lại hồi quy (chấm lại checkpoint chỉ-sync bằng code đã dọn).
 - `open_async_trace=True` lúc khởi tạo: lớp cuối zero-init của `delta_head` làm phần đóng góp của async vào `fused_out` đúng bằng 0 bất kể `ZV_async`; một phép thử tổng hợp (thay embedding bằng 0/xáo trộn) trên checkpoint đã train xác nhận `log_dis` gần như không đổi (0,745→0,747/0,743), loại bỏ giả thuyết "giải thích-thay-thế" (explain-away).
 - Gradient chảy tới `async_trace_encoder` qua đường `delta_head` chung (đã kiểm trực tiếp trên một batch nhỏ).
+- Đầu discriminator async (CHANGE 10, mục 4.3): `open_async_trace=False` ⇒ không có tham số nào thêm; `True` ⇒ mọi trọng số có sẵn giữ nguyên giá trị khởi tạo, `get_loss` huấn luyện các module mới (`async_trace_encoder`, `decoder5_async`, `attr_classifier_async` và, khi `async_order=True`, `order_trace_encoder`, `decoder5_order`) còn `get_loss_sep` không đụng tới (batch giả, lớp thật; một batch qua `MultiModel` và `MultiDiscriminator` thật chạy được cả hai bước).
 
 ### 10.8 Cờ CLI
 
@@ -557,10 +630,14 @@ Lúc khởi tạo, lớp cuối của `delta_head` khởi tạo bằng 0 (không
 | `--score_rule` | `raw_sum` | `norm_sum` cho tổng đã chuẩn hoá theo val (mục 10.6); `raw_sum` ở dataset khác không bị ảnh hưởng bởi mục này |
 | `--dump_components` | tắt | Dump các thành phần `_score_components` theo từng cửa sổ ra `.npz` thay vì chạy đánh giá đầy đủ — dùng để chấm lại checkpoint đã lưu bằng luật điểm mới mà không cần train lại |
 
-### 10.9 Chẩn đoán: dataset này có thực sự hỗ trợ nhánh async không?
+### 10.9 Kiểm tra dấu hiệu async trong dữ liệu: `--open_async_trace` chỉ là yêu cầu
 
-Trước đây, `--open_async_trace True` trên dataset mà pkl không có `async_trace_node_features`/`async_msg_count_adj` sẽ âm thầm không dựng gì (kiểm tra `has_async_input` ở mục 10.1 luôn ra `False` mọi batch) mà không có dòng log nào báo. `common/data_loads.py`'s `Process.__init__` giờ log rõ điều này, ngay sau "Data loaded done!":
-- `--open_async_trace True` + dataset có 2 khoá → `INFO  Async trace branch: ACTIVE -- ... (order relation present/ABSENT).`
-- `--open_async_trace True` + dataset **không** có 2 khoá → `WARNING  Async trace branch: --open_async_trace True but this dataset has NO async_trace_node_features/async_msg_count_adj -- the branch will NOT be built and this run is equivalent to --open_async_trace False. ...`
+`--open_async_trace True` chỉ **yêu cầu** nhánh async; nhánh chỉ được dựng nếu dữ liệu có dấu hiệu async. `common/data_loads.py`'s `Process.__init__` kiểm tra ngay sau "Data loaded done!" (không dùng nhãn), trên các cửa sổ huấn luyện bình thường:
+1. pkl có 2 khoá `async_trace_node_features`/`async_msg_count_adj`; và
+2. có ít nhất `ASYNC_MIN_MSG_ENTRIES = 40` bước cửa sổ mang message async (tổng out-count ≥ 0,5 — cùng phép thử và cùng mức tối thiểu mà `evaluate_norm_sum` cần để chuẩn hoá số hạng đếm). Đo được: DeepTraLog 2.303 / 29.975 bước (7,7%).
+
+Không dùng nhãn nên phép kiểm chỉ cho biết "có tương tác async đủ để học", không cho biết lỗi async có phát hiện được hay không. `run.py` đọc `Process.async_usable`; nếu không đạt thì đặt `open_async_trace=False` trước khi dựng mô hình và ghi lại giá trị hiệu lực vào `params.json`. Log:
+- `--open_async_trace True` + đạt cả hai điều kiện → `INFO  Async trace branch: ACTIVE -- ... N of M training window steps (x%) carry async messages ...`
+- `--open_async_trace True` + dataset **không** có 2 khoá, hoặc có nhưng dưới mức tối thiểu → `WARNING  Async trace branch: --open_async_trace True but ... -- the branch will be switched OFF.` (SN và RCAEval rơi vào trường hợp thiếu khoá.)
 - `--open_async_trace False` nhưng dataset **có** 2 khoá → ghi `INFO` cho biết nhánh có sẵn nhưng không dùng ở lần chạy này.
 - `--open_async_trace False` và dataset không có khoá async → im lặng (trường hợp thường gặp với SN/RE2/RE3).

@@ -269,6 +269,52 @@ class MultiDiscriminator(nn.Module):
         self.criterion  = nn.CrossEntropyLoss()
         self.criterion2 = nn.MSELoss()
 
+        # CHANGE 10: async counterparts of the CHANGE 5 (structure) and CHANGE 7
+        # (attribute) heads above, for the async branch of CHANGE 9, plus a
+        # structure-type head for the async precedence relation (order). Same
+        # roles, same place in get_loss; built LAST so that every weight that
+        # exists without the async branch keeps its initial value.
+        self.open_async_trace = kwargs.get("open_async_trace", False)
+        if self.open_async_trace:
+            self.async_use_order = bool(kwargs.get("async_order"))
+            async_kwargs = dict(kwargs)
+            async_kwargs["trace_c"] = kwargs["async_c"] + (kwargs["num_services"] if self.async_use_order else 0)
+            self.async_trace_encoder = TraceEncoder_low(device, **async_kwargs).to(device)
+            self.decoder5_async = nn.Linear(_W * _H, 2)   # structural async classifier
+            self.attr_classifier_async = nn.Sequential(   # attribute head over the async_c node attributes
+                nn.Linear(kwargs["async_c"], _H),
+                nn.ReLU(),
+                nn.Linear(_H, 1),
+            )
+            if self.async_use_order:
+                # the precedence relation is the second relation of the async graph and has its own structure-type head:
+                # same encoder + linear classifier as the message-count head, but its graph IS the order relation
+                self.order_trace_encoder = TraceEncoder_low(device, **async_kwargs).to(device)
+                self.decoder5_order = nn.Linear(_W * _H, 2)
+
+    def _encode_async(self, async_nodes, async_adj, async_order_adj):
+        """[B,W,H] async node embedding, pooled over the services present in the trace (the pooling of MultiModel.forward, CHANGE 9)."""
+        B, W, N, C = async_nodes.shape
+        if async_order_adj is not None:
+            present = (torch.diagonal(async_order_adj, dim1=-2, dim2=-1) > 0).float()               # [B,W,N]
+        else:
+            present = ((async_nodes[..., 0] > 0) | (async_nodes[..., 1] > 0)).float()
+        x_in, mask = async_encoder_inputs(
+            async_nodes.reshape(B * W, N, C), async_adj.reshape(B * W, N, N),
+            async_order_adj.reshape(B * W, N, N) if async_order_adj is not None else None, self.async_use_order)
+        az = self.async_trace_encoder(x_in, mask.float()).reshape(B, W, N, -1)                      # [B,W,N,H]
+        return (az * present.unsqueeze(-1)).sum(dim=2) / present.sum(dim=2, keepdim=True).clamp(min=1.0)
+
+    def _encode_order(self, async_nodes, order_graph, async_order_adj):
+        """[B,W,H] async node embedding of the graph whose edges ARE the precedence relation: `order_graph` is the real relation (REAL pass)
+        or its reconstruction (FAKE pass). Node inputs (features + identity of the present services) and the pooling are those of _encode_async."""
+        B, W, N, C = async_nodes.shape
+        present = (torch.diagonal(async_order_adj, dim1=-2, dim2=-1) > 0).float()                   # [B,W,N]
+        graph = order_graph.reshape(B * W, N, N)
+        x_in, _ = async_encoder_inputs(async_nodes.reshape(B * W, N, C), graph, async_order_adj.reshape(B * W, N, N), True)
+        oz = self.order_trace_encoder(x_in, graph).reshape(B, W, N, -1)                             # [B,W,N,H]
+        return (oz * present.unsqueeze(-1)).sum(dim=2) / present.sum(dim=2, keepdim=True).clamp(min=1.0)
+
     def _get_real_trace_inputs(self, input_dict):
         """Return (trace_nodes, trace_adj) for the REAL pass."""
         if self.open_trace and "trace_node_features" in input_dict:
@@ -386,6 +432,40 @@ class MultiDiscriminator(nn.Module):
 
             loss         = loss + attr_disc_loss
             deceive_loss = deceive_loss + attr_deceive_loss
+
+        # CHANGE 10: async branch. REAL: the async graph of the trace | FAKE: the message-count
+        # adjacency / node attributes reconstructed by the async autoencoder.
+        async_nodes = input_dict.get("async_trace_node_features")
+        async_adj   = input_dict.get("async_msg_count_adj")
+        if (self.open_async_trace and async_nodes is not None and async_adj is not None
+                and res_set.get("adj_hat_async") is not None):
+            async_order = input_dict.get("async_temporal_order_adj")
+            # structure head (CHANGE 5 analogue)
+            az_real = self._encode_async(async_nodes, async_adj, async_order)
+            az_fake = self._encode_async(async_nodes, res_set["adj_hat_async"], async_order)
+            loss = (loss + self.criterion(self.decoder5_async(az_real.reshape(b, -1)), y1)
+                    + self.criterion(self.decoder5_async(az_fake.reshape(b, -1)), y2))
+            deceive_loss = deceive_loss + self.criterion2(az_real, az_fake)
+            # attribute head (CHANGE 7 analogue): mean over the N services -> [B*W, async_c]
+            if res_set.get("feats_hat_async") is not None:
+                Wa = async_nodes.shape[1]
+                logits_real = self.attr_classifier_async(async_nodes.mean(dim=2).reshape(b * Wa, -1))
+                logits_fake = self.attr_classifier_async(res_set["feats_hat_async"].mean(dim=2).reshape(b * Wa, -1))
+                loss = (loss + F.binary_cross_entropy_with_logits(logits_real, torch.ones_like(logits_real))
+                        + F.binary_cross_entropy_with_logits(logits_fake, torch.zeros_like(logits_fake)))
+                deceive_loss = deceive_loss + self.criterion2(logits_real, logits_fake)
+            # order head (structure-type, second relation): REAL = the precedence relation | FAKE = its reconstruction, kept on the
+            # present service pairs (the pairs its BCE is trained on) with the real diagonal (= which services are present)
+            if self.async_use_order and async_order is not None and res_set.get("order_hat_async") is not None:
+                Na = async_order.shape[-1]
+                present = torch.diagonal(async_order, dim1=-2, dim2=-1) > 0                          # [B,W,N]
+                pair = (present.unsqueeze(-1) & present.unsqueeze(-2)).float() * (1.0 - torch.eye(Na, device=async_order.device))
+                order_fake = res_set["order_hat_async"] * pair + torch.diag_embed(torch.diagonal(async_order, dim1=-2, dim2=-1))
+                oz_real = self._encode_order(async_nodes, async_order, async_order)
+                oz_fake = self._encode_order(async_nodes, order_fake, async_order)
+                loss = (loss + self.criterion(self.decoder5_order(oz_real.reshape(b, -1)), y1)
+                        + self.criterion(self.decoder5_order(oz_fake.reshape(b, -1)), y2))
+                deceive_loss = deceive_loss + self.criterion2(oz_real, oz_fake)
 
         return {"loss": loss, "deceive_loss": deceive_loss}
 
@@ -683,10 +763,11 @@ class MultiModel(nn.Module):
         node_scores_async_4d = None   # [B,W,N]
 
         trace_dis_async_order      = None   # [B,W] precedence-relation error of the same async branch
+        order_hat_async_4d   = None   # [B,W,N,N] reconstructed precedence relation (for the discriminator's order head)
 
         if self.open_async_trace and async_trace_nodes is not None and async_msg_count_adj is not None:
             Ba, Wa, Na, _ = async_trace_nodes.shape
-            _, adj_hat_a, trace_dis_a_flat, feats_hat_a, node_scores_a_flat, loss_order_flat = self.async_trace_model(
+            _, adj_hat_a, trace_dis_a_flat, feats_hat_a, node_scores_a_flat, loss_order_flat, order_hat_a = self.async_trace_model(
                 async_trace_nodes.reshape(Ba * Wa, Na, -1),
                 async_msg_count_adj.reshape(Ba * Wa, Na, Na),
                 async_temporal_order_adj.reshape(Ba * Wa, Na, Na) if has_order_input else None
@@ -697,6 +778,7 @@ class MultiModel(nn.Module):
             node_scores_async_4d = node_scores_a_flat.reshape(Ba, Wa, Na)                         # [B,W,N]
             if loss_order_flat is not None:
                 trace_dis_async_order = loss_order_flat.reshape(Ba, Wa)                                 # [B,W]
+                order_hat_async_4d    = order_hat_a.reshape(Ba, Wa, Na, Na)                             # [B,W,N,N]
 
             # One branch, one raw-fusion/training term: count + attribute + order.
             # (The calibrated score, score_rule=norm_sum, standardises the count
@@ -738,6 +820,7 @@ class MultiModel(nn.Module):
             # unless open_async_trace=True and the data has async keys.
             "adj_hat_async":     adj_hat_async_4d,
             "feats_hat_async":   feats_hat_async_4d,
+            "order_hat_async":   order_hat_async_4d,
             "node_scores_async": node_scores_async_4d,
             # CHANGE 9 (additive): named (unambiguous) access to the two
             # trace-branch scalar scores, alongside the existing positional

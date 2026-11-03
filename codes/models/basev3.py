@@ -310,7 +310,8 @@ class BaseModel(nn.Module):
                     comps["async_msgs"].extend(
                         torch.expm1(batch_input["async_trace_node_features"][..., 0]).sum(dim=-1)
                         .numpy().reshape(-1).tolist())
-                if batch_input.get("trace_node_features") is not None:
+                if self.open_trace and batch_input.get("trace_node_features") is not None:
+                    # (only a model that uses the trace: UAC-AD, open_trace=False, scores log+KPI alone)
                     # error-span evidence of each step: sum over services of
                     # call_count * error_rate (col 0 is log1p(count)/10, col 3 the
                     # error rate); log1p-compressed
@@ -414,14 +415,13 @@ class BaseModel(nn.Module):
             batch_cnt = 0
             for batch_input in test_loader:
                 batch_cnt += 1
-                kpi_inputs.append(batch_input["kpi_features"])
-                log_inputs.append(batch_input["log_features"])
+                if self.data_type != "fuse":   # fuse never reads these (only commented plots)
+                    kpi_inputs.append(batch_input["kpi_features"])
+                    log_inputs.append(batch_input["log_features"])
                 result = self.model.forward(self.__input2device(batch_input))
                 if self.data_type == "fuse":
                     distance = result["fusion_loss"]
                     embeds.append(result["features"][2].cpu().numpy())
-                    kpi_outputs.append(result["output"][1].cpu().numpy())
-                    log_outputs.append(result["output"][0].cpu().numpy())
                     # CHANGE 9 (additive): per-window sync/async trace scores,
                     # collected only when present (None otherwise) -- lets a
                     # caller compare d_sync vs d_async per sample (plan Step
@@ -444,10 +444,11 @@ class BaseModel(nn.Module):
                 res["loss"].extend(distance_cpu.numpy().reshape(-1).tolist())
                 res["true"].extend(batch_input["labels"].cpu().numpy().reshape(-1).tolist())
 
-        kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
-        kpi_outputs = np.concatenate(kpi_outputs,axis=0).reshape(-1,self.kpi_c)
-        log_inputs = np.concatenate(log_inputs,axis=0).reshape(-1,self.log_c)
-        log_outputs = np.concatenate(log_outputs,axis=0).reshape(-1,self.log_c)
+        if self.data_type != "fuse":
+            kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
+            kpi_outputs = np.concatenate(kpi_outputs,axis=0).reshape(-1,self.kpi_c)
+            log_inputs = np.concatenate(log_inputs,axis=0).reshape(-1,self.log_c)
+            log_outputs = np.concatenate(log_outputs,axis=0).reshape(-1,self.log_c)
         test_embeds = {"embeds":embeds,"distance":res["loss"],"labels":res["true"]}
         # CHANGE 9 (additive): expose the per-window component scores
         # collected above, if any were collected.
@@ -760,16 +761,15 @@ class BaseModel(nn.Module):
             self.discriminator.eval()
             self.loss_fusion.eval()
             for batch_input in unlabel_loader:
-                kpi_inputs.append(batch_input["kpi_features"])
-                log_inputs.append(batch_input["log_features"])
+                if self.data_type != "fuse":   # fuse never reads these (only commented plots); keeping them costs GBs when kpi_c is large
+                    kpi_inputs.append(batch_input["kpi_features"])
+                    log_inputs.append(batch_input["log_features"])
                 labels.append(batch_input["labels"])
                 optimizer.zero_grad()
                 res = self.model(self.__input2device(batch_input), True) if self.open_unmatch_zoomout else self.model(self.__input2device(batch_input))
 
                 if self.data_type == "fuse":
                     loss = res["loss"]
-                    kpi_outputs.append(res["output"][1].detach().cpu().numpy())
-                    log_outputs.append(res["output"][0].detach().cpu().numpy())
                 elif self.data_type == "kpi":
                     kpi_outputs.append(res["output"].detach().cpu().numpy())
                     log_outputs.append(log_inputs[-1])
@@ -798,10 +798,11 @@ class BaseModel(nn.Module):
             epoch_loss = epoch_loss / batch_cnt
             logging.info("Epoch {}/{}, train generator loss: {:.5f}".format(epoch, self.epoches_1, epoch_loss))
 
-            kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
-            kpi_outputs = np.concatenate(kpi_outputs,axis=0).reshape(-1,self.kpi_c)
-            log_inputs = np.concatenate(log_inputs,axis=0).reshape(-1,self.log_c)
-            log_outputs = np.concatenate(log_outputs,axis=0).reshape(-1,self.log_c)
+            if self.data_type != "fuse":
+                kpi_inputs = np.concatenate(kpi_inputs,axis=0).reshape(-1,self.kpi_c)
+                kpi_outputs = np.concatenate(kpi_outputs,axis=0).reshape(-1,self.kpi_c)
+                log_inputs = np.concatenate(log_inputs,axis=0).reshape(-1,self.log_c)
+                log_outputs = np.concatenate(log_outputs,axis=0).reshape(-1,self.log_c)
             labels = np.concatenate(labels,axis=0).reshape(-1)
             # plot_labeled_2curve(kpi_outputs,kpi_inputs,labels,"none",f"train_kpi_pred_gt_label_{self.current_epoch}")
             # plot_labeled_2curve(log_outputs,log_inputs,"none","none",f"train_log_pred_gt_label_{self.current_epoch}")
