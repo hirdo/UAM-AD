@@ -148,11 +148,13 @@ class AsyncTraceModel(nn.Module):
             x:         [B, N, async_c]
             adj:       [B, N, N]  directed, weighted (log1p count) ground-truth
             order_adj: [B, N, N]  optional precedence relation (see __init__)
-        Returns: (z, adj_hat, loss, feats_hat, node_scores, loss_order) -- the
-            first five follow TraceModel.forward's convention (`loss` = count
+        Returns: (z, adj_hat, loss, feats_hat, node_scores, loss_order, order_hat) --
+            the first five follow TraceModel.forward's convention (`loss` = count
             structure + lambda*attribute, unchanged by the order relation);
-            loss_order [B] is the precedence-relation reconstruction error, or
-            None when there is no order relation.
+            loss_order [B] is the precedence-relation reconstruction error and
+            order_hat [B,N,N] its reconstruction, sigmoid of the logits the BCE
+            is taken on (the diagonal is not trained); both None when there is
+            no order relation.
         """
         use_order = self.use_order
         x_in, mask = async_encoder_inputs(x, adj, order_adj, use_order)
@@ -175,7 +177,7 @@ class AsyncTraceModel(nn.Module):
         loss = loss_struct + self.lambda_attr * loss_attr
         node_scores = loss_struct_per_node + self.lambda_attr * loss_attr_per_node  # [B, N]
 
-        loss_order = None
+        loss_order = order_hat = None
         if use_order:
             n = adj.shape[-1]
             eye = torch.eye(n, device=adj.device)
@@ -184,5 +186,6 @@ class AsyncTraceModel(nn.Module):
             logits = torch.bmm(self.order_decoder(z), z.transpose(1, 2))                    # directed
             bce = F.binary_cross_entropy_with_logits(logits, order_adj * (1.0 - eye), reduction='none')
             loss_order = (bce * pair).sum(dim=[-2, -1]) / pair.sum(dim=[-2, -1]).clamp(min=1.0)   # [B]
+            order_hat = torch.sigmoid(logits)                                                      # [B, N, N]
 
-        return z, adj_hat, loss, feats_hat, node_scores, loss_order
+        return z, adj_hat, loss, feats_hat, node_scores, loss_order, order_hat

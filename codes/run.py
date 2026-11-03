@@ -219,6 +219,11 @@ def main(var_nums):
     processed = Process(var_nums, train_chunks, unlabel_chunks, unsupervised_chunks,
                         test_chunks, val_chunks=val_chunks or None, **params)
 
+    if params["open_async_trace"] and not processed.async_usable:
+        # the flag only requests the branch; the data show no async signs (Process logged why), so it is not built.
+        params["open_async_trace"] = False
+        json_pretty_dump(params, os.path.join(params["result_dir"], params["hash_id"], "params.json"))   # params.json keeps the EFFECTIVE setting
+
     for key, value in processed.test_chunks.items():
         params["kpi_c"] = len(value["kpis"])
         params["log_c"] = len(value["log_features"])

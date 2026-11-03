@@ -104,7 +104,7 @@ Các số về thời lượng request lấy từ đo lại (10-31) trên pkl đ
 - Ở F04 và F14, thứ tự lạ đi cùng cạnh lạ (F04-`preserve`: cả hai 100%; F14: cả hai 33,7%), và F04 còn đổi thứ tự ở `trips/left` (69% và 48%). Vì vậy F03, F04, F14 không phải bằng chứng "lỗi sync thuần".
 - F10: 84,4% "cạnh A lạ" là các cặp service đã có dạng S trong dữ liệu normal, bị heuristic thời gian (con bắt đầu sau khi cha kết thúc) đổi thành A; không phải cạnh mới, không dùng.
 
-**F05, F09 không dùng [CN 10-31]** (nhóm Configuration và Monolithic của bài). Cạnh lạ và thứ tự lạ ≤ 10% (F09: 0%), tức không có cấu trúc async hay sync đổi. Gần như không ghép được trace bất thường với normal cùng nhóm tập service (F05: 1 624/1 665 trace, F09: 978/978 nằm ngoài các nhóm có ít nhất 40 normal train), nên AUROC mức file của hai F-case này chưa tách được tín hiệu lỗi khỏi khác biệt API. Hai F-case đã chạy 5 seed (số ở S6) nhưng không đưa vào Bảng C.
+**F05, F09 không dùng [CN 10-31]** (nhóm Configuration và Monolithic của bài). Cạnh lạ và thứ tự lạ ≤ 10% (F09: 0%), tức không có cấu trúc async hay sync đổi. Gần như không ghép được trace bất thường với normal cùng nhóm tập service (F05: 1 624/1 665 trace, F09: 978/978 nằm ngoài các nhóm có ít nhất 40 normal train), nên AUROC mức file của hai F-case này chưa tách được tín hiệu lỗi khỏi khác biệt API. Hai F-case đã chạy 5 seed (số ở S6) nhưng không đưa vào Bảng C; đủ bộ và chỉ-async của hai F-case này vẫn là lần chạy đầu (trước 11-02, xem S6).
 
 **Hai mệnh đề cần chứng minh** (vì F01, F02, F13 không tách được lỗi async và lỗi sync riêng):
 
@@ -113,7 +113,7 @@ Các số về thời lượng request lấy từ đo lại (10-31) trên pkl đ
 
 Quy ước với 5 seed: "≥" nghĩa là trung bình đủ bộ không thấp hơn trung bình nhánh lẻ quá một độ lệch chuẩn; ">" nghĩa là hơn quá một độ lệch chuẩn (lấy độ lệch chuẩn lớn hơn của hai cấu hình so sánh). Báo cả F1@val lẫn AUROC/AUPRC; kết luận về F1 thường yếu hơn AUROC (F02, F1 ≈ 0,1). **Không phát biểu** "lỗi sync chỉ tốt khi chạy sync" hay "lỗi async chỉ tốt khi chạy async": không F-case nào thuần, và chưa có cấu hình log-only để tách phần của log.
 
-**Cấu hình chạy trên mỗi F-case** (cùng split, `norm_sum`, 5 seed): chỉ-sync (`--open_trace True --open_async_trace False`), chỉ-async (`--open_trace False --open_async_trace True`), đủ bộ (cả hai `True`), và DeepTraLog GGNN (code gốc). Hai cấu hình chỉ-sync và chỉ-async vẫn giữ phần tái tạo log; nhánh async gồm số hạng đếm tin nhắn và số hạng thứ tự. AnoFusion, ART, Eadro không chạy được vì dataset không có metric [Repo].
+**Cấu hình chạy trên mỗi F-case** (cùng split, `norm_sum`, 5 seed): chỉ-sync (`--open_trace True --open_async_trace False`), chỉ-async (`--open_trace False --open_async_trace True`), đủ bộ (cả hai `True`), và DeepTraLog GGNN (code gốc). Hai cấu hình chỉ-sync và chỉ-async vẫn giữ phần tái tạo log; nhánh async gồm số hạng đếm tin nhắn và số hạng thứ tự. Điểm `norm_sum` của chỉ-async gồm `log_kpi_loss`, số hạng đếm tin nhắn và số hạng thứ tự (không có `trace_err`, vì nhánh sync tắt); chỉ-sync và đủ bộ có thêm `trace_dis` và `trace_err`. AnoFusion, ART, Eadro không chạy được vì dataset không có metric [Repo].
 
 ## 3. Bài SOTA
 
@@ -267,7 +267,7 @@ Việc 6 có thể bắt đầu ngay trên SN, không cần chờ việc 1, 2.
 
 | # | Việc | Phụ thuộc | Ra gì |
 |:-:|:--|:--|:--|
-| 7 | **DeepTraLog trước** (là luận điểm chính về async): 3 cấu hình (chỉ-sync, chỉ-async, đủ bộ) × F01, F02, F13 × 5 seed; DeepTraLog GGNN cùng split. **Xong**; F05, F09 đã chạy nhưng không đưa vào Bảng C (10-31) | 3, 5, 6 | Bảng C (hai mệnh đề ở mục 2.3). Báo đúng số đo, không chỉnh tham số theo kết quả |
+| 7 | **DeepTraLog trước** (là luận điểm chính về async): 3 cấu hình (chỉ-sync, chỉ-async, đủ bộ) × F01, F02, F13 × 5 seed; DeepTraLog GGNN cùng split. **Xong**; F05, F09 đã chạy nhưng không đưa vào Bảng C (10-31). **Đủ bộ và chỉ-async của F01, F02, F13 chạy lại 11-02/03** (CHANGE 10 với đủ ba đầu discriminator async, và bỏ `trace_err` khỏi cấu hình không bật nhánh sync) | 3, 5, 6 | Bảng C (hai mệnh đề ở mục 2.3). Báo đúng số đo, không chỉnh tham số theo kết quả |
 | 8 | UAM-AD và UAC-AD, 5 seed, 5 dataset còn lại (SN, RE2-OB, RE2-TT, RE3-OB, RE3-TT). **Bật `--enable_rca` ngay trong lần chạy của UAM-AD** để khỏi chạy lại | 1, 2, 5 | Bảng B (hai hàng), và HR@k của UAM-AD cho Bảng D |
 | 9 | AnoFusion, ART, Eadro (và OrEdge), 5 seed, cùng 5 dataset; lấy HR@k của ART và Eadro | 5, 6 (và 2 cho các TT) | Bảng B (các hàng còn lại), HR@k cho Bảng D |
 | 10 | **Chấm lại UAM-AD và UAC-AD theo thứ tự thời gian thật trên cả bốn dataset RCAEval** (**xong 10-30 20:56**; người dùng đã đồng ý chấm lại hết cùng cách, 10-30): dùng lại checkpoint của việc 8 (mỗi mô hình: RE2-OB 30, RE3-OB 25, RE2-TT 30, RE3-TT 20), không huấn luyện lại; `run.py --pre_model` với file test sắp theo (thí nghiệm, giây) như ART và AnoFusion đang dùng. Dựng dữ liệu một lần cho mỗi scenario rồi chấm cả 10 checkpoint (5 seed × 2 mô hình) trong cùng tiến trình; bốn dataset RCAEval mất khoảng 1 giờ 20 phút máy. Trình điều khiển: `codes/common/rescore_item10.py`, tổng hợp: `codes/common/aggregate_item10.py`; hàm xếp hạng mới được thêm vào `codes/models/rca.py`, hàm cũ giữ nguyên. Đã kiểm tái tạo số đã lưu ở test xáo trên 10 checkpoint RE3-OB `f1` (lệch tối đa 0,00005 ở F1@val95, AUROC, AUPRC, F1 oracle) và kiểm UAM-AD seed 0 sắp thứ tự trùng tuyệt đối (lệch 0) với các lần kiểm trước ở 21 scenario. Kết quả ghi vào `D:\ClaudeWork\phase3\item10\`, không ghi đè kết quả cũ. F1 oracle xuất hai định nghĩa: point-adjust của repo (phụ thuộc thứ tự dòng, nên không so được giữa test xáo và test sắp thứ tự) và quét ngưỡng không point-adjust như các đối thủ; bảng dùng bản không point-adjust cho RE2. SN không chấm lại theo thứ tự (file test SN dùng id băm và nhãn xen kẽ; đã thử sắp theo `sessions.pkl` với checkpoint seed 0 và không giúp: AUROC 0,956 → 0,942, AUPRC 0,705 → 0,669, F1@val95 0,734 → 0,691); với SN chỉ làm lại HR cho UAM-AD. **Xếp hạng service mới** (cài bằng hàm mới trong `rca.py`, không sửa `localize_root_causes`): điểm service = trace (Eq. 14) chuẩn hoá theo node + KPI của chính service chuẩn hoá theo kênh (cả hai bằng trung vị và p95 − trung vị trên val, như `norm_sum`), HR tính trên mọi mẫu bất thường biết service lỗi; xuất thêm các biến thể chỉ-KPI, chỉ-trace và cách cũ cho bảng bỏ từng phần (ở T1, phần HR). **Đã đưa vào bảng (10-30):** RE2-OB, RE2-TT (F1@val95, AUROC, AUPRC của cả hai mô hình, F1 oracle không point-adjust) và HR@k của UAM-AD ở cả 5 dataset, ở S2–S5 và T1–T3; RE3-OB, RE3-TT giữ số đã lưu (sắp lại đổi tối đa 0,011, số sắp lại vẫn nằm trong `item10`). | 8 | Bảng B: hàng UAM-AD và UAC-AD của RE2-OB, RE2-TT; cột HR@k của UAM-AD ở cả 5 dataset. Số đo thử seed 0 và diễn biến: `working_history.md`, mục 2026-10-30 |
@@ -276,24 +276,24 @@ Việc 7, 8, 9 độc lập nhau, chạy theo khả năng máy. Nếu thiếu th
 
 #### Việc 7: kết quả DeepTraLog (Bảng C)
 
-**Việc 7, UAM-AD trên DeepTraLog** (45 ô = 3 cấu hình × F01, F02, F13 × 5 seed, theo `frozen_config.json`). Trung bình ± độ lệch chuẩn (độ lệch chuẩn của quần thể, 5 seed). F1 ở ngưỡng p95 của val; "chỉ-sync" và "chỉ-async" vẫn giữ phần tái tạo log, chỉ khác nhánh trace nào bật:
+**Việc 7, UAM-AD trên DeepTraLog** (45 ô = 3 cấu hình × F01, F02, F13 × 5 seed, theo `frozen_config.json`). **[CN 11-02]** Hàng chỉ-sync là lần chạy đầu (xong 10-15). Hàng chỉ-async và đủ bộ (30 ô) là lần chạy lại 11-02/03 với mã hiện tại: đủ ba đầu discriminator async của CHANGE 10 (cấu trúc, thuộc tính, thứ tự; mục 6 của "Điều cần nói rõ" bên dưới) và không còn số hạng `trace_err` trong điểm của cấu hình không bật nhánh trace sync (mục 5). Số của lần chạy đầu và của bản hai đầu: `working_history.md`, mục 11-02 và 11-03. Trung bình ± độ lệch chuẩn (độ lệch chuẩn của quần thể, 5 seed). F1 ở ngưỡng p95 của val; "chỉ-sync" và "chỉ-async" vẫn giữ phần tái tạo log, chỉ khác nhánh trace nào bật:
 
 | F-case | Cấu hình | F1@val | AUROC | AUPRC |
 |:--|:--|--:|--:|--:|
 | F01 | chỉ-sync | 0,765 ± 0,003 | 0,935 ± 0,007 | 0,830 ± 0,002 |
-| F01 | chỉ-async | 0,258 ± 0,000 | 0,855 ± 0,006 | 0,345 ± 0,005 |
-| F01 | đủ bộ | **0,775 ± 0,003** | **0,971 ± 0,004** | **0,859 ± 0,005** |
+| F01 | chỉ-async | 0,258 ± 0,001 | 0,855 ± 0,007 | 0,349 ± 0,009 |
+| F01 | đủ bộ | **0,775 ± 0,002** | **0,971 ± 0,004** | **0,858 ± 0,007** |
 | F02 | chỉ-sync | 0,107 ± 0,001 | 0,664 ± 0,031 | 0,170 ± 0,014 |
-| F02 | chỉ-async | 0,105 ± 0,000 | 0,803 ± 0,002 | 0,285 ± 0,002 |
-| F02 | đủ bộ | 0,133 ± 0,014 | 0,803 ± 0,033 | 0,256 ± 0,037 |
+| F02 | chỉ-async | 0,105 ± 0,000 | 0,804 ± 0,002 | 0,293 ± 0,002 |
+| F02 | đủ bộ | 0,131 ± 0,012 | 0,805 ± 0,032 | 0,258 ± 0,034 |
 | F13 | chỉ-sync | 0,852 ± 0,004 | 0,989 ± 0,000 | 0,892 ± 0,008 |
-| F13 | chỉ-async | 0,434 ± 0,001 | 0,805 ± 0,002 | 0,467 ± 0,002 |
-| F13 | đủ bộ | 0,866 ± 0,002 | 0,990 ± 0,001 | 0,893 ± 0,014 |
+| F13 | chỉ-async | 0,260 ± 0,000 | 0,767 ± 0,003 | 0,269 ± 0,002 |
+| F13 | đủ bộ | 0,865 ± 0,002 | 0,990 ± 0,001 | 0,892 ± 0,014 |
 
 **Đọc theo quy ước ở mục 2.3:**
-- **Mệnh đề 1 (đủ bộ ≥ từng nhánh lẻ): đúng ở cả 3 F-case và cả 3 chỉ số.** Trong 18 cặp (3 F-case × 3 chỉ số × 2 nhánh lẻ), đủ bộ hơn quá một độ lệch chuẩn ở 14 cặp (F1: cả 6 cặp; AUROC và AUPRC: cả hai nhánh ở F01, nhánh sync ở F02, nhánh async ở F13) và ngang ở 4 cặp: AUROC và AUPRC của F02 so với chỉ-async (0,803 so với 0,803; 0,256 so với 0,285), AUROC và AUPRC của F13 so với chỉ-sync (0,990 so với 0,989; 0,893 so với 0,892). Không cặp nào thấp hơn quá một độ lệch chuẩn.
-- **Mệnh đề 2 (so các nhánh lẻ với nhau):** ở F01 và F13, chỉ-sync hơn chỉ-async ở cả ba chỉ số (F01: F1 0,765 so với 0,258, AUROC 0,935 so với 0,855, AUPRC 0,830 so với 0,345; F13: 0,852 so với 0,434, 0,989 so với 0,805, 0,892 so với 0,467). Ở F02, chỉ-async hơn chỉ-sync về AUROC (0,803 so với 0,664) và AUPRC (0,285 so với 0,170); F1 ngang và đều thấp (0,105 và 0,107). **Giải thích (đo trên đầu vào, không phải ablation):** F01 và F13 mang trễ khoảng 4 giây mà nhánh sync thấy được (thời lượng request, AUROC 0,97–1,00 so với normal cùng nhóm), còn số tin nhắn async không đổi ở các nhóm so được, nên chỉ-sync mạnh hơn dù lỗi được tiêm vào cơ chế async; F02 là F-case có số tin nhắn async đổi rõ nhất (+21%), nên chỉ-async hơn. Chưa giải thích hết vì sao chỉ-sync yếu ở F02 dù thời lượng nhóm `createOrderBatch` dài hơn [SL: 0,1–0,2 giây có thể nằm trong dải thời lượng của các API khác, vì file test trộn nhiều API; chưa kiểm].
-- **Điều cần nói rõ khi viết:** (1) chỉ-sync và chỉ-async đều giữ phần tái tạo log, nên AUROC của chỉ-async (0,80–0,86) không phải thuần của nhánh async; chưa có cấu hình log-only để tách phần của log. (2) Mỗi file test trộn nhiều API (F02: 56% `createOrderBatch`, 44% `trips/left_parallel`; F01: 47% trace thuộc API không có normal), nên metric mức file lẫn tín hiệu lỗi với thành phần API [Repo]. (3) F1 ở ngưỡng p95 của val rất thấp ở F02 (≈ 0,1) dù AUROC cao hơn mức ngẫu nhiên rõ, tức ngưỡng từ val không chuyển sang test tốt, đã thấy ở các lần chạy trước. (4) **Cột `oracle_f1` do `run.py` ghi cho DeepTraLog không tin được**: tính với `point_adjust` (dòng log ghi rõ) và mâu thuẫn với AUROC (ví dụ F05 chỉ-async, một F-case nay ngoài Bảng C: AUROC 0,9994 nhưng oracle F1 chỉ 0,019). Chưa điều tra; không dùng cột này cho DeepTraLog, và không so với `oracle_f1` của GGNN vì cột đó là quét ngưỡng thường, không point-adjust.
+- **Mệnh đề 1 (đủ bộ ≥ từng nhánh lẻ): đúng ở 17 trong 18 cặp; một cặp thấp hơn quá một độ lệch chuẩn, sát ngưỡng.** Trong 18 cặp (3 F-case × 3 chỉ số × 2 nhánh lẻ), đủ bộ hơn quá một độ lệch chuẩn ở 15 cặp (F1: 6 trong 6 cặp; AUROC: 5 trong 6; AUPRC: 4 trong 6), ngang ở 2 cặp (AUROC của F02 so với chỉ-async: 0,805 so với 0,804; AUPRC của F13 so với chỉ-sync: 0,892 so với 0,892) và **thấp hơn quá một độ lệch chuẩn ở 1 cặp: AUPRC của F02 so với chỉ-async (0,258 so với 0,293; chênh 0,0344, độ lệch chuẩn lớn hơn của hai cấu hình 0,0342)**. Cặp này sát ngưỡng ở cả hai bản: ở bản hai đầu (chạy lại 11-02) chênh 0,0316 so với độ lệch chuẩn 0,0319, xếp là ngang; ở bản ba đầu chênh 0,0344 so với 0,0342, xếp là thấp hơn. Chênh lệch trung bình giữa hai bản ở mọi hàng đều nhỏ hơn độ lệch chuẩn giữa các seed (mục 6 bên dưới), nên cặp đổi loại chỉ vì nằm sát ngưỡng; tuy vậy theo quy ước ở mục 2.3 kết quả hiện tại là "thấp hơn", và mệnh đề 1 theo nghĩa chặt không đúng ở cặp này. Một trong 15 cặp "hơn" là sát ngưỡng: AUROC của F13 so với chỉ-sync (0,990 so với 0,989; chênh 0,0012, độ lệch chuẩn lớn hơn của hai cấu hình 0,0010), nên đọc là ngang về thực chất.
+- **Mệnh đề 2 (so các nhánh lẻ với nhau):** ở F01 và F13, chỉ-sync hơn chỉ-async ở cả ba chỉ số (F01: F1 0,765 so với 0,258, AUROC 0,935 so với 0,855, AUPRC 0,830 so với 0,349; F13: 0,852 so với 0,260, 0,989 so với 0,767, 0,892 so với 0,269). Ở F02, chỉ-async hơn chỉ-sync về AUROC (0,804 so với 0,664) và AUPRC (0,293 so với 0,170); F1 ngang và đều thấp (0,105 và 0,107). **Giải thích (đo trên đầu vào, không phải ablation):** F01 và F13 mang trễ khoảng 4 giây mà nhánh sync thấy được (thời lượng request, AUROC 0,97–1,00 so với normal cùng nhóm), còn số tin nhắn async không đổi ở các nhóm so được, nên chỉ-sync mạnh hơn dù lỗi được tiêm vào cơ chế async; F02 là F-case có số tin nhắn async đổi rõ nhất (+21%), nên chỉ-async hơn. Chưa giải thích hết vì sao chỉ-sync yếu ở F02 dù thời lượng nhóm `createOrderBatch` dài hơn [SL: 0,1–0,2 giây có thể nằm trong dải thời lượng của các API khác, vì file test trộn nhiều API; chưa kiểm].
+- **Điều cần nói rõ khi viết:** (1) chỉ-sync và chỉ-async đều giữ phần tái tạo log, nên AUROC của chỉ-async (0,767–0,855) không phải thuần của nhánh async; chưa có cấu hình log-only để tách phần của log. (2) Mỗi file test trộn nhiều API (F02: 56% `createOrderBatch`, 44% `trips/left_parallel`; F01: 47% trace thuộc API không có normal), nên metric mức file lẫn tín hiệu lỗi với thành phần API [Repo]. (3) F1 ở ngưỡng p95 của val rất thấp ở F02 (≈ 0,1) dù AUROC cao hơn mức ngẫu nhiên rõ, tức ngưỡng từ val không chuyển sang test tốt, đã thấy ở các lần chạy trước. (4) **Cột `oracle_f1` do `run.py` ghi cho DeepTraLog không tin được**: tính với `point_adjust` (dòng log ghi rõ) và mâu thuẫn với AUROC (ví dụ F05 chỉ-async, một F-case nay ngoài Bảng C: AUROC 0,9994 nhưng oracle F1 chỉ 0,019). Chưa điều tra; không dùng cột này cho DeepTraLog, và không so với `oracle_f1` của GGNN vì cột đó là quét ngưỡng thường, không point-adjust. (5) **Cấu hình chỉ-async không còn số hạng `trace_err` [CN 11-02].** `trace_err` (log1p của số span lỗi, tính từ đặc trưng trace sync) trước đây vẫn được cộng vào điểm của chỉ-async dù nhánh sync tắt: mã chỉ kiểm batch có đặc trưng trace, không kiểm `open_trace`. Nay chỉ cấu hình có `open_trace=True` mới có số hạng này (chỉ-sync và đủ bộ không đổi). Chấm lại 5 checkpoint chỉ-async cũ của F13 bằng mã mới (chỉ suy luận) cho F1 0,259–0,260, AUROC 0,761–0,773, AUPRC 0,264–0,272, khớp lần chạy lại (F1 0,260), nên phần giảm của hàng chỉ-async ở F13 (F1 0,434 → 0,260; AUROC 0,805 → 0,767; AUPRC 0,467 → 0,269) **do bỏ `trace_err`, không do đầu discriminator async**. Ở F01 và F02 hàng chỉ-async gần như không đổi (chênh tối đa 0,008); hàng đủ bộ đổi tối đa 0,003, trong độ lệch chuẩn giữa các seed. Nghĩa là số chỉ-async của lần chạy đầu có kèm bằng chứng lỗi từ nhánh sync, và số mới mới là của nhánh async đứng riêng. (6) **Đầu discriminator thứ tự của nhánh async [CN 11-03].** Số ở các bảng trên là của bản có đủ ba đầu discriminator async (cấu trúc, thuộc tính, thứ tự). So với bản hai đầu (chạy lại 11-02), cùng seed: chênh trung bình của F1, AUROC, AUPRC và F1 oracle ở cả 6 hàng (24 chỉ số) đều nhỏ hơn độ lệch chuẩn giữa các seed của bản hai đầu; chênh trung bình lớn nhất là 0,006 (F1, F01 đủ bộ), một seed lẻ có thể lệch tới 0,035 (F1 oracle, F01 đủ bộ, seed 4). Với `open_gan_sep=True` các đầu này không nhận gradient về bộ sinh và không vào điểm số, nên hai bản chỉ khác nhau do RNG; vì vậy không tách riêng đóng góp của đầu thứ tự, và cặp sát ngưỡng ở mệnh đề 1 (AUPRC của F02 so với chỉ-async) đổi loại giữa hai bản chỉ vì nằm sát ngưỡng.
 
 **Việc 7, DeepTraLog GGNN** (5 seed, 30 epoch, `run_ggnn.py`). Trung bình ± độ lệch chuẩn (quần thể) qua 5 seed; ngưỡng p95 điểm val của chính GGNN:
 
@@ -307,11 +307,11 @@ Việc 7, 8, 9 độc lập nhau, chạy theo khả năng máy. Nếu thiếu th
 
 | F-case | F1@val UAM-AD / GGNN | AUROC UAM-AD / GGNN | AUPRC UAM-AD / GGNN |
 |:--|--:|--:|--:|
-| F01 | 0,775 / **0,793** | **0,971** / 0,936 | 0,859 / **0,898** |
-| F02 | 0,133 / **0,856** | 0,803 / **0,998** | 0,257 / **0,981** |
-| F13 | **0,866** / 0,745 | **0,990** / 0,943 | **0,893** / 0,863 |
+| F01 | 0,775 / **0,793** | **0,971** / 0,936 | 0,858 / **0,898** |
+| F02 | 0,131 / **0,856** | 0,805 / **0,998** | 0,258 / **0,981** |
+| F13 | **0,865** / 0,745 | **0,990** / 0,943 | **0,892** / 0,863 |
 
-**Kết quả không có lợi cho UAM-AD, báo đúng số đo:** GGNN thắng rõ ở F02 (mọi chỉ số, F1 chênh 0,72) và thắng F1 và AUPRC ở F01 (0,793 so với 0,775; 0,898 so với 0,859); UAM-AD thắng ở F13 (cả ba chỉ số) và AUROC của F01 (0,971 so với 0,936). Mệnh đề 1 ("đủ bộ ≥ nhánh lẻ") là so sánh nội bộ UAM-AD; so với GGNN thì UAM-AD **không** vượt trội trên DeepTraLog, nhất là ở F02. **Điều kiện không ngang nhau, phải ghi trong luận văn:** (1) GGNN chấm từng trace riêng, UAM-AD chấm cửa sổ 5 trace; (2) GGNN huấn luyện trên ≈ 65.000 trace normal của riêng nó (chia 60/10/30), UAM-AD trên `train.pkl`; (3) embedding sự kiện của GGNN do ta dựng lại từ nội dung sự kiện (TF-IDF + SVD, xem `working_history.md`, mục "DeepTraLog GGNN") vì tác giả không công bố file embedding, nên có thể mang thông tin nội dung mà UAM-AD không thấy; chưa kiểm xem phần này có làm điểm GGNN cao hơn thực tế không; (4) 30 epoch thay vì 100 của tác giả. Ngưỡng p95 của GGNN rất sát 0 (mỗi seed từ −1,3e-6 đến +3,2e-7) và R ≈ 0,003, vì Deep SVDD co hình cầu về gần một điểm; xếp hạng vẫn tốt (AUROC ≥ 0,94), nhưng điểm số tuyệt đối rất nhỏ. Cột oracle F1 của GGNN là quét ngưỡng thường, nhất quán với AUROC (AUROC 0,9998 ↔ oracle 0,994), khác cột oracle của `run.py` (xem cảnh báo ở trên).
+**Kết quả không có lợi cho UAM-AD, báo đúng số đo:** GGNN thắng rõ ở F02 (mọi chỉ số, F1 chênh 0,72) và thắng F1 và AUPRC ở F01 (0,793 so với 0,775; 0,898 so với 0,858); UAM-AD thắng ở F13 (cả ba chỉ số) và AUROC của F01 (0,971 so với 0,936). Mệnh đề 1 ("đủ bộ ≥ nhánh lẻ") là so sánh nội bộ UAM-AD; so với GGNN thì UAM-AD **không** vượt trội trên DeepTraLog, nhất là ở F02. **Điều kiện không ngang nhau, phải ghi trong luận văn:** (1) GGNN chấm từng trace riêng, UAM-AD chấm cửa sổ 5 trace; (2) GGNN huấn luyện trên ≈ 65.000 trace normal của riêng nó (chia 60/10/30), UAM-AD trên `train.pkl`; (3) embedding sự kiện của GGNN do ta dựng lại từ nội dung sự kiện (TF-IDF + SVD, xem `working_history.md`, mục "DeepTraLog GGNN") vì tác giả không công bố file embedding, nên có thể mang thông tin nội dung mà UAM-AD không thấy; chưa kiểm xem phần này có làm điểm GGNN cao hơn thực tế không; (4) 30 epoch thay vì 100 của tác giả. Ngưỡng p95 của GGNN rất sát 0 (mỗi seed từ −1,3e-6 đến +3,2e-7) và R ≈ 0,003, vì Deep SVDD co hình cầu về gần một điểm; xếp hạng vẫn tốt (AUROC ≥ 0,94), nhưng điểm số tuyệt đối rất nhỏ. Cột oracle F1 của GGNN là quét ngưỡng thường, nhất quán với AUROC (AUROC 0,9998 ↔ oracle 0,994), khác cột oracle của `run.py` (xem cảnh báo ở trên).
 
 #### Việc 8 – SUMMARY experiments between UAC-AD and UAM-AD
 
@@ -517,26 +517,28 @@ Chỉ những điều sau (số lấy từ S1 và S2):
 
 ##### S6. Luật chấm: `norm_sum` hay `raw_sum`
 
-- **`raw_sum`** là luật gốc: điểm = `fusion_loss`, tức `log_kpi_loss + g·trace_d + λ·g` (trace nhân với cổng `g`; SN còn cộng số hạng phạt hoạt động). **`norm_sum`** được thêm khi làm nhánh async trên DeepTraLog: mỗi số hạng (`log_kpi_loss`, `trace_dis`, `trace_err`) được chuẩn hóa theo trung vị và độ lệch p95 của val rồi cộng với trọng số 1; `trace_dis` và `trace_err` **không nhân cổng**, và không có số hạng phạt hoạt động. Cấu hình đóng băng chọn `norm_sum` cho mọi dataset. Cả hai điểm đều có trong `info_score.txt` của mọi lần chạy (cùng checkpoint).
-- **Vì sao không thể đổi sang `raw_sum` làm luật duy nhất: DeepTraLog.** Chấm 75 ô DeepTraLog (bước 7; F05, F09 đã chạy nhưng từ 10-31 không còn trong Bảng C) bằng `raw_sum`, ở 4 trong 5 F-case `raw_sum` kém hơn `norm_sum` (nhiều ở F01, F13, F05; ít hơn ở F02), chỉ F09 là tốt hơn (5 seed, trung bình±độ lệch chuẩn):
+- **`raw_sum`** là luật gốc: điểm = `fusion_loss`, tức `log_kpi_loss + g·trace_d + λ·g` (trace nhân với cổng `g`; SN còn cộng số hạng phạt hoạt động). **`norm_sum`** được thêm khi làm nhánh async trên DeepTraLog: mỗi số hạng (`log_kpi_loss`, `trace_dis`, `trace_err`) được chuẩn hóa theo trung vị và độ lệch p95 của val rồi cộng với trọng số 1; `trace_dis` và `trace_err` **không nhân cổng**, và không có số hạng phạt hoạt động. Cấu hình đóng băng chọn `norm_sum` cho mọi dataset. Cả hai điểm đều có trong `info_score.txt` của mọi lần chạy (cùng checkpoint). **[CN 11-02]** Số hạng `trace_err` chỉ nên có ở mô hình dùng trace: mã đã sửa (`_score_components` kiểm `open_trace`), nhưng mọi số UAC-AD trong tài liệu này (lần chạy 10-xx) vẫn tính cả `trace_err` cho đến khi chạy lại; ở RE2/RE3 chênh tối đa 0,012 F1 và 0,008 AUROC (đọc từ `raw_sum_*` đã lưu, vì UAC-AD không có trace thì `raw_sum` là log+KPI thuần), SN chưa đo.
+- **Vì sao không thể đổi sang `raw_sum` làm luật duy nhất: DeepTraLog.** Chấm 75 ô DeepTraLog (bước 7; F05, F09 đã chạy nhưng từ 10-31 không còn trong Bảng C; 30 ô đủ bộ và chỉ-async của F01, F02, F13 là lần chạy lại 11-02/03, 20 ô đủ bộ và chỉ-async của F05, F09 vẫn là lần chạy đầu) bằng `raw_sum`, ở 4 trong 5 F-case `raw_sum` kém hơn `norm_sum` (nhiều ở F01, F13, F05; ít hơn ở F02), chỉ F09 là tốt hơn (5 seed, trung bình±độ lệch chuẩn):
 
 | F-case | Cấu hình | `norm_sum` F1 / AUROC / AUPRC | `raw_sum` F1 / AUROC / AUPRC |
 |:--|:--|:--|:--|
 | F01 | chỉ-sync | 0,765±0,003 / 0,935±0,007 / 0,830±0,002 | 0,235±0,042 / 0,885±0,008 / 0,429±0,031 |
-| F01 | chỉ-async | 0,258±0,000 / 0,855±0,006 / 0,345±0,005 | 0,208±0,014 / 0,838±0,004 / 0,309±0,007 |
-| F01 | đủ bộ | 0,775±0,003 / 0,971±0,004 / 0,859±0,005 | 0,151±0,022 / 0,861±0,014 / 0,339±0,031 |
+| F01 | chỉ-async | 0,258±0,001 / 0,855±0,007 / 0,349±0,009 | 0,201±0,003 / 0,838±0,004 / 0,310±0,004 |
+| F01 | đủ bộ | 0,775±0,002 / 0,971±0,004 / 0,858±0,007 | 0,167±0,012 / 0,862±0,009 / 0,339±0,020 |
 | F02 | chỉ-sync | 0,107±0,001 / 0,664±0,031 / 0,170±0,014 | 0,000±0,000 / 0,713±0,007 / 0,189±0,004 |
-| F02 | chỉ-async | 0,105±0,000 / 0,803±0,002 / 0,285±0,002 | 0,018±0,037 / 0,733±0,008 / 0,212±0,019 |
-| F02 | đủ bộ | 0,133±0,014 / 0,803±0,033 / 0,256±0,037 | 0,020±0,031 / 0,726±0,010 / 0,196±0,007 |
+| F02 | chỉ-async | 0,105±0,000 / 0,804±0,002 / 0,293±0,002 | 0,016±0,032 / 0,732±0,008 / 0,209±0,015 |
+| F02 | đủ bộ | 0,131±0,012 / 0,805±0,032 / 0,258±0,034 | 0,014±0,028 / 0,721±0,005 / 0,193±0,003 |
 | F13 | chỉ-sync | 0,852±0,004 / 0,989±0,000 / 0,892±0,008 | 0,250±0,022 / 0,725±0,007 / 0,340±0,043 |
-| F13 | chỉ-async | 0,434±0,001 / 0,805±0,002 / 0,467±0,002 | 0,204±0,003 / 0,696±0,019 / 0,249±0,004 |
-| F13 | đủ bộ | 0,866±0,002 / 0,990±0,001 / 0,893±0,014 | 0,263±0,001 / 0,832±0,009 / 0,351±0,016 |
+| F13 | chỉ-async | 0,260±0,000 / 0,767±0,003 / 0,269±0,002 | 0,206±0,003 / 0,721±0,025 / 0,257±0,008 |
+| F13 | đủ bộ | 0,865±0,002 / 0,990±0,001 / 0,892±0,014 | 0,263±0,000 / 0,822±0,007 / 0,337±0,009 |
 | F05 | chỉ-sync | 0,903±0,003 / 0,994±0,000 / 0,952±0,001 | 0,064±0,001 / 0,554±0,126 / 0,230±0,033 |
 | F05 | chỉ-async | 0,905±0,001 / 0,999±0,000 / 0,990±0,000 | 0,007±0,009 / 0,296±0,004 / 0,129±0,004 |
 | F05 | đủ bộ | 0,910±0,003 / 0,994±0,000 / 0,940±0,007 | 0,084±0,016 / 0,489±0,024 / 0,207±0,008 |
 | F09 | chỉ-sync | 0,216±0,006 / 0,923±0,003 / 0,438±0,009 | 0,425±0,107 / 0,958±0,004 / 0,571±0,025 |
 | F09 | chỉ-async | 0,241±0,066 / 0,951±0,001 / 0,533±0,006 | 0,400±0,016 / 0,960±0,001 / 0,582±0,007 |
 | F09 | đủ bộ | 0,187±0,047 / 0,941±0,004 / 0,494±0,015 | 0,560±0,025 / 0,964±0,000 / 0,612±0,006 |
+
+Hàng chỉ-async và đủ bộ của F05, F09 là lần chạy đầu, trước CHANGE 10 và trước khi bỏ `trace_err` khỏi cấu hình không bật nhánh sync (hàng chỉ-async của hai F-case này còn số hạng `trace_err`); chưa chạy lại vì chúng không nằm trong Bảng C.
 
 **Ngoại lệ:** F09, nơi `raw_sum` tốt hơn. Nguyên nhân `raw_sum` hỏng ở DeepTraLog chưa được chẩn đoán; chỉ biết đó là số đo. Vì kết luận chính về async (bước 7) dựa trên `norm_sum`, dùng `raw_sum` cho bước 8 và `norm_sum` cho bước 7 nghĩa là mỗi dataset một luật chấm, chọn sau khi đã thấy kết quả test. Không làm vậy.
 
@@ -984,23 +986,23 @@ Mỗi dòng là một cấu hình, mỗi cột một chỉ số. Mỗi F-case v�
 
 **Cặp cần so:** hai dòng in đậm (UAM-AD đủ bộ và DeepTraLog GGNN) ở mỗi F-case; trong mỗi cột, số in đậm là của bên cao hơn trong cặp đó (so ở 3 chữ số thập phân, chưa xét độ lệch chuẩn). Hai dòng chỉ-sync, chỉ-async dùng để so nội bộ UAM-AD (mệnh đề 1). Đếm 12 ô (3 F-case × 4 chỉ số): GGNN cao hơn ở 7 ô, UAM-AD đủ bộ cao hơn ở 5 ô. F01: GGNN hơn ở F1, AUPRC, F1 oracle, UAM-AD hơn ở AUROC; F02: GGNN hơn cả bốn; F13: UAM-AD hơn cả bốn.
 
-**F1 oracle** = F1 tốt nhất khi quét mọi ngưỡng trên chính điểm số của dòng đó, không point-adjust (định nghĩa của đối thủ); chỉ để đối chiếu, không dùng để kết luận. Với ba cấu hình UAM-AD, F1 oracle tính lại từ checkpoint đã lưu bằng `codes/common/rescore_dtl_oracle.py` (không huấn luyện lại): F1@val95, AUROC, AUPRC dựng lại khớp `info_score.txt` ở cả 45 checkpoint (lệch dưới 1e-3) và oracle quét trên đúng điểm norm_sum đó. Không dùng `oracle_f1` ghi sẵn trong `info_score.txt`, vì đó là oracle có point-adjust của điểm thô (raw), có thể thấp hơn cả F1@val95 (F01 đủ bộ seed 0: 0,631 so với 0,772). GGNN lấy `oracle_f1` của chính nó. Ở cột F1 oracle, đủ bộ cao hơn nhánh lẻ ở 4 trong 6 cặp và ngang ở 2 (F01 so với chỉ-sync: 0,800 so với 0,809; F02 so với chỉ-async: 0,468 so với 0,492; cả hai chênh dưới một độ lệch chuẩn của đủ bộ), không cặp nào thấp hơn quá một độ lệch chuẩn; kết luận của mệnh đề 1 không đổi.
+**F1 oracle** = F1 tốt nhất khi quét mọi ngưỡng trên chính điểm số của dòng đó, không point-adjust (định nghĩa của đối thủ); chỉ để đối chiếu, không dùng để kết luận. Với ba cấu hình UAM-AD, F1 oracle tính lại từ checkpoint đã lưu bằng `codes/common/rescore_dtl_oracle.py` (không huấn luyện lại): F1@val95, AUROC, AUPRC dựng lại khớp `info_score.txt` ở cả 45 checkpoint (lệch dưới 1e-3; chỉ-sync: 15 checkpoint của lần chạy đầu, đủ bộ và chỉ-async: 30 checkpoint của lần chạy lại 11-02/03) và oracle quét trên đúng điểm norm_sum đó. Không dùng `oracle_f1` ghi sẵn trong `info_score.txt`, vì đó là oracle có point-adjust của điểm thô (raw), có thể thấp hơn cả F1@val95 (F01 đủ bộ seed 0: 0,588 so với 0,771). GGNN lấy `oracle_f1` của chính nó. Ở cột F1 oracle, đủ bộ cao hơn nhánh lẻ ở 4 trong 6 cặp, ngang ở 1 (F02 so với chỉ-async: 0,469 so với 0,493; chênh dưới một độ lệch chuẩn của đủ bộ) và thấp hơn quá một độ lệch chuẩn ở 1 (F01 so với chỉ-sync: 0,796 so với 0,809; chênh 0,0127, độ lệch chuẩn của đủ bộ 0,0105; ở bản hai đầu độ lệch chuẩn này là 0,0178 nên cặp là ngang). Cột này chỉ để đối chiếu, không dùng để kết luận mệnh đề 1.
 
 <!-- FINAL C BEGIN -->
 
 | F-case | Cấu hình | F1@val95 | AUROC | AUPRC | F1 oracle |
 |:--|:--|--:|--:|--:|--:|
 | F01 | Chỉ sync | 0,765±0,003 | 0,935±0,007 | 0,830±0,002 | 0,809±0,003 |
-|  | Chỉ async | 0,258±0,000 | 0,855±0,006 | 0,345±0,005 | 0,585±0,003 |
-|  | **Đủ bộ sync + async (UAM-AD)** | 0,775±0,003 | **0,971±0,004** | 0,859±0,005 | 0,800±0,017 |
+|  | Chỉ async | 0,258±0,001 | 0,855±0,007 | 0,349±0,009 | 0,585±0,000 |
+|  | **Đủ bộ sync + async (UAM-AD)** | 0,775±0,002 | **0,971±0,004** | 0,858±0,007 | 0,796±0,011 |
 |  | **DeepTraLog GGNN** | **0,793±0,003** | 0,936±0,014 | **0,898±0,006** | **0,933±0,001** |
 | F02 | Chỉ sync | 0,107±0,001 | 0,664±0,031 | 0,170±0,014 | 0,338±0,018 |
-|  | Chỉ async | 0,105±0,000 | 0,803±0,002 | 0,285±0,002 | 0,492±0,002 |
-|  | **Đủ bộ sync + async (UAM-AD)** | 0,133±0,014 | 0,803±0,033 | 0,256±0,037 | 0,468±0,028 |
+|  | Chỉ async | 0,105±0,000 | 0,804±0,002 | 0,293±0,002 | 0,493±0,003 |
+|  | **Đủ bộ sync + async (UAM-AD)** | 0,131±0,012 | 0,805±0,032 | 0,258±0,034 | 0,469±0,028 |
 |  | **DeepTraLog GGNN** | **0,856±0,007** | **0,998±0,001** | **0,981±0,010** | **0,964±0,024** |
 | F13 | Chỉ sync | 0,852±0,004 | 0,989±0,000 | 0,892±0,008 | 0,874±0,012 |
-|  | Chỉ async | 0,434±0,001 | 0,805±0,002 | 0,467±0,002 | 0,506±0,010 |
-|  | **Đủ bộ sync + async (UAM-AD)** | **0,866±0,002** | **0,990±0,001** | **0,893±0,014** | **0,898±0,021** |
+|  | Chỉ async | 0,260±0,000 | 0,767±0,003 | 0,269±0,002 | 0,395±0,003 |
+|  | **Đủ bộ sync + async (UAM-AD)** | **0,865±0,002** | **0,990±0,001** | **0,892±0,014** | **0,895±0,019** |
 |  | **DeepTraLog GGNN** | 0,745±0,008 | 0,943±0,016 | 0,863±0,012 | 0,880±0,001 |
 
 <!-- FINAL C END -->

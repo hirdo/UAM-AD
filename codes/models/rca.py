@@ -129,3 +129,44 @@ def compute_hit_rate_at_k(records):
         "mrr": rr_sum / n,
         "n_scored": n,
     }
+
+
+# ── Service ranking v2 (item 10): trace (Eq. 14) + the service's own KPI channels, each standardised on normal val ──
+
+def channel_services(metric_names, service2idx):
+    """Service index of every KPI channel, -1 for a channel that belongs to no service.
+    RCAEval channels are '<service>_<metric>', SN channels 'container_<metric>__<service>'."""
+    out = []
+    for name in metric_names:
+        svc = name.split("__")[-1] if "__" in name else name.split("_")[0]
+        out.append(service2idx.get(svc, -1))
+    return np.array(out)
+
+
+def standardise_on_val(test, val, percentile=95.0, eps=1e-8):
+    """z = max(0, (x - median_val) / (p95_val - median_val)) per column: the recipe of BaseModel.evaluate_norm_sum."""
+    med = np.median(val, axis=0)
+    q = np.maximum(np.percentile(val, percentile, axis=0) - med, eps)
+    return np.clip((test - med) / q, 0.0, None)
+
+
+def service_scores(node_test, node_val, kerr_test, kerr_val, channel_service, percentile=95.0):
+    """Per-service scores [rows, N] of the rankings compared in item 10:
+    current = raw TraceDAE node score; trace = the same score standardised per node on val;
+    kpi = max over the service's own KPI channels of the standardised squared reconstruction error;
+    sum = trace + kpi (the design adopted)."""
+    trace_z = standardise_on_val(node_test, node_val, percentile)
+    ke = standardise_on_val(kerr_test, kerr_val, percentile)
+    kpi_z = np.zeros_like(trace_z)
+    for s in range(trace_z.shape[1]):
+        cols = channel_service == s
+        if cols.any():
+            kpi_z[:, s] = ke[:, cols].max(axis=1)
+    return {"current": node_test, "trace": trace_z, "kpi": kpi_z, "sum": trace_z + kpi_z}
+
+
+def hit_rates(scores, gt_idx, ks=(1, 3, 5)):
+    """HR@k of a [rows, N] score matrix against the index of the injected service (ties: lower index first)."""
+    order = np.argsort(-scores, axis=1, kind="stable")
+    pos = (order == np.asarray(gt_idx)[:, None]).argmax(axis=1)
+    return {f"hr{k}": float((pos < k).mean()) for k in ks}

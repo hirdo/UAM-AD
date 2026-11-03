@@ -123,7 +123,24 @@ class myDataset(Dataset):
         return result
     def __get_session_id__(self, idx):
         return self.idx2id[idx]
-    
+
+
+# Minimum number of window steps that carry async messages for the async branch to have anything to learn from: the same minimum
+# BaseModel.evaluate_norm_sum needs to normalise the async count term within the message-bearing steps.
+ASYNC_MIN_MSG_ENTRIES = 40
+
+
+def async_message_entries(dataset):
+    """(window steps that carry >= 1 async message, window steps) of a myDataset with async keys. A step carries a message when the summed
+    async out-count (col 0 of async_trace_node_features is log1p(count)) is >= 0.5 -- the same test as BaseModel._score_components."""
+    n_msg = n_all = 0
+    for window in dataset.window:
+        for block in window:
+            n_all += 1
+            n_msg += int(np.expm1(block["async_trace_node_features"][:, 0]).sum() >= 0.5)
+    return n_msg, n_all
+
+
 def normalize_data(data, scaler=None):
     data = np.asarray(data, dtype=np.float32)
     if np.any(sum(np.isnan(data))):
@@ -282,20 +299,28 @@ class Process():
             'val':     myDataset(val_chunks, window_size=ws) if val_chunks else None,
         }
 
-        # Tell the user, plainly, whether this dataset actually supports the async
-        # trace branch -- otherwise "--open_async_trace True" on a dataset without
-        # the keys silently builds nothing and no other log line says so.
+        # --open_async_trace is a REQUEST: the branch is built only if the data show async signs (run.py reads
+        # self.async_usable). Signs = the async keys exist AND the normal training windows carry enough async messages
+        # (ASYNC_MIN_MSG_ENTRIES). No labels are used, so this says "there is async interaction to learn from", not
+        # "async faults are detectable".
         probe = self.dataset['unlabel'] or self.dataset['test']
         has_async, has_order = probe.has_async_trace, probe.has_async_order
+        self.async_msg_entries = async_message_entries(probe) if has_async else None
+        self.async_usable = has_async and self.async_msg_entries[0] >= ASYNC_MIN_MSG_ENTRIES
         if kwargs.get("open_async_trace"):
-            if has_async:
-                logging.info(f"Async trace branch: ACTIVE -- dataset has async_trace_node_features/"
-                              f"async_msg_count_adj (order relation {'present' if has_order else 'ABSENT'}).")
+            if self.async_usable:
+                n_msg, n_all = self.async_msg_entries
+                logging.info(f"Async trace branch: ACTIVE -- dataset has async_trace_node_features/async_msg_count_adj "
+                              f"(order relation {'present' if has_order else 'ABSENT'}); {n_msg} of {n_all} training window steps "
+                              f"({n_msg / max(n_all, 1):.1%}) carry async messages (minimum {ASYNC_MIN_MSG_ENTRIES}).")
+            elif has_async:
+                logging.warning(f"Async trace branch: --open_async_trace True but only {self.async_msg_entries[0]} of "
+                                 f"{self.async_msg_entries[1]} training window steps carry async messages (minimum "
+                                 f"{ASYNC_MIN_MSG_ENTRIES}) -- the branch will be switched OFF.")
             else:
                 logging.warning("Async trace branch: --open_async_trace True but this dataset has NO "
-                                 "async_trace_node_features/async_msg_count_adj -- the branch will NOT be built "
-                                 "and this run is equivalent to --open_async_trace False. Re-run the "
-                                 "dataset's preprocessor with async support, or drop --open_async_trace.")
+                                 "async_trace_node_features/async_msg_count_adj -- the branch will be switched OFF "
+                                 "(this run is equivalent to --open_async_trace False).")
         elif has_async:
             logging.info("Async trace branch: this dataset HAS async_trace_node_features/async_msg_count_adj "
                           "but --open_async_trace is False this run -- branch not built.")
