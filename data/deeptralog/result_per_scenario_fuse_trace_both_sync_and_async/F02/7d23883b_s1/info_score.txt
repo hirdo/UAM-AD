@@ -1,0 +1,4 @@
+Experiment 7d23883b: 2026/09/27-17:36:37
+Train time/epoch 23.6734
+* Test -- f1:0.1476	rc:0.1060	pc:0.2426	threshold:2.3533	auroc:0.7946	auprc:0.2461	oracle_f1:0.3481	oracle_rc:0.4512	oracle_pc:0.2834	oracle_threshold:0.2029	raw_sum_f1:0.0000	raw_sum_pc:0.0000	raw_sum_rc:0.0000	raw_sum_auroc:0.7139	raw_sum_auprc:0.1882	raw_sum_threshold:0.3748
+

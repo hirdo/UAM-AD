@@ -1,0 +1,49 @@
+2026-09-27 09:55:03,109 P27192 INFO ^^^^^^^^^^ Current Model:hades, c3f1ada3 ^^^^^^^^^^
+2026-09-27 09:55:03,109 P27192 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:55:07,497 P27192 INFO 642 unique log templates found.
+2026-09-27 09:55:07,497 P27192 INFO Transforming unlabel train data.
+2026-09-27 09:55:07,909 P27192 INFO Transforming test data.
+2026-09-27 09:55:08,099 P27192 INFO 366 new templates show.
+2026-09-27 09:55:09,155 P27192 INFO Transforming val data.
+2026-09-27 09:55:09,155 P27192 INFO 53 new templates show.
+2026-09-27 09:55:09,518 P27192 INFO Data loaded done!
+2026-09-27 09:59:49,240 P27192 INFO Known word number: 642
+2026-09-27 10:00:10,274 P27192 INFO Epoch 0/10, train generator loss: 0.62761
+2026-09-27 10:00:26,344 P27192 INFO Epoch 0/10, train discriminator loss: 4.50309
+2026-09-27 10:00:28,200 P27192 INFO Epoch 0/10, val score: 0.35449. [33.69s]
+2026-09-27 10:00:40,022 P27192 INFO Epoch 1/10, train generator loss: 0.34419
+2026-09-27 10:00:53,989 P27192 INFO Epoch 1/10, train discriminator loss: 5.62419
+2026-09-27 10:00:55,845 P27192 INFO Epoch 1/10, val score: 0.25172. [25.74s]
+2026-09-27 10:01:07,611 P27192 INFO Epoch 2/10, train generator loss: 0.27665
+2026-09-27 10:01:19,217 P27192 INFO Epoch 2/10, train discriminator loss: 5.41240
+2026-09-27 10:01:20,701 P27192 INFO Epoch 2/10, val score: 0.20822. [23.33s]
+2026-09-27 10:01:32,436 P27192 INFO Epoch 3/10, train generator loss: 0.23590
+2026-09-27 10:01:45,695 P27192 INFO Epoch 3/10, train discriminator loss: 4.59462
+2026-09-27 10:01:47,715 P27192 INFO Epoch 3/10, val score: 0.18141. [24.95s]
+2026-09-27 10:02:01,267 P27192 INFO Epoch 4/10, train generator loss: 0.19344
+2026-09-27 10:02:19,425 P27192 INFO Epoch 4/10, train discriminator loss: 4.27037
+2026-09-27 10:02:21,052 P27192 INFO Epoch 4/10, val score: 0.15066. [31.66s]
+2026-09-27 10:02:35,026 P27192 INFO Epoch 5/10, train generator loss: 0.16921
+2026-09-27 10:02:48,875 P27192 INFO Epoch 5/10, train discriminator loss: 3.38149
+2026-09-27 10:02:50,542 P27192 INFO Epoch 5/10, val score: 0.13220. [27.78s]
+2026-09-27 10:03:06,316 P27192 INFO Epoch 6/10, train generator loss: 0.12956
+2026-09-27 10:03:19,916 P27192 INFO Epoch 6/10, train discriminator loss: 2.91365
+2026-09-27 10:03:21,684 P27192 INFO Epoch 6/10, val score: 0.11706. [29.33s]
+2026-09-27 10:03:43,959 P27192 INFO Epoch 7/10, train generator loss: 0.10340
+2026-09-27 10:04:00,882 P27192 INFO Epoch 7/10, train discriminator loss: 2.54630
+2026-09-27 10:04:03,410 P27192 INFO Epoch 7/10, val score: 0.10581. [39.14s]
+2026-09-27 10:04:20,870 P27192 INFO Epoch 8/10, train generator loss: 0.08846
+2026-09-27 10:04:36,893 P27192 INFO Epoch 8/10, train discriminator loss: 2.26566
+2026-09-27 10:04:38,728 P27192 INFO Epoch 8/10, val score: 0.09608. [33.40s]
+2026-09-27 10:04:52,722 P27192 INFO Epoch 9/10, train generator loss: 0.07553
+2026-09-27 10:05:06,533 P27192 INFO Epoch 9/10, train discriminator loss: 2.02776
+2026-09-27 10:05:08,229 P27192 INFO Epoch 9/10, val score: 0.08840. [27.76s]
+2026-09-27 10:05:10,315 P27192 INFO Threshold (p=95.0, src=val, n=7475): 0.342817
+2026-09-27 10:05:16,832 P27192 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F02_s2\c3f1ada3\trace_scores.npz
+2026-09-27 10:05:22,156 P27192 INFO *** Oracle F1 0.3609 (test-swept threshold, point_adjust)
+2026-09-27 10:05:27,593 P27192 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F02_s2.npz
+2026-09-27 10:05:27,595 P27192 INFO *** (reference) raw fusion_loss sum: F1 0.0000 P 0.0000 R 0.0000 AUROC 0.7176 AUPRC 0.1910
+2026-09-27 10:05:32,771 P27192 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 10:05:32,773 P27192 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0276, scale 0.1869; z=0 without messages
+2026-09-27 10:05:32,813 P27192 INFO *** Test F1 0.1441 P 0.2436 R 0.1023 AUROC 0.7688 AUPRC 0.2245 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0229, 'trace_dis': 0.9522, 'trace_dis_async': 0.0002, 'trace_dis_order': 0.0044, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.2893, 'trace_dis': 0.012, 'trace_dis_async': 0.0262, 'trace_dis_order': 0.6065, 'trace_err': np.float64(0.1733)})
+2026-09-27 10:05:32,871 P27192 INFO Current hash id c3f1ada3

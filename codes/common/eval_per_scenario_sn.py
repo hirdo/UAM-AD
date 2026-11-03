@@ -9,15 +9,14 @@ For each anomaly scenario, runs HADES on:
 Aggregates F1 / Precision / Recall across all scenarios and reports
 mean ± std.
 
-Usage:
-    python codes/common/eval_per_scenario_sn.py \\
-        --data data/sn \\
-        --dataset sn --data_type fuse \\
-        --open_trace True --trace_c 6 --gate_lambda 0.01 \\
-        --epoches 10 10 --batch_size 256 --patience 5 \\
-        --window_size 5 --val_percentile 95 \\
-        --alpha 0.16 --open_gan_sep True \\
-        --run_start 0 --run_end 1
+Usage (SN settings of frozen_config.json are the defaults; UAM-AD = --open_trace True --enable_rca True,
+UAC-AD = --open_trace False):
+    python codes/common/eval_per_scenario_sn.py --data data/sn --dataset sn --data_type fuse \\
+        --open_trace True --enable_rca True --result_dir <dir> --run_start 0 --run_end 1
+
+Seeds are separate run.py processes (--run_start inclusive, --run_end exclusive) and seeds already on disk are
+skipped, so --run_start 0 --run_end 1 now and --run_start 1 --run_end 5 later give the same 5 seeds. Results are
+mean±std over seeds, not the best seed.
 """
 
 import argparse
@@ -27,7 +26,8 @@ import os
 import subprocess
 import sys
 import time
-import numpy as np
+
+import eval_seeds
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,79 +53,6 @@ def _find_scenario_files(data_dir: str):
     return entries
 
 
-def _read_result(result_dir: str, hash_id: str):
-    """
-    Read best F1/precision/recall from the result JSON written by dump_scores.
-    Returns (f1, precision, recall) or None if not found.
-    """
-    # dump_scores writes to {result_dir}/{hash_id}.json
-    path = os.path.join(result_dir, f"{hash_id}.json")
-    if not os.path.exists(path):
-        # Try csv fallback
-        csv_path = os.path.join(result_dir, f"{hash_id}.csv")
-        if os.path.exists(csv_path):
-            import csv
-            with open(csv_path) as f:
-                rows = list(csv.DictReader(f))
-            if rows:
-                last = rows[-1]
-                return float(last.get("f1", 0)), float(last.get("pc", 0)), float(last.get("rc", 0))
-        return None
-    with open(path) as f:
-        data = json.load(f)
-    # data may be a list of run results; take the last one or max f1
-    if isinstance(data, list):
-        best = max(data, key=lambda x: x.get("f1", 0))
-    else:
-        best = data
-    return float(best.get("f1", 0)), float(best.get("pc", 0)), float(best.get("rc", 0))
-
-
-def _build_hash_id(base_args: dict, run_times: int, scenario_suffix: str) -> str:
-    """
-    Approximate hash_id used by run.py — we just scan the result dir for
-    files matching the run_times index.
-    """
-    # Not used directly; we scan result dir instead.
-    return ""
-
-
-def _scan_latest_results(result_dir: str, run_start: int, run_end: int):
-    """
-    Scan result_dir recursively for info_score.txt files (one per run subdir).
-    Each file contains a line like:
-        * Test -- f1:0.2174\trc:0.1220\tpc:1.0000
-    Returns (best_f1, best_pc, best_rc) across all runs, or None if not found.
-    """
-    import re
-    if not os.path.isdir(result_dir):
-        return None
-
-    best_f1 = best_pc = best_rc = -1.0
-
-    for root, dirs, files in os.walk(result_dir):
-        for fname in files:
-            if fname != "info_score.txt":
-                continue
-            fpath = os.path.join(root, fname)
-            try:
-                with open(fpath) as f:
-                    for line in f:
-                        m = re.search(
-                            r"f1:([\d.]+)\s+rc:([\d.]+)\s+pc:([\d.]+)", line
-                        )
-                        if m:
-                            f1 = float(m.group(1))
-                            rc = float(m.group(2))
-                            pc = float(m.group(3))
-                            if f1 > best_f1:
-                                best_f1, best_pc, best_rc = f1, pc, rc
-            except Exception:
-                continue
-
-    return (best_f1, best_pc, best_rc) if best_f1 >= 0 else None
-
-
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main():
@@ -139,9 +66,9 @@ def main():
     p.add_argument("--open_trace",    default="False")
     p.add_argument("--num_services",  default=12,   type=int)
     p.add_argument("--trace_c",       default=6,    type=int)
-    p.add_argument("--epoches",       default=[10, 10], nargs="+", type=int)
+    p.add_argument("--epoches",       default=[50, 50], nargs="+", type=int)
     p.add_argument("--batch_size",    default=256,  type=int)
-    p.add_argument("--patience",      default=5,    type=int)
+    p.add_argument("--patience",      default=15,   type=int)
     p.add_argument("--window_size",   default=5,    type=int)
     p.add_argument("--val_percentile", default=95,   type=float,
                    help="Percentile of normal training losses used as anomaly threshold. "
@@ -152,9 +79,19 @@ def main():
     p.add_argument("--run_end",       default=1,    type=int)
     p.add_argument("--gate_lambda",   default=0.01, type=float,
                    help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+    p.add_argument("--gate_delta_lr_mult", default=10.0, type=float,
+                   help="Learning rate multiplier for trace_gate/delta_head params (SN setting 10; no effect without trace).")
+    p.add_argument("--activity_penalty_weight", default=1.5, type=float,
+                   help="Weight on the 'activity deficit' anomaly-score term (SN setting 1.5, same for UAM-AD and UAC-AD).")
+    p.add_argument("--score_rule",    default="norm_sum", choices=["raw_sum", "norm_sum"],
+                   help="Frozen config: norm_sum (run.py's own default is raw_sum).")
+    p.add_argument("--enable_rca",    default="False",
+                   help="True for UAM-AD (open_trace True): also write the service ranking used for HR@k.")
+    p.add_argument("--rca_top_k", default=5, type=int,
+                   help="Services kept per sample in rca_results.json; 5 is needed for HR@5.")
     p.add_argument("--result_dir",    default=None,
                    help="Base result dir; each scenario gets its own subdir. "
-                        "Defaults to {data}/result_per_scenario_{data_type}_{trace|baseline}")
+                        "Defaults to {data}/result_phase3_{data_type}_{trace|baseline}")
     p.add_argument("--run_py",        default=None,
                    help="Path to run.py (auto-detected if not specified)")
     args = p.parse_args()
@@ -177,7 +114,7 @@ def main():
     open_trace_str = str(args.open_trace).lower()
     suffix = "trace" if open_trace_str in ("true", "1", "yes") else "baseline"
     result_base = args.result_dir or os.path.join(
-        args.data, f"result_per_scenario_{args.data_type}_{suffix}"
+        args.data, f"result_phase3_{args.data_type}_{suffix}"
     )
 
     scenario_files = _find_scenario_files(args.data)
@@ -189,7 +126,7 @@ def main():
     logging.info(f"Results will be saved under: {result_base}/\n")
 
     # ── Run per scenario ──────────────────────────────────────────────────────
-    results = []   # list of (sc_name, f1, pc, rc, elapsed_sec)
+    elapsed, per_scenario = {}, {}
     total_start = time.perf_counter()
 
     for sc_name, test_pkl in scenario_files:
@@ -204,102 +141,72 @@ def main():
         logging.info(f"  test_pkl : {test_pkl}")
         logging.info(f"  result   : {sc_result_dir}")
 
-        cmd = [
-            sys.executable, run_py,
-            "--data",         args.data,
-            "--dataset",      args.dataset,
-            "--data_type",    args.data_type,
-            "--open_trace",   args.open_trace,
-            "--num_services", str(args.num_services),
-            "--trace_c",      str(args.trace_c),
-            "--epoches",      *[str(e) for e in args.epoches],
-            "--batch_size",   str(args.batch_size),
-            "--patience",     str(args.patience),
-            "--window_size",  str(args.window_size),
-            "--val_percentile", str(args.val_percentile),
-            "--alpha",        str(args.alpha),
-            "--open_gan_sep", args.open_gan_sep,
-            "--run_start",    str(args.run_start),
-            "--run_end",      str(args.run_end),
-            "--test_pkl",          test_pkl,
-            "--result_dir",        sc_result_dir,
-            "--gate_lambda",       str(args.gate_lambda),
-        ]
+        # One run.py process per seed: seeds already on disk are skipped, so seeds can be added in later invocations.
+        elapsed[sc_folder] = 0.0
+        for seed in range(args.run_start, args.run_end):
+            if seed in eval_seeds.read_seeds(sc_result_dir):
+                logging.info(f"  seed {seed}: already done, skipped")
+                continue
+            cmd = [
+                sys.executable, run_py,
+                "--data",         args.data,
+                "--dataset",      args.dataset,
+                "--data_type",    args.data_type,
+                "--open_trace",   args.open_trace,
+                "--num_services", str(args.num_services),
+                "--trace_c",      str(args.trace_c),
+                "--epoches",      *[str(e) for e in args.epoches],
+                "--batch_size",   str(args.batch_size),
+                "--patience",     str(args.patience),
+                "--window_size",  str(args.window_size),
+                "--val_percentile", str(args.val_percentile),
+                "--alpha",        str(args.alpha),
+                "--open_gan_sep", args.open_gan_sep,
+                "--run_start",    str(seed),
+                "--run_end",      str(seed + 1),
+                "--test_pkl",          test_pkl,
+                "--result_dir",        sc_result_dir,
+                "--gate_lambda",       str(args.gate_lambda),
+                "--gate_delta_lr_mult", str(args.gate_delta_lr_mult),
+                "--activity_penalty_weight", str(args.activity_penalty_weight),
+                "--score_rule",        args.score_rule,
+                "--enable_rca",        args.enable_rca,
+                "--rca_top_k",         str(args.rca_top_k),
+            ]
+            sc_start = time.perf_counter()
+            try:
+                proc = subprocess.run(cmd, cwd=os.path.dirname(run_py))
+                if proc.returncode != 0:
+                    logging.warning(f"  seed {seed}: run.py exited with code {proc.returncode}")
+            except Exception as e:
+                logging.error(f"  seed {seed}: failed to run: {e}")
+            elapsed[sc_folder] += time.perf_counter() - sc_start
+        per_scenario[sc_folder] = eval_seeds.read_seeds(sc_result_dir)
 
-        sc_start = time.perf_counter()
-        try:
-            proc = subprocess.run(
-                cmd,
-                capture_output=False,   # let output flow to terminal
-                text=True,
-                cwd=os.path.dirname(run_py),
-            )
-            if proc.returncode != 0:
-                logging.warning(f"  run.py exited with code {proc.returncode}")
-        except Exception as e:
-            logging.error(f"  Failed to run scenario {sc_name}: {e}")
-            results.append((sc_name, 0.0, 0.0, 0.0, 0.0))
-            continue
-        elapsed = time.perf_counter() - sc_start
-
-        # ── Read result ──────────────────────────────────────────────────────
-        res = _scan_latest_results(sc_result_dir, args.run_start, args.run_end)
-        if res is None:
-            logging.warning(f"  No result files found in {sc_result_dir}")
-            results.append((sc_name, 0.0, 0.0, 0.0, elapsed))
-        else:
-            f1, pc, rc = res
-            results.append((sc_name, f1, pc, rc, elapsed))
-            logging.info(f"  → F1={f1:.4f}  P={pc:.4f}  R={rc:.4f}  time={elapsed:.1f}s")
-
-    # ── Aggregate ─────────────────────────────────────────────────────────────
-    if not results:
+    per_scenario = {k: v for k, v in per_scenario.items() if v}
+    if not per_scenario:
         logging.error("No results collected.")
         return
 
-    total_elapsed = time.perf_counter() - total_start
+    eval_seeds.print_table(
+        f"SN per-scenario results ({args.data_type}, open_trace={args.open_trace}, {args.score_rule}); "
+        f"mean±std over seeds", per_scenario, elapsed)
+    logging.info(f"Total wall time of this invocation: {(time.perf_counter() - total_start) / 60:.1f} min")
 
-    f1s   = np.array([r[1] for r in results])
-    pcs   = np.array([r[2] for r in results])
-    rcs   = np.array([r[3] for r in results])
-    times = np.array([r[4] for r in results])
-
-    col = 38
-    sep = "-" * (col + 44)
-    print(f"\n{'='*82}")
-    print(f"  Per-Scenario Evaluation Results  ({args.data_type}, "
-          f"open_trace={args.open_trace})")
-    print(f"{'='*82}")
-    print(f"  {'Scenario':<{col}}  {'F1':>6}  {'Precision':>9}  {'Recall':>6}  {'Time(s)':>8}")
-    print(f"  {sep}")
-    for sc_name, f1, pc, rc, t in results:
-        display = sc_name[:col]
-        print(f"  {display:<{col}}  {f1:>6.4f}  {pc:>9.4f}  {rc:>6.4f}  {t:>8.1f}")
-    print(f"  {sep}")
-    print(f"  {'Mean':<{col}}  {f1s.mean():>6.4f}  {pcs.mean():>9.4f}  {rcs.mean():>6.4f}  {times.mean():>8.1f}")
-    print(f"  {'Std':<{col}}  {f1s.std():>6.4f}  {pcs.std():>9.4f}  {rcs.std():>6.4f}")
-    print(f"  {sep}")
-    print(f"  Total wall time: {total_elapsed:.1f}s ({total_elapsed/60:.1f} min)")
-    print(f"{'='*82}\n")
-
-    # Save summary JSON
     summary = {
         "config": {
             "data_type": args.data_type,
             "open_trace": args.open_trace,
+            "score_rule": args.score_rule,
+            "enable_rca": args.enable_rca,
             "val_percentile": args.val_percentile,
             "window_size": args.window_size,
+            "epoches": args.epoches,
+            "activity_penalty_weight": args.activity_penalty_weight,
+            "gate_delta_lr_mult": args.gate_delta_lr_mult,
         },
-        "per_scenario": [
-            {"scenario": sc, "f1": f1, "precision": pc, "recall": rc, "elapsed_sec": t}
-            for sc, f1, pc, rc, t in results
-        ],
-        "aggregate": {
-            "f1_mean": float(f1s.mean()), "f1_std": float(f1s.std()),
-            "precision_mean": float(pcs.mean()), "precision_std": float(pcs.std()),
-            "recall_mean": float(rcs.mean()), "recall_std": float(rcs.std()),
-            "total_elapsed_sec": float(total_elapsed),
-        }
+        "per_scenario_per_seed": {sc: {str(s): m for s, m in by_seed.items()} for sc, by_seed in per_scenario.items()},
+        "elapsed_sec_this_invocation": elapsed,
     }
     summary_path = os.path.join(result_base, "summary.json")
     with open(summary_path, "w") as f:

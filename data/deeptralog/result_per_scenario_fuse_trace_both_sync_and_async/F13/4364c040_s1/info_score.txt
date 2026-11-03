@@ -1,0 +1,4 @@
+Experiment 4364c040: 2026/09/27-17:45:40
+Train time/epoch 22.8614
+* Test -- f1:0.8618	rc:0.9989	pc:0.7578	threshold:2.3375	auroc:0.9902	auprc:0.8889	oracle_f1:0.4949	oracle_rc:0.4609	oracle_pc:0.5342	oracle_threshold:0.2446	raw_sum_f1:0.2641	raw_sum_pc:0.4014	raw_sum_rc:0.1967	raw_sum_auroc:0.8244	raw_sum_auprc:0.3409	raw_sum_threshold:0.3770
+

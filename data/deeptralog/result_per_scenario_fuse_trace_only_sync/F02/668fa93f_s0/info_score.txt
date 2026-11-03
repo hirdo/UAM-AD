@@ -1,0 +1,4 @@
+Experiment 668fa93f: 2026/09/26-21:09:58
+Train time/epoch 20.8377
+* Test -- f1:0.1134	rc:0.0819	pc:0.1843	threshold:1.1702	auroc:0.6598	auprc:0.1684	oracle_f1:0.4030	oracle_rc:0.5042	oracle_pc:0.3357	oracle_threshold:0.1852	raw_sum_f1:0.0000	raw_sum_pc:0.0000	raw_sum_rc:0.0000	raw_sum_auroc:0.7057	raw_sum_auprc:0.1891	raw_sum_threshold:0.3306
+

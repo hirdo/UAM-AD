@@ -1,0 +1,4 @@
+Experiment eefd19f8: 2026/09/27-18:21:11
+Train time/epoch 37.2676
+* Test -- f1:0.8614	rc:0.9989	pc:0.7571	threshold:2.4132	auroc:0.9896	auprc:0.8900	oracle_f1:0.4502	oracle_rc:0.4739	oracle_pc:0.4288	oracle_threshold:0.2212	raw_sum_f1:0.2630	raw_sum_pc:0.3964	raw_sum_rc:0.1967	raw_sum_auroc:0.8278	raw_sum_auprc:0.3321	raw_sum_threshold:0.3596
+

@@ -27,8 +27,12 @@ Input structure:
         inject_time.txt     # Unix timestamp (seconds)
 
 Output (--output_dir):
-  unlabel.pkl     <- 80% of normal (pre-injection) timestep samples
-  train.pkl       <- 20% of normal (pre-injection) timestep samples
+  val.pkl         <- last 15% (chronological) of each run's pre-injection timesteps —
+                     unseen normal, held out from unlabel/train, for leak-free
+                     --val_percentile threshold estimation. NOT excluded from the
+                     test_<fault>.pkl normal pool below (see run()).
+  unlabel.pkl     <- 80% of the remaining (post val split) normal timestep samples
+  train.pkl       <- 20% of the remaining (post val split) normal timestep samples
   test_f1.pkl     <- shuffle(normal_sample + anomaly_f1), anomaly <= 20%
   test_f2.pkl, test_f3.pkl, test_f4.pkl, test_f5.pkl
   meta.pkl        <- {num_services, trace_c, metric_names, log_c, kpi_c, ...}
@@ -113,11 +117,12 @@ def _build_drain3_miner():
 class RCAEvalRE3OBPreprocessor:
 
     def __init__(self, data_root, output_dir,
-                 anomaly_rate=0.20, unlabel_ratio=0.80, random_seed=42):
+                 anomaly_rate=0.20, unlabel_ratio=0.80, val_ratio=0.15, random_seed=42):
         self.data_root = Path(data_root)
         self.output_dir = Path(output_dir)
         self.anomaly_rate = anomaly_rate
         self.unlabel_ratio = unlabel_ratio
+        self.val_ratio = val_ratio
         self.rng = random.Random(random_seed)
         self.np_rng = np.random.default_rng(random_seed)
         self.canonical_metric_cols = None  # populated by _build_canonical_metric_cols()
@@ -289,10 +294,11 @@ class RCAEvalRE3OBPreprocessor:
 
             # ── Node features (vectorised) ────────────────────────────────
             dur = pd.to_numeric(df["duration"], errors="coerce").fillna(0.0).clip(lower=0)
-            status = df["statusCode"].astype(str).str.strip()
+            # pandas>=3 keeps NaN as missing in astype(str); map it back to "nan" for the isin() checks
+            status = df["statusCode"].astype(str).where(df["statusCode"].notna(), "nan").str.strip()
             is_error = (~status.isin(["0", "0.0", "nan"])).astype(np.float64).values
 
-            parent_col = df["parentSpanID"].astype(str).str.strip()
+            parent_col = df["parentSpanID"].astype(str).where(df["parentSpanID"].notna(), "nan").str.strip()
             is_root = parent_col.isin(["", "0", "nan", "None"]).astype(np.float64).values
 
             wi_arr = df["wi"].values
@@ -464,6 +470,7 @@ class RCAEvalRE3OBPreprocessor:
 
         all_normal = {}                               # all pre-injection samples
         fault_anomaly = {f: {} for f in FAULT_TYPES} # post-injection per fault
+        val_ids = set()                                # unseen normal, held out from train/unlabel only
 
         # ── Main pass: process all experiments ───────────────────────────────
         for scenario_dir in sorted(self.data_root.iterdir()):
@@ -486,26 +493,48 @@ class RCAEvalRE3OBPreprocessor:
                 )
                 all_normal.update(normal)
                 fault_anomaly[fault].update(anomaly)
+
+                # Reserve the last val_ratio fraction of this run's pre-injection
+                # timesteps (chronological order, dict preserves insertion order)
+                # as val — never used for unlabel/train, so the threshold computed
+                # on it (--val_percentile) is leak-free. Not excluded from the
+                # normal pool used to fill test_<fault>.pkl (see note below).
+                run_normal_ids = list(normal.keys())
+                n_val = int(len(run_normal_ids) * self.val_ratio)
+                if n_val > 0:
+                    val_ids.update(run_normal_ids[-n_val:])
+
                 logging.info(f"  → normal={len(normal)}  anomaly={len(anomaly)}")
 
-        # ── Split normal → unlabel / train ────────────────────────────────────
-        normal_ids = list(all_normal.keys())
-        self.rng.shuffle(normal_ids)
-        split = int(len(normal_ids) * self.unlabel_ratio)
-        unlabel_ids = set(normal_ids[:split])
-        train_ids   = set(normal_ids[split:])
+        # ── Split normal → unlabel / train / val ────────────────────────────────
+        # val_ids is held out from unlabel/train (never used for training), so
+        # threshold estimation via --val_percentile is leak-free. It is NOT
+        # excluded from the test_<fault>.pkl normal pool below: with anomaly_rate
+        # =0.20, test_f1.pkl alone needs a normal pool as large as 100% of the
+        # entire normal pool, so a fully test-disjoint normal pool isn't feasible
+        # without lowering anomaly_rate or dataset size — out of scope here.
+        trainable_ids = [k for k in all_normal.keys() if k not in val_ids]
+        self.rng.shuffle(trainable_ids)
+        split = int(len(trainable_ids) * self.unlabel_ratio)
+        unlabel_ids = set(trainable_ids[:split])
+        train_ids   = set(trainable_ids[split:])
 
         unlabel_data = {k: all_normal[k] for k in unlabel_ids}
         train_data   = {k: all_normal[k] for k in train_ids}
+        val_data     = {k: all_normal[k] for k in val_ids}
 
         logging.info(
             f"Normal pool: {len(all_normal)} total  "
-            f"→ unlabel={len(unlabel_data)}  train={len(train_data)}"
+            f"→ unlabel={len(unlabel_data)}  train={len(train_data)}  val={len(val_data)}"
         )
         self._save_pkl(unlabel_data, self.output_dir / "unlabel.pkl")
         self._save_pkl(train_data,   self.output_dir / "train.pkl")
+        self._save_pkl(val_data,     self.output_dir / "val.pkl")
 
         # ── Build 5 test files (one per fault type) ───────────────────────────
+        # Deliberately draws from the FULL normal pool (unlabel/train/val ids
+        # included) — see note above the unlabel/train/val split for why a
+        # test-only-disjoint pool isn't feasible here.
         normal_pool = list(all_normal.keys())
 
         for fault in FAULT_TYPES:
@@ -592,7 +621,13 @@ def main():
     p.add_argument("--anomaly_rate",  default=0.20, type=float,
                    help="Max anomaly fraction in each test_<fault>.pkl (default 0.20)")
     p.add_argument("--unlabel_ratio", default=0.80, type=float,
-                   help="Fraction of normal data → unlabel.pkl (rest → train.pkl)")
+                   help="Fraction of the trainable normal pool (post val split) → "
+                        "unlabel.pkl (rest → train.pkl)")
+    p.add_argument("--val_ratio",     default=0.15, type=float,
+                   help="Fraction of each run's pre-injection timesteps (last, "
+                        "chronologically) held out as val.pkl — unseen normal data, "
+                        "never used for unlabel/train, for leak-free --val_percentile "
+                        "threshold estimation.")
     p.add_argument("--random_seed",   default=42, type=int)
     args = p.parse_args()
 
@@ -601,6 +636,7 @@ def main():
         output_dir    = args.output_dir,
         anomaly_rate  = args.anomaly_rate,
         unlabel_ratio = args.unlabel_ratio,
+        val_ratio     = args.val_ratio,
         random_seed   = args.random_seed,
     ).run()
 

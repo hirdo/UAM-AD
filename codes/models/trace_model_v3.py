@@ -152,42 +152,54 @@ class TraceModel(nn.Module):
             x:   [B, N, trace_c]
             adj: [B, N, N]         binary adjacency (ground-truth structure)
         Returns:
-            z:       [B, N, hidden_size]  node embeddings
-            adj_hat: [B, N, N]            reconstructed adjacency
-            loss:    [B]                  per-sample combined reconstruction loss
+            z:           [B, N, hidden_size]  node embeddings
+            adj_hat:     [B, N, N]            reconstructed adjacency
+            loss:        [B]                  per-sample combined reconstruction loss
+            feats_hat_slice: [B, N, 2]        reconstructed error_rate/latency_dev
+            node_scores: [B, N]               per-node reconstruction score (RCA, TraceDAE Eq. 14)
         """
         z = self.encoder(x, adj)                                    # [B, N, H]
 
         # ── Structural decoder ────────────────────────────────────────────────
         adj_hat = torch.sigmoid(torch.bmm(z, z.transpose(1, 2)))   # [B, N, N]
-        loss_struct = F.binary_cross_entropy(adj_hat, adj, reduction='none')
-        loss_struct = loss_struct.mean(dim=[-2, -1])                # [B]
+        loss_struct_raw = F.binary_cross_entropy(adj_hat, adj, reduction='none')  # [B, N, N]
+        loss_struct = loss_struct_raw.mean(dim=[-2, -1])            # [B]
+        # Per-node structural residual: row i = ‖A_i − Â_i‖ (TraceDAE Eq. 14 "A_i" term)
+        loss_struct_per_node = loss_struct_raw.mean(dim=-1)         # [B, N]
 
         # ── Attribute decoder ─────────────────────────────────────────────────
         feats_hat = self.feat_decoder(z)                            # [B, N, trace_c]
 
         # latency_dev (col 5) — MSE: z-score can be negative, no sigmoid needed
-        loss_latency = F.mse_loss(
+        loss_latency_per_node = F.mse_loss(
             feats_hat[:, :, self.COL_LATENCY_DEV],
             x[:, :, self.COL_LATENCY_DEV],
             reduction='none',
-        ).mean(dim=-1)                                              # [B]
+        )                                                           # [B, N]
+        loss_latency = loss_latency_per_node.mean(dim=-1)           # [B]
 
         # error_rate (col 3) — BCE: both in [0,1]
         err_hat = torch.sigmoid(feats_hat[:, :, self.COL_ERROR_RATE])
-        loss_error = F.binary_cross_entropy(
+        loss_error_per_node = F.binary_cross_entropy(
             err_hat,
             x[:, :, self.COL_ERROR_RATE].clamp(0.0, 1.0),
             reduction='none',
-        ).mean(dim=-1)                                              # [B]
+        )                                                           # [B, N]
+        loss_error = loss_error_per_node.mean(dim=-1)                # [B]
 
         # ── Combined trace_dis ────────────────────────────────────────────────
         loss = (loss_struct
                 + self.lambda_lat * loss_latency
                 + self.lambda_err * loss_error)
 
+        # Per-node combined score (RCA): same weighting as `loss` above, but
+        # keeping the node dimension instead of reducing it away.
+        node_scores = (loss_struct_per_node
+                       + self.lambda_lat * loss_latency_per_node
+                       + self.lambda_err * loss_error_per_node)     # [B, N]
+
         # CHANGE 7: return feats_hat[:,:,[3,5]] for attribute discriminator
         # Only cols with explicit supervision (error_rate=3, latency_dev=5)
         feats_hat_slice = feats_hat[:, :, [self.COL_ERROR_RATE, self.COL_LATENCY_DEV]]  # [B, N, 2]
 
-        return z, adj_hat, loss, feats_hat_slice
+        return z, adj_hat, loss, feats_hat_slice, node_scores

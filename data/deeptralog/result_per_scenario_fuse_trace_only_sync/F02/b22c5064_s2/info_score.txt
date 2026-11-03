@@ -1,0 +1,4 @@
+Experiment b22c5064: 2026/09/26-23:48:13
+Train time/epoch 21.1781
+* Test -- f1:0.1072	rc:0.0763	pc:0.1802	threshold:1.1823	auroc:0.6457	auprc:0.1622	oracle_f1:0.4051	oracle_rc:0.4912	oracle_pc:0.3446	oracle_threshold:0.1905	raw_sum_f1:0.0000	raw_sum_pc:0.0000	raw_sum_rc:0.0000	raw_sum_auroc:0.6874	raw_sum_auprc:0.1826	raw_sum_threshold:0.3343
+

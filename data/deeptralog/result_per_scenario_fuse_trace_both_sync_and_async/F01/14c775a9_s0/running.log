@@ -1,0 +1,49 @@
+2026-09-27 08:49:57,306 P20764 INFO ^^^^^^^^^^ Current Model:hades, 14c775a9 ^^^^^^^^^^
+2026-09-27 08:49:57,306 P20764 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 08:50:03,766 P20764 INFO 642 unique log templates found.
+2026-09-27 08:50:03,789 P20764 INFO Transforming unlabel train data.
+2026-09-27 08:50:04,552 P20764 INFO Transforming test data.
+2026-09-27 08:50:05,002 P20764 INFO 572 new templates show.
+2026-09-27 08:50:06,530 P20764 INFO Transforming val data.
+2026-09-27 08:50:06,551 P20764 INFO 53 new templates show.
+2026-09-27 08:50:07,105 P20764 INFO Data loaded done!
+2026-09-27 08:54:36,612 P20764 INFO Known word number: 642
+2026-09-27 08:54:53,988 P20764 INFO Epoch 0/10, train generator loss: 0.65941
+2026-09-27 08:55:05,902 P20764 INFO Epoch 0/10, train discriminator loss: 4.63554
+2026-09-27 08:55:07,423 P20764 INFO Epoch 0/10, val score: 0.35672. [24.92s]
+2026-09-27 08:55:18,688 P20764 INFO Epoch 1/10, train generator loss: 0.36507
+2026-09-27 08:55:29,748 P20764 INFO Epoch 1/10, train discriminator loss: 6.63176
+2026-09-27 08:55:31,080 P20764 INFO Epoch 1/10, val score: 0.26252. [22.28s]
+2026-09-27 08:55:42,311 P20764 INFO Epoch 2/10, train generator loss: 0.30964
+2026-09-27 08:55:53,464 P20764 INFO Epoch 2/10, train discriminator loss: 4.94140
+2026-09-27 08:55:54,794 P20764 INFO Epoch 2/10, val score: 0.22104. [22.36s]
+2026-09-27 08:56:05,988 P20764 INFO Epoch 3/10, train generator loss: 0.25449
+2026-09-27 08:56:17,117 P20764 INFO Epoch 3/10, train discriminator loss: 3.71847
+2026-09-27 08:56:18,453 P20764 INFO Epoch 3/10, val score: 0.19522. [22.29s]
+2026-09-27 08:56:29,560 P20764 INFO Epoch 4/10, train generator loss: 0.20328
+2026-09-27 08:56:40,491 P20764 INFO Epoch 4/10, train discriminator loss: 3.37385
+2026-09-27 08:56:41,881 P20764 INFO Epoch 4/10, val score: 0.16505. [21.99s]
+2026-09-27 08:56:52,919 P20764 INFO Epoch 5/10, train generator loss: 0.16287
+2026-09-27 08:57:04,029 P20764 INFO Epoch 5/10, train discriminator loss: 3.05003
+2026-09-27 08:57:05,375 P20764 INFO Epoch 5/10, val score: 0.13888. [22.11s]
+2026-09-27 08:57:16,696 P20764 INFO Epoch 6/10, train generator loss: 0.13574
+2026-09-27 08:57:28,745 P20764 INFO Epoch 6/10, train discriminator loss: 3.03883
+2026-09-27 08:57:30,246 P20764 INFO Epoch 6/10, val score: 0.12094. [23.34s]
+2026-09-27 08:57:42,173 P20764 INFO Epoch 7/10, train generator loss: 0.12099
+2026-09-27 08:57:54,071 P20764 INFO Epoch 7/10, train discriminator loss: 2.71736
+2026-09-27 08:57:55,597 P20764 INFO Epoch 7/10, val score: 0.11353. [23.79s]
+2026-09-27 08:58:07,631 P20764 INFO Epoch 8/10, train generator loss: 0.10893
+2026-09-27 08:58:19,916 P20764 INFO Epoch 8/10, train discriminator loss: 2.55720
+2026-09-27 08:58:21,454 P20764 INFO Epoch 8/10, val score: 0.10963. [24.29s]
+2026-09-27 08:58:33,397 P20764 INFO Epoch 9/10, train generator loss: 0.09691
+2026-09-27 08:58:45,373 P20764 INFO Epoch 9/10, train discriminator loss: 2.60496
+2026-09-27 08:58:46,865 P20764 INFO Epoch 9/10, val score: 0.10483. [23.89s]
+2026-09-27 08:58:48,561 P20764 INFO Threshold (p=95.0, src=val, n=7475): 0.370390
+2026-09-27 08:58:53,610 P20764 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F01_s0\14c775a9\trace_scores.npz
+2026-09-27 08:58:58,798 P20764 INFO *** Oracle F1 0.6088 (test-swept threshold, point_adjust)
+2026-09-27 08:59:03,203 P20764 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F01_s0.npz
+2026-09-27 08:59:03,203 P20764 INFO *** (reference) raw fusion_loss sum: F1 0.1620 P 0.2771 R 0.1145 AUROC 0.8769 AUPRC 0.3802
+2026-09-27 08:59:07,989 P20764 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 08:59:07,989 P20764 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0264, scale 0.1870; z=0 without messages
+2026-09-27 08:59:08,036 P20764 INFO *** Test F1 0.7731 P 0.7224 R 0.8315 AUROC 0.9782 AUPRC 0.8522 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0345, 'trace_dis': 0.9366, 'trace_dis_async': 0.0004, 'trace_dis_order': 0.0036, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.2803, 'trace_dis': 0.0201, 'trace_dis_async': 0.0256, 'trace_dis_order': 0.6078, 'trace_err': np.float64(0.1733)})
+2026-09-27 08:59:08,074 P20764 INFO Current hash id 14c775a9

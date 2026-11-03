@@ -1,0 +1,50 @@
+2026-09-26 13:00:56,418 P23160 INFO ^^^^^^^^^^ Current Model:hades, 668fa93f ^^^^^^^^^^
+2026-09-26 13:00:56,418 P23160 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-26 13:01:00,485 P23160 INFO 642 unique log templates found.
+2026-09-26 13:01:00,499 P23160 INFO Transforming unlabel train data.
+2026-09-26 13:01:00,842 P23160 INFO Transforming test data.
+2026-09-26 13:01:00,976 P23160 INFO 366 new templates show.
+2026-09-26 13:01:01,978 P23160 INFO Transforming val data.
+2026-09-26 13:01:01,994 P23160 INFO 53 new templates show.
+2026-09-26 13:01:02,308 P23160 INFO Data loaded done!
+2026-09-26 13:05:53,590 P23160 INFO Known word number: 642
+2026-09-26 13:06:08,008 P23160 INFO Epoch 0/10, train generator loss: 0.22094
+2026-09-26 13:06:18,892 P23160 INFO Epoch 0/10, train discriminator loss: 4.48314
+2026-09-26 13:06:20,308 P23160 INFO Epoch 0/10, val score: 0.17295. [22.52s]
+2026-09-26 13:06:30,337 P23160 INFO Epoch 1/10, train generator loss: 0.18484
+2026-09-26 13:06:40,610 P23160 INFO Epoch 1/10, train discriminator loss: 6.05063
+2026-09-26 13:06:41,826 P23160 INFO Epoch 1/10, val score: 0.15385. [20.27s]
+2026-09-26 13:06:51,893 P23160 INFO Epoch 2/10, train generator loss: 0.14482
+2026-09-26 13:07:02,178 P23160 INFO Epoch 2/10, train discriminator loss: 5.15130
+2026-09-26 13:07:03,393 P23160 INFO Epoch 2/10, val score: 0.13289. [20.32s]
+2026-09-26 13:07:13,628 P23160 INFO Epoch 3/10, train generator loss: 0.11249
+2026-09-26 13:07:24,149 P23160 INFO Epoch 3/10, train discriminator loss: 4.18533
+2026-09-26 13:07:25,445 P23160 INFO Epoch 3/10, val score: 0.11570. [20.72s]
+2026-09-26 13:07:35,695 P23160 INFO Epoch 4/10, train generator loss: 0.10016
+2026-09-26 13:07:46,128 P23160 INFO Epoch 4/10, train discriminator loss: 3.59741
+2026-09-26 13:07:47,379 P23160 INFO Epoch 4/10, val score: 0.10244. [20.65s]
+2026-09-26 13:07:57,415 P23160 INFO Epoch 5/10, train generator loss: 0.09968
+2026-09-26 13:08:08,092 P23160 INFO Epoch 5/10, train discriminator loss: 3.49590
+2026-09-26 13:08:09,539 P23160 INFO Epoch 5/10, val score: 0.09285. [20.70s]
+2026-09-26 13:08:20,299 P23160 INFO Epoch 6/10, train generator loss: 0.10671
+2026-09-26 13:08:30,832 P23160 INFO Epoch 6/10, train discriminator loss: 2.92398
+2026-09-26 13:08:32,033 P23160 INFO Epoch 6/10, val score: 0.08966. [21.26s]
+2026-09-26 13:08:42,960 P23160 INFO Epoch 7/10, train generator loss: 0.10206
+2026-09-26 13:08:53,598 P23160 INFO Epoch 7/10, train discriminator loss: 2.65586
+2026-09-26 13:08:54,838 P23160 INFO Epoch 7/10, val score: 0.09993. [21.53s]
+2026-09-26 13:08:54,840 P23160 INFO early stopping epoch 1/5
+2026-09-26 13:09:04,660 P23160 INFO Epoch 8/10, train generator loss: 0.08580
+2026-09-26 13:09:14,934 P23160 INFO Epoch 8/10, train discriminator loss: 2.64904
+2026-09-26 13:09:16,183 P23160 INFO Epoch 8/10, val score: 0.09764. [20.09s]
+2026-09-26 13:09:16,183 P23160 INFO early stopping epoch 2/5
+2026-09-26 13:09:26,226 P23160 INFO Epoch 9/10, train generator loss: 0.07446
+2026-09-26 13:09:36,500 P23160 INFO Epoch 9/10, train discriminator loss: 3.00783
+2026-09-26 13:09:37,702 P23160 INFO Epoch 9/10, val score: 0.09052. [20.32s]
+2026-09-26 13:09:37,702 P23160 INFO early stopping epoch 3/5
+2026-09-26 13:09:39,335 P23160 INFO Threshold (p=95.0, src=val, n=7475): 0.330566
+2026-09-26 13:09:44,706 P23160 INFO Saved trace_scores.npz -> D:/ClaudeWork/e2/res_A_F02_s0\668fa93f\trace_scores.npz
+2026-09-26 13:09:49,854 P23160 INFO *** Oracle F1 0.4030 (test-swept threshold, point_adjust)
+2026-09-26 13:09:54,242 P23160 INFO Dumped score components -> D:/ClaudeWork/e2/comp_A_F02_s0.npz
+2026-09-26 13:09:54,242 P23160 INFO *** (reference) raw fusion_loss sum: F1 0.0000 P 0.0000 R 0.0000 AUROC 0.7057 AUPRC 0.1891
+2026-09-26 13:09:58,520 P23160 INFO *** Test F1 0.1134 P 0.1843 R 0.0819 AUROC 0.6598 AUPRC 0.1684 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis'], val-median={'log_kpi_loss': 0.0342, 'trace_dis': 0.9165}, val-p95.0-minus-median={'log_kpi_loss': 0.2832, 'trace_dis': 0.0128})
+2026-09-26 13:09:58,570 P23160 INFO Current hash id 668fa93f

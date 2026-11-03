@@ -1,0 +1,50 @@
+2026-09-26 12:32:03,443 P5864 INFO ^^^^^^^^^^ Current Model:hades, fe34a460 ^^^^^^^^^^
+2026-09-26 12:32:03,444 P5864 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-26 12:32:08,426 P5864 INFO 642 unique log templates found.
+2026-09-26 12:32:08,431 P5864 INFO Transforming unlabel train data.
+2026-09-26 12:32:08,933 P5864 INFO Transforming test data.
+2026-09-26 12:32:09,244 P5864 INFO 572 new templates show.
+2026-09-26 12:32:10,496 P5864 INFO Transforming val data.
+2026-09-26 12:32:10,511 P5864 INFO 53 new templates show.
+2026-09-26 12:32:10,870 P5864 INFO Data loaded done!
+2026-09-26 12:37:10,992 P5864 INFO Known word number: 642
+2026-09-26 12:37:25,911 P5864 INFO Epoch 0/10, train generator loss: 0.22094
+2026-09-26 12:37:36,337 P5864 INFO Epoch 0/10, train discriminator loss: 4.48314
+2026-09-26 12:37:37,766 P5864 INFO Epoch 0/10, val score: 0.17295. [22.20s]
+2026-09-26 12:37:47,840 P5864 INFO Epoch 1/10, train generator loss: 0.18484
+2026-09-26 12:37:58,084 P5864 INFO Epoch 1/10, train discriminator loss: 6.04889
+2026-09-26 12:37:59,251 P5864 INFO Epoch 1/10, val score: 0.15384. [20.27s]
+2026-09-26 12:38:09,110 P5864 INFO Epoch 2/10, train generator loss: 0.14480
+2026-09-26 12:38:19,284 P5864 INFO Epoch 2/10, train discriminator loss: 5.15255
+2026-09-26 12:38:20,468 P5864 INFO Epoch 2/10, val score: 0.13284. [20.00s]
+2026-09-26 12:38:30,292 P5864 INFO Epoch 3/10, train generator loss: 0.11251
+2026-09-26 12:38:40,486 P5864 INFO Epoch 3/10, train discriminator loss: 4.18374
+2026-09-26 12:38:41,754 P5864 INFO Epoch 3/10, val score: 0.11571. [19.98s]
+2026-09-26 12:38:52,700 P5864 INFO Epoch 4/10, train generator loss: 0.10021
+2026-09-26 12:39:04,775 P5864 INFO Epoch 4/10, train discriminator loss: 3.61598
+2026-09-26 12:39:06,204 P5864 INFO Epoch 4/10, val score: 0.10232. [22.99s]
+2026-09-26 12:39:16,655 P5864 INFO Epoch 5/10, train generator loss: 0.10137
+2026-09-26 12:39:27,225 P5864 INFO Epoch 5/10, train discriminator loss: 3.50407
+2026-09-26 12:39:28,522 P5864 INFO Epoch 5/10, val score: 0.09354. [20.98s]
+2026-09-26 12:39:38,314 P5864 INFO Epoch 6/10, train generator loss: 0.11085
+2026-09-26 12:39:48,713 P5864 INFO Epoch 6/10, train discriminator loss: 2.91224
+2026-09-26 12:39:49,926 P5864 INFO Epoch 6/10, val score: 0.09067. [20.15s]
+2026-09-26 12:39:59,957 P5864 INFO Epoch 7/10, train generator loss: 0.11140
+2026-09-26 12:40:10,330 P5864 INFO Epoch 7/10, train discriminator loss: 2.57718
+2026-09-26 12:40:11,536 P5864 INFO Epoch 7/10, val score: 0.09404. [20.37s]
+2026-09-26 12:40:11,536 P5864 INFO early stopping epoch 1/5
+2026-09-26 12:40:22,438 P5864 INFO Epoch 8/10, train generator loss: 0.09563
+2026-09-26 12:40:34,827 P5864 INFO Epoch 8/10, train discriminator loss: 2.47606
+2026-09-26 12:40:36,240 P5864 INFO Epoch 8/10, val score: 0.09725. [23.29s]
+2026-09-26 12:40:36,240 P5864 INFO early stopping epoch 2/5
+2026-09-26 12:40:50,443 P5864 INFO Epoch 9/10, train generator loss: 0.07667
+2026-09-26 12:41:01,777 P5864 INFO Epoch 9/10, train discriminator loss: 2.62878
+2026-09-26 12:41:03,146 P5864 INFO Epoch 9/10, val score: 0.09215. [25.54s]
+2026-09-26 12:41:03,146 P5864 INFO early stopping epoch 3/5
+2026-09-26 12:41:04,694 P5864 INFO Threshold (p=95.0, src=val, n=7475): 0.327964
+2026-09-26 12:41:09,945 P5864 INFO Saved trace_scores.npz -> D:/ClaudeWork/e2/res_A_F01_s0\fe34a460\trace_scores.npz
+2026-09-26 12:41:14,879 P5864 INFO *** Oracle F1 0.6783 (test-swept threshold, point_adjust)
+2026-09-26 12:41:19,603 P5864 INFO Dumped score components -> D:/ClaudeWork/e2/comp_A_F01_s0.npz
+2026-09-26 12:41:19,603 P5864 INFO *** (reference) raw fusion_loss sum: F1 0.2586 P 0.3842 R 0.1948 AUROC 0.8991 AUPRC 0.4487
+2026-09-26 12:41:24,211 P5864 INFO *** Test F1 0.7608 P 0.7002 R 0.8329 AUROC 0.9374 AUPRC 0.8341 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis'], val-median={'log_kpi_loss': 0.0354, 'trace_dis': 0.9165}, val-p95.0-minus-median={'log_kpi_loss': 0.2798, 'trace_dis': 0.0128})
+2026-09-26 12:41:24,250 P5864 INFO Current hash id fe34a460

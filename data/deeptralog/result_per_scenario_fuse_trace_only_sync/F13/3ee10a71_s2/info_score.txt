@@ -1,0 +1,4 @@
+Experiment 3ee10a71: 2026/09/27-00:15:47
+Train time/epoch 21.3493
+* Test -- f1:0.8554	rc:0.9989	pc:0.7479	threshold:1.1820	auroc:0.9848	auprc:0.8679	oracle_f1:0.4791	oracle_rc:0.4666	oracle_pc:0.4923	oracle_threshold:0.2243	raw_sum_f1:0.2185	raw_sum_pc:0.3337	raw_sum_rc:0.1625	raw_sum_auroc:0.7341	raw_sum_auprc:0.2977	raw_sum_threshold:0.3365
+

@@ -1,0 +1,49 @@
+2026-09-27 09:27:15,933 P13428 INFO ^^^^^^^^^^ Current Model:hades, 7d23883b ^^^^^^^^^^
+2026-09-27 09:27:15,933 P13428 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 09:27:19,773 P13428 INFO 642 unique log templates found.
+2026-09-27 09:27:19,773 P13428 INFO Transforming unlabel train data.
+2026-09-27 09:27:20,074 P13428 INFO Transforming test data.
+2026-09-27 09:27:20,233 P13428 INFO 366 new templates show.
+2026-09-27 09:27:21,038 P13428 INFO Transforming val data.
+2026-09-27 09:27:21,054 P13428 INFO 53 new templates show.
+2026-09-27 09:27:21,382 P13428 INFO Data loaded done!
+2026-09-27 09:32:00,521 P13428 INFO Known word number: 642
+2026-09-27 09:32:16,445 P13428 INFO Epoch 0/10, train generator loss: 0.62063
+2026-09-27 09:32:28,354 P13428 INFO Epoch 0/10, train discriminator loss: 4.54146
+2026-09-27 09:32:29,937 P13428 INFO Epoch 0/10, val score: 0.34287. [25.18s]
+2026-09-27 09:32:41,274 P13428 INFO Epoch 1/10, train generator loss: 0.34235
+2026-09-27 09:32:52,208 P13428 INFO Epoch 1/10, train discriminator loss: 6.15885
+2026-09-27 09:32:53,549 P13428 INFO Epoch 1/10, val score: 0.25625. [22.22s]
+2026-09-27 09:33:04,884 P13428 INFO Epoch 2/10, train generator loss: 0.28541
+2026-09-27 09:33:15,923 P13428 INFO Epoch 2/10, train discriminator loss: 5.01523
+2026-09-27 09:33:17,254 P13428 INFO Epoch 2/10, val score: 0.21552. [22.33s]
+2026-09-27 09:33:28,732 P13428 INFO Epoch 3/10, train generator loss: 0.23810
+2026-09-27 09:33:40,792 P13428 INFO Epoch 3/10, train discriminator loss: 4.06707
+2026-09-27 09:33:42,205 P13428 INFO Epoch 3/10, val score: 0.18139. [23.50s]
+2026-09-27 09:33:53,756 P13428 INFO Epoch 4/10, train generator loss: 0.18908
+2026-09-27 09:34:05,185 P13428 INFO Epoch 4/10, train discriminator loss: 3.22856
+2026-09-27 09:34:06,538 P13428 INFO Epoch 4/10, val score: 0.14913. [22.94s]
+2026-09-27 09:34:18,036 P13428 INFO Epoch 5/10, train generator loss: 0.15002
+2026-09-27 09:34:29,814 P13428 INFO Epoch 5/10, train discriminator loss: 3.14607
+2026-09-27 09:34:31,321 P13428 INFO Epoch 5/10, val score: 0.12683. [23.24s]
+2026-09-27 09:34:43,363 P13428 INFO Epoch 6/10, train generator loss: 0.12010
+2026-09-27 09:34:55,233 P13428 INFO Epoch 6/10, train discriminator loss: 2.93151
+2026-09-27 09:34:56,742 P13428 INFO Epoch 6/10, val score: 0.10847. [23.87s]
+2026-09-27 09:35:10,727 P13428 INFO Epoch 7/10, train generator loss: 0.10033
+2026-09-27 09:35:22,677 P13428 INFO Epoch 7/10, train discriminator loss: 2.62563
+2026-09-27 09:35:24,181 P13428 INFO Epoch 7/10, val score: 0.09921. [25.89s]
+2026-09-27 09:35:36,350 P13428 INFO Epoch 8/10, train generator loss: 0.09066
+2026-09-27 09:35:48,189 P13428 INFO Epoch 8/10, train discriminator loss: 2.46823
+2026-09-27 09:35:49,702 P13428 INFO Epoch 8/10, val score: 0.09647. [23.96s]
+2026-09-27 09:36:01,619 P13428 INFO Epoch 9/10, train generator loss: 0.08248
+2026-09-27 09:36:13,341 P13428 INFO Epoch 9/10, train discriminator loss: 2.27393
+2026-09-27 09:36:14,847 P13428 INFO Epoch 9/10, val score: 0.09233. [23.60s]
+2026-09-27 09:36:16,696 P13428 INFO Threshold (p=95.0, src=val, n=7475): 0.374838
+2026-09-27 09:36:22,206 P13428 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F02_s1\7d23883b\trace_scores.npz
+2026-09-27 09:36:27,569 P13428 INFO *** Oracle F1 0.3481 (test-swept threshold, point_adjust)
+2026-09-27 09:36:32,171 P13428 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F02_s1.npz
+2026-09-27 09:36:32,171 P13428 INFO *** (reference) raw fusion_loss sum: F1 0.0000 P 0.0000 R 0.0000 AUROC 0.7139 AUPRC 0.1882
+2026-09-27 09:36:37,001 P13428 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:36:37,001 P13428 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0230, scale 0.1903; z=0 without messages
+2026-09-27 09:36:37,036 P13428 INFO *** Test F1 0.1476 P 0.2426 R 0.1060 AUROC 0.7946 AUPRC 0.2461 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0232, 'trace_dis': 0.9219, 'trace_dis_async': 0.0002, 'trace_dis_order': 0.0151, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.3161, 'trace_dis': 0.0131, 'trace_dis_async': 0.0227, 'trace_dis_order': 0.6058, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:36:37,058 P13428 INFO Current hash id 7d23883b

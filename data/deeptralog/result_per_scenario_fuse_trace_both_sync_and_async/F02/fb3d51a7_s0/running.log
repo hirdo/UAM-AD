@@ -1,0 +1,49 @@
+2026-09-27 08:59:24,814 P25888 INFO ^^^^^^^^^^ Current Model:hades, fb3d51a7 ^^^^^^^^^^
+2026-09-27 08:59:24,814 P25888 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-27 08:59:28,992 P25888 INFO 642 unique log templates found.
+2026-09-27 08:59:29,008 P25888 INFO Transforming unlabel train data.
+2026-09-27 08:59:29,658 P25888 INFO Transforming test data.
+2026-09-27 08:59:29,848 P25888 INFO 366 new templates show.
+2026-09-27 08:59:31,302 P25888 INFO Transforming val data.
+2026-09-27 08:59:31,307 P25888 INFO 53 new templates show.
+2026-09-27 08:59:31,688 P25888 INFO Data loaded done!
+2026-09-27 09:04:09,667 P25888 INFO Known word number: 642
+2026-09-27 09:04:25,135 P25888 INFO Epoch 0/10, train generator loss: 0.65941
+2026-09-27 09:04:37,265 P25888 INFO Epoch 0/10, train discriminator loss: 4.63547
+2026-09-27 09:04:38,676 P25888 INFO Epoch 0/10, val score: 0.35672. [24.97s]
+2026-09-27 09:04:49,643 P25888 INFO Epoch 1/10, train generator loss: 0.36513
+2026-09-27 09:05:00,513 P25888 INFO Epoch 1/10, train discriminator loss: 6.64670
+2026-09-27 09:05:01,870 P25888 INFO Epoch 1/10, val score: 0.26259. [21.77s]
+2026-09-27 09:05:13,184 P25888 INFO Epoch 2/10, train generator loss: 0.30995
+2026-09-27 09:05:24,354 P25888 INFO Epoch 2/10, train discriminator loss: 4.93877
+2026-09-27 09:05:25,676 P25888 INFO Epoch 2/10, val score: 0.22129. [22.45s]
+2026-09-27 09:05:36,544 P25888 INFO Epoch 3/10, train generator loss: 0.25419
+2026-09-27 09:05:47,343 P25888 INFO Epoch 3/10, train discriminator loss: 3.71736
+2026-09-27 09:05:48,676 P25888 INFO Epoch 3/10, val score: 0.19509. [21.63s]
+2026-09-27 09:05:59,650 P25888 INFO Epoch 4/10, train generator loss: 0.20343
+2026-09-27 09:06:10,508 P25888 INFO Epoch 4/10, train discriminator loss: 3.36555
+2026-09-27 09:06:11,846 P25888 INFO Epoch 4/10, val score: 0.16521. [21.79s]
+2026-09-27 09:06:23,650 P25888 INFO Epoch 5/10, train generator loss: 0.16309
+2026-09-27 09:06:35,304 P25888 INFO Epoch 5/10, train discriminator loss: 3.04297
+2026-09-27 09:06:36,776 P25888 INFO Epoch 5/10, val score: 0.13909. [23.42s]
+2026-09-27 09:06:48,548 P25888 INFO Epoch 6/10, train generator loss: 0.13529
+2026-09-27 09:07:00,130 P25888 INFO Epoch 6/10, train discriminator loss: 2.99074
+2026-09-27 09:07:01,610 P25888 INFO Epoch 6/10, val score: 0.12104. [23.31s]
+2026-09-27 09:07:14,812 P25888 INFO Epoch 7/10, train generator loss: 0.12064
+2026-09-27 09:07:26,468 P25888 INFO Epoch 7/10, train discriminator loss: 2.76219
+2026-09-27 09:07:28,122 P25888 INFO Epoch 7/10, val score: 0.11246. [24.83s]
+2026-09-27 09:07:41,242 P25888 INFO Epoch 8/10, train generator loss: 0.10770
+2026-09-27 09:07:52,870 P25888 INFO Epoch 8/10, train discriminator loss: 2.44758
+2026-09-27 09:07:54,349 P25888 INFO Epoch 8/10, val score: 0.10922. [24.69s]
+2026-09-27 09:08:06,161 P25888 INFO Epoch 9/10, train generator loss: 0.09444
+2026-09-27 09:08:18,324 P25888 INFO Epoch 9/10, train discriminator loss: 2.52618
+2026-09-27 09:08:19,817 P25888 INFO Epoch 9/10, val score: 0.10260. [23.95s]
+2026-09-27 09:08:21,548 P25888 INFO Threshold (p=95.0, src=val, n=7475): 0.367457
+2026-09-27 09:08:26,425 P25888 INFO Saved trace_scores.npz -> D:/ClaudeWork/e5/res_C_F02_s0\fb3d51a7\trace_scores.npz
+2026-09-27 09:08:31,730 P25888 INFO *** Oracle F1 0.3662 (test-swept threshold, point_adjust)
+2026-09-27 09:08:36,117 P25888 INFO Dumped score components -> D:/ClaudeWork/e5/comp_C_F02_s0.npz
+2026-09-27 09:08:36,119 P25888 INFO *** (reference) raw fusion_loss sum: F1 0.0817 P 0.1527 R 0.0558 AUROC 0.7429 AUPRC 0.2099
+2026-09-27 09:08:40,803 P25888 INFO trace_err term: val median 0.0000, scale 0.1733; one error span -> z=4.0
+2026-09-27 09:08:40,803 P25888 INFO async count term normalised within message-bearing traces: 650 val entries (8.7%), median 0.0264, scale 0.1870; z=0 without messages
+2026-09-27 09:08:40,839 P25888 INFO *** Test F1 0.1226 P 0.2131 R 0.0860 AUROC 0.8628 AUPRC 0.3279 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis', 'trace_dis_async', 'trace_dis_order', 'trace_err'], val-median={'log_kpi_loss': 0.0339, 'trace_dis': 0.9367, 'trace_dis_async': 0.0004, 'trace_dis_order': 0.0036, 'trace_err': 0.0}, val-p95.0-minus-median={'log_kpi_loss': 0.2794, 'trace_dis': 0.0203, 'trace_dis_async': 0.0256, 'trace_dis_order': 0.6078, 'trace_err': np.float64(0.1733)})
+2026-09-27 09:08:40,873 P25888 INFO Current hash id fb3d51a7
