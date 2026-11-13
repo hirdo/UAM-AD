@@ -1,0 +1,4 @@
+Experiment 14c775a9: 2026/09/27-16:59:08
+Train time/epoch 23.1249
+* Test -- f1:0.7731	rc:0.8315	pc:0.7224	threshold:3.1819	auroc:0.9782	auprc:0.8522	oracle_f1:0.6088	oracle_rc:0.7087	oracle_pc:0.5336	oracle_threshold:0.2309	raw_sum_f1:0.1620	raw_sum_pc:0.2771	raw_sum_rc:0.1145	raw_sum_auroc:0.8769	raw_sum_auprc:0.3802	raw_sum_threshold:0.3704
+

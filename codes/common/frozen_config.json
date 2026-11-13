@@ -1,0 +1,21 @@
+{
+  "_note": "Frozen 2026-10-14 before Phase 3. Shared by UAM-AD and UAC-AD. Do not change after seeing final results.",
+  "shared": {
+    "seeds": [0, 1, 2, 3, 4],
+    "run_start": 0,
+    "run_end": 5,
+    "val_percentile": 95.0,
+    "score_rule": "norm_sum",
+    "point_adjust": false,
+    "learning_rate": 0.001
+  },
+  "per_dataset": {
+    "rcaeval_re2_ob": {"epoches": [5, 5], "patience": 3, "window_size": 30, "batch_size": 128, "trace_c": 6, "gate_lambda": 0.01},
+    "rcaeval_re3_ob": {"epoches": [5, 5], "patience": 3, "window_size": 30, "batch_size": 128, "trace_c": 6, "gate_lambda": 0.01},
+    "rcaeval_re2_tt": {"epoches": [5, 5], "patience": 3, "window_size": 30, "batch_size": 128, "trace_c": 6, "gate_lambda": 0.01},
+    "rcaeval_re3_tt": {"epoches": [5, 5], "patience": 3, "window_size": 30, "batch_size": 128, "trace_c": 6, "gate_lambda": 0.01},
+    "sn": {"epoches": [50, 50], "patience": 15, "window_size": 5, "batch_size": 256, "alpha": 0.16, "open_gan_sep": true, "activity_penalty_weight": 1.5, "gate_delta_lr_mult": 10.0, "_note": "taken from docs/experiment_results_sn_trace_vs_baseline: previous SN run used 50/15, not 10/5. activity_penalty_weight 1.5 (UAM-AD and UAC-AD) and gate_delta_lr_mult 10 (trace only) were also used there but were missing here until 2026-10-15; added before any SN final run"},
+    "deeptralog": {"epoches": [10, 10], "patience": 5, "window_size": 5, "batch_size": 128, "alpha": 0.16, "open_gan_sep": true, "open_unmatch_zoomout": false, "gate_lambda": 0.01}
+  },
+  "epoch_choice": "5 epochs for RE2/RE3. Pilot on RE2-OB cpu, 1 seed: 15 epochs gave AUROC 0.860 -> 0.880 and F1@val 0.504 -> 0.523 at 3x the time; not worth it. Matches the earlier RE2/RE3-OB runs. SN and DeepTraLog keep the settings of their earlier runs, not re-tuned."
+}

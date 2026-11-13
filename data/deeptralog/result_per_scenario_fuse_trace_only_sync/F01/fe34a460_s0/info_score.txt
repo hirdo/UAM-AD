@@ -1,0 +1,4 @@
+Experiment fe34a460: 2026/09/26-20:41:24
+Train time/epoch 21.5781
+* Test -- f1:0.7608	rc:0.8329	pc:0.7002	threshold:1.1762	auroc:0.9374	auprc:0.8341	oracle_f1:0.6783	oracle_rc:0.7082	oracle_pc:0.6509	oracle_threshold:0.2389	raw_sum_f1:0.2586	raw_sum_pc:0.3842	raw_sum_rc:0.1948	raw_sum_auroc:0.8991	raw_sum_auprc:0.4487	raw_sum_threshold:0.3280
+

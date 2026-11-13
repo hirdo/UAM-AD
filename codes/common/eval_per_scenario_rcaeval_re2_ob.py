@@ -11,26 +11,29 @@ Run twice to compare baseline vs trace-enhanced:
       --data data/rcaeval_re2_ob --dataset rcaeval_re2_ob --data_type fuse \\
       --open_trace False --batch_size 128 --window_size 30 \\
       --epoches 5 5 --patience 3 \\    
-      --result_dir data/rcaeval_re2_ob/result_per_scenario_fuse_baseline
+      --result_dir data/rcaeval_re2_ob/result_phase3_fuse_baseline
 
   # Trace: log + metric + trace (GAT)
   python codes/common/eval_per_scenario_rcaeval_re2_ob.py \\
       --data data/rcaeval_re2_ob --dataset rcaeval_re2_ob --data_type fuse \\
       --open_trace True --batch_size 128 --window_size 30 \\
       --epoches 5 5 --patience 3 \\
-      --result_dir data/rcaeval_re2_ob/result_per_scenario_fuse_trace
+      --result_dir data/rcaeval_re2_ob/result_phase3_fuse_trace
+
+Seeds are separate run.py processes (--run_start inclusive, --run_end exclusive) and seeds already on disk are
+skipped, so --run_start 0 --run_end 1 now and --run_start 1 --run_end 5 later give the same 5 seeds. Defaults follow
+frozen_config.json (norm_sum); add --enable_rca True for UAM-AD. Results: mean±std over seeds, not the best seed.
 """
 
 import argparse
 import json
 import logging
 import os
-import re
 import subprocess
 import sys
 import time
 
-import numpy as np
+import eval_seeds
 
 logging.basicConfig(
     level=logging.INFO,
@@ -55,39 +58,6 @@ def _find_scenario_files(data_dir: str):
     return entries
 
 
-def _scan_latest_results(result_dir: str):
-    """
-    Scan result_dir recursively for info_score.txt files.
-    Each file contains a line like:
-        * Test -- f1:0.2174  rc:0.1220  pc:1.0000
-    Returns (best_f1, best_pc, best_rc) or None.
-    """
-    if not os.path.isdir(result_dir):
-        return None
-
-    best_f1 = best_pc = best_rc = -1.0
-    _pat = re.compile(r"f1:([\d.]+)\s+rc:([\d.]+)\s+pc:([\d.]+)")
-
-    for root, _, files in os.walk(result_dir):
-        for fname in files:
-            if fname != "info_score.txt":
-                continue
-            try:
-                with open(os.path.join(root, fname)) as f:
-                    for line in f:
-                        m = _pat.search(line)
-                        if m:
-                            f1 = float(m.group(1))
-                            rc = float(m.group(2))
-                            pc = float(m.group(3))
-                            if f1 > best_f1:
-                                best_f1, best_pc, best_rc = f1, pc, rc
-            except Exception:
-                continue
-
-    return (best_f1, best_pc, best_rc) if best_f1 >= 0 else None
-
-
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -101,10 +71,10 @@ def main():
     p.add_argument("--open_trace",     default="False")
     p.add_argument("--num_services",   default=11,  type=int)
     p.add_argument("--trace_c",        default=6,   type=int)
-    p.add_argument("--epoches",        default=[10, 10], nargs="+", type=int)
-    p.add_argument("--batch_size",     default=256, type=int)
-    p.add_argument("--patience",       default=5,   type=int)
-    p.add_argument("--window_size",    default=60,  type=int,
+    p.add_argument("--epoches",        default=[5, 5], nargs="+", type=int)
+    p.add_argument("--batch_size",     default=128, type=int)
+    p.add_argument("--patience",       default=3,   type=int)
+    p.add_argument("--window_size",    default=30,  type=int,
                    help="Sliding window size in timesteps (1 timestep = 1 second).")
     p.add_argument("--val_percentile", default=95,  type=float,
                    help="Percentile of normal training losses as anomaly threshold.")
@@ -114,10 +84,16 @@ def main():
     p.add_argument("--run_end",        default=1,   type=int)
     p.add_argument("--result_dir",     default=None,
                    help="Base result dir. Each fault type gets its own subdir. "
-                        "Defaults to {data}/result_per_scenario_{data_type}_"
+                        "Defaults to {data}/result_phase3_{data_type}_"
                         "{'trace' if open_trace else 'baseline'}")
     p.add_argument("--gate_lambda",    default=0.01, type=float,
                    help="L1 regularizer on residual-gated trace gate g (auto-applied when open_trace=True).")
+    p.add_argument("--score_rule",     default="norm_sum", choices=["raw_sum", "norm_sum"],
+                   help="Frozen config: norm_sum (run.py's own default is raw_sum).")
+    p.add_argument("--enable_rca",     default="False",
+                   help="True for UAM-AD (open_trace True): also write the service ranking used for HR@k.")
+    p.add_argument("--rca_top_k", default=5, type=int,
+                   help="Services kept per sample in rca_results.json; 5 is needed for HR@5.")
     p.add_argument("--run_py",         default=None,
                    help="Path to run.py (auto-detected if not set)")
     p.add_argument("--fault_types",    default=None,
@@ -142,7 +118,7 @@ def main():
     open_trace_str = str(args.open_trace).lower()
     suffix = "trace" if open_trace_str in ("true", "1", "yes") else "baseline"
     result_base = args.result_dir or os.path.join(
-        args.data, f"result_per_scenario_{args.data_type}_{suffix}"
+        args.data, f"result_phase3_{args.data_type}_{suffix}"
     )
 
     scenario_files = _find_scenario_files(args.data)
@@ -161,7 +137,7 @@ def main():
     logging.info(f"Running {len(scenario_files)} scenario(s): {[f for f, _ in scenario_files]}")
     logging.info(f"Results will be saved under: {result_base}/\n")
 
-    results = []        # list of (fault_type, f1, pc, rc, elapsed_sec)
+    elapsed, per_scenario = {}, {}
     total_start = time.perf_counter()
 
     for fault, test_pkl in scenario_files:
@@ -173,100 +149,69 @@ def main():
         logging.info(f"  test_pkl : {test_pkl}")
         logging.info(f"  result   : {sc_result_dir}")
 
-        cmd = [
-            sys.executable, run_py,
-            "--data",           args.data,
-            "--dataset",        args.dataset,
-            "--data_type",      args.data_type,
-            "--open_trace",     args.open_trace,
-            "--num_services",   str(args.num_services),
-            "--trace_c",        str(args.trace_c),
-            "--epoches",        *[str(e) for e in args.epoches],
-            "--batch_size",     str(args.batch_size),
-            "--patience",       str(args.patience),
-            "--window_size",    str(args.window_size),
-            "--val_percentile", str(args.val_percentile),
-            "--alpha",          str(args.alpha),
-            "--open_gan_sep",   args.open_gan_sep,
-            "--run_start",      str(args.run_start),
-            "--run_end",        str(args.run_end),
-            "--test_pkl",       test_pkl,
-            "--result_dir",     sc_result_dir,
-            "--gate_lambda",    str(args.gate_lambda),
-        ]
+        # One run.py process per seed: seeds already on disk are skipped, so seeds can be added in later invocations
+        # (e.g. --run_start 0 --run_end 1 now, --run_start 1 --run_end 5 later).
+        elapsed[fault] = 0.0
+        for seed in range(args.run_start, args.run_end):
+            if seed in eval_seeds.read_seeds(sc_result_dir):
+                logging.info(f"  seed {seed}: already done, skipped")
+                continue
+            cmd = [
+                sys.executable, run_py,
+                "--data",           args.data,
+                "--dataset",        args.dataset,
+                "--data_type",      args.data_type,
+                "--open_trace",     args.open_trace,
+                "--num_services",   str(args.num_services),
+                "--trace_c",        str(args.trace_c),
+                "--epoches",        *[str(e) for e in args.epoches],
+                "--batch_size",     str(args.batch_size),
+                "--patience",       str(args.patience),
+                "--window_size",    str(args.window_size),
+                "--val_percentile", str(args.val_percentile),
+                "--alpha",          str(args.alpha),
+                "--open_gan_sep",   args.open_gan_sep,
+                "--run_start",      str(seed),
+                "--run_end",        str(seed + 1),
+                "--test_pkl",       test_pkl,
+                "--result_dir",     sc_result_dir,
+                "--gate_lambda",    str(args.gate_lambda),
+                "--score_rule",     args.score_rule,
+                "--enable_rca",     args.enable_rca,
+                "--rca_top_k",         str(args.rca_top_k),
+            ]
+            sc_start = time.perf_counter()
+            try:
+                proc = subprocess.run(cmd, cwd=os.path.dirname(run_py))
+                if proc.returncode != 0:
+                    logging.warning(f"  seed {seed}: run.py exited with code {proc.returncode}")
+            except Exception as e:
+                logging.error(f"  seed {seed}: failed to run: {e}")
+            elapsed[fault] += time.perf_counter() - sc_start
+        per_scenario[fault] = eval_seeds.read_seeds(sc_result_dir)
 
-        sc_start = time.perf_counter()
-        try:
-            proc = subprocess.run(
-                cmd,
-                capture_output=False,
-                text=True,
-                cwd=os.path.dirname(run_py),
-            )
-            if proc.returncode != 0:
-                logging.warning(f"  run.py exited with code {proc.returncode}")
-        except Exception as e:
-            logging.error(f"  Failed to run scenario {fault}: {e}")
-            results.append((fault, 0.0, 0.0, 0.0, 0.0))
-            continue
-        elapsed = time.perf_counter() - sc_start
-
-        res = _scan_latest_results(sc_result_dir)
-        if res is None:
-            logging.warning(f"  No result files found in {sc_result_dir}")
-            results.append((fault, 0.0, 0.0, 0.0, elapsed))
-        else:
-            f1, pc, rc = res
-            results.append((fault, f1, pc, rc, elapsed))
-            logging.info(f"  F1={f1:.4f}  P={pc:.4f}  R={rc:.4f}  time={elapsed:.1f}s")
-
-    # ── Aggregate ─────────────────────────────────────────────────────────────
-    if not results:
+    per_scenario = {k: v for k, v in per_scenario.items() if v}
+    if not per_scenario:
         logging.error("No results collected.")
         return
 
-    total_elapsed = time.perf_counter() - total_start
-
-    f1s  = np.array([r[1] for r in results])
-    pcs  = np.array([r[2] for r in results])
-    rcs  = np.array([r[3] for r in results])
-    times = np.array([r[4] for r in results])
-
-    col = 10
-    sep = "-" * (col + 46)
-    print(f"\n{'='*68}")
-    print(f"  RE2-OB Per-Scenario Results  "
-          f"({args.data_type}, open_trace={args.open_trace})")
-    print(f"{'='*68}")
-    print(f"  {'Fault':<{col}}  {'F1':>6}  {'Precision':>9}  {'Recall':>6}  {'Time(s)':>8}")
-    print(f"  {sep}")
-    for fault, f1, pc, rc, t in results:
-        print(f"  {fault:<{col}}  {f1:>6.4f}  {pc:>9.4f}  {rc:>6.4f}  {t:>8.1f}")
-    print(f"  {sep}")
-    print(f"  {'Mean':<{col}}  {f1s.mean():>6.4f}  {pcs.mean():>9.4f}  {rcs.mean():>6.4f}  {times.mean():>8.1f}")
-    print(f"  {'Std':<{col}}  {f1s.std():>6.4f}  {pcs.std():>9.4f}  {rcs.std():>6.4f}")
-    print(f"  {sep}")
-    print(f"  Total wall time: {total_elapsed:.1f}s ({total_elapsed/60:.1f} min)")
-    print(f"{'='*68}\n")
+    eval_seeds.print_table(
+        f"{args.dataset} per-scenario results ({args.data_type}, open_trace={args.open_trace}, {args.score_rule}); "
+        f"mean±std over seeds", per_scenario, elapsed)
+    logging.info(f"Total wall time of this invocation: {(time.perf_counter() - total_start) / 60:.1f} min")
 
     summary = {
         "config": {
             "data_type":      args.data_type,
             "open_trace":     args.open_trace,
+            "score_rule":     args.score_rule,
+            "enable_rca":     args.enable_rca,
             "val_percentile": args.val_percentile,
             "window_size":    args.window_size,
-            "fault_types":    [f for f, _ in scenario_files],
+            "epoches":        args.epoches,
         },
-        "per_scenario": [
-            {"fault": fault, "f1": f1, "precision": pc, "recall": rc, "elapsed_sec": t}
-            for fault, f1, pc, rc, t in results
-        ],
-        "aggregate": {
-            "f1_mean":         float(f1s.mean()),   "f1_std":         float(f1s.std()),
-            "precision_mean":  float(pcs.mean()),   "precision_std":  float(pcs.std()),
-            "recall_mean":     float(rcs.mean()),   "recall_std":     float(rcs.std()),
-            "total_elapsed_sec": float(total_elapsed),
-        },
+        "per_scenario_per_seed": {fault: {str(s): m for s, m in by_seed.items()} for fault, by_seed in per_scenario.items()},
+        "elapsed_sec_this_invocation": elapsed,
     }
     summary_path = os.path.join(result_base, "summary.json")
     with open(summary_path, "w") as f:

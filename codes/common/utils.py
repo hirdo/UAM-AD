@@ -6,8 +6,17 @@ def dump_scores(result_dir, hash_id, scores, train_time):
     with open(os.path.join(result_dir, hash_id, "info_score.txt"), "w") as fw: #Details
         fw.write('Experiment '+hash_id+': '+(datetime.now()+timedelta(hours=8)).strftime("%Y/%m/%d-%H:%M:%S")+'\n')
         fw.write('Train time/epoch {:.4f}\n'.format(np.mean(train_time)))
-        fw.write("* Test -- " + '\t'.join(["{}:{:.4f}".format(k, v) for k,v in scores.items()])+'\n\n')
-        
+        # Skip non-numeric entries (e.g. rca_records/rca_metrics attached for RCA) —
+        # those get their own dump via dump_rca_results.
+        numeric_scores = {k: v for k, v in scores.items() if isinstance(v, (int, float))}
+        fw.write("* Test -- " + '\t'.join(["{}:{:.4f}".format(k, v) for k,v in numeric_scores.items()])+'\n\n')
+
+def dump_rca_results(result_dir, hash_id, rca_records, rca_metrics=None):
+    json_pretty_dump(rca_records, os.path.join(result_dir, hash_id, "rca_results.json"))
+    if rca_metrics:
+        with open(os.path.join(result_dir, hash_id, "info_score.txt"), "a") as fw:
+            fw.write("* RCA -- " + "\t".join(f"{k}:{v:.4f}" for k, v in rca_metrics.items()) + "\n")
+
 def json_pretty_dump(obj, filename):
     with open(filename, "w") as fw:
         json.dump(obj, fw, sort_keys=True, indent=4,

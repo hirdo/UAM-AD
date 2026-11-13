@@ -1,0 +1,50 @@
+2026-09-26 15:39:04,991 P19132 INFO ^^^^^^^^^^ Current Model:hades, b22c5064 ^^^^^^^^^^
+2026-09-26 15:39:04,991 P19132 INFO Load from D:/UAM-AD/data/deeptralog
+2026-09-26 15:39:08,592 P19132 INFO 642 unique log templates found.
+2026-09-26 15:39:08,594 P19132 INFO Transforming unlabel train data.
+2026-09-26 15:39:08,883 P19132 INFO Transforming test data.
+2026-09-26 15:39:09,038 P19132 INFO 366 new templates show.
+2026-09-26 15:39:10,009 P19132 INFO Transforming val data.
+2026-09-26 15:39:10,025 P19132 INFO 53 new templates show.
+2026-09-26 15:39:10,386 P19132 INFO Data loaded done!
+2026-09-26 15:44:06,844 P19132 INFO Known word number: 642
+2026-09-26 15:44:20,364 P19132 INFO Epoch 0/10, train generator loss: 0.23359
+2026-09-26 15:44:31,181 P19132 INFO Epoch 0/10, train discriminator loss: 4.51868
+2026-09-26 15:44:32,436 P19132 INFO Epoch 0/10, val score: 0.17338. [21.89s]
+2026-09-26 15:44:42,899 P19132 INFO Epoch 1/10, train generator loss: 0.18178
+2026-09-26 15:44:53,185 P19132 INFO Epoch 1/10, train discriminator loss: 6.48011
+2026-09-26 15:44:54,382 P19132 INFO Epoch 1/10, val score: 0.16229. [20.71s]
+2026-09-26 15:45:04,588 P19132 INFO Epoch 2/10, train generator loss: 0.14712
+2026-09-26 15:45:14,884 P19132 INFO Epoch 2/10, train discriminator loss: 5.20086
+2026-09-26 15:45:16,087 P19132 INFO Epoch 2/10, val score: 0.14108. [20.47s]
+2026-09-26 15:45:26,250 P19132 INFO Epoch 3/10, train generator loss: 0.12235
+2026-09-26 15:45:36,665 P19132 INFO Epoch 3/10, train discriminator loss: 4.24245
+2026-09-26 15:45:37,964 P19132 INFO Epoch 3/10, val score: 0.12557. [20.54s]
+2026-09-26 15:45:48,595 P19132 INFO Epoch 4/10, train generator loss: 0.11415
+2026-09-26 15:45:59,875 P19132 INFO Epoch 4/10, train discriminator loss: 3.35317
+2026-09-26 15:46:01,103 P19132 INFO Epoch 4/10, val score: 0.11329. [21.88s]
+2026-09-26 15:46:11,322 P19132 INFO Epoch 5/10, train generator loss: 0.10670
+2026-09-26 15:46:21,701 P19132 INFO Epoch 5/10, train discriminator loss: 3.07245
+2026-09-26 15:46:22,916 P19132 INFO Epoch 5/10, val score: 0.10283. [20.56s]
+2026-09-26 15:46:33,001 P19132 INFO Epoch 6/10, train generator loss: 0.10126
+2026-09-26 15:46:44,223 P19132 INFO Epoch 6/10, train discriminator loss: 2.56005
+2026-09-26 15:46:45,694 P19132 INFO Epoch 6/10, val score: 0.10309. [21.27s]
+2026-09-26 15:46:45,694 P19132 INFO early stopping epoch 1/5
+2026-09-26 15:46:58,612 P19132 INFO Epoch 7/10, train generator loss: 0.10704
+2026-09-26 15:47:09,029 P19132 INFO Epoch 7/10, train discriminator loss: 2.30944
+2026-09-26 15:47:10,293 P19132 INFO Epoch 7/10, val score: 0.09321. [23.33s]
+2026-09-26 15:47:20,470 P19132 INFO Epoch 8/10, train generator loss: 0.11513
+2026-09-26 15:47:30,964 P19132 INFO Epoch 8/10, train discriminator loss: 2.15961
+2026-09-26 15:47:32,438 P19132 INFO Epoch 8/10, val score: 0.09391. [20.64s]
+2026-09-26 15:47:32,438 P19132 INFO early stopping epoch 1/5
+2026-09-26 15:47:42,605 P19132 INFO Epoch 9/10, train generator loss: 0.12502
+2026-09-26 15:47:52,925 P19132 INFO Epoch 9/10, train discriminator loss: 2.29409
+2026-09-26 15:47:54,107 P19132 INFO Epoch 9/10, val score: 0.09390. [20.49s]
+2026-09-26 15:47:54,107 P19132 INFO early stopping epoch 2/5
+2026-09-26 15:47:55,643 P19132 INFO Threshold (p=95.0, src=val, n=7475): 0.334324
+2026-09-26 15:48:00,098 P19132 INFO Saved trace_scores.npz -> D:/ClaudeWork/e2/res_A_F02_s2\b22c5064\trace_scores.npz
+2026-09-26 15:48:04,936 P19132 INFO *** Oracle F1 0.4051 (test-swept threshold, point_adjust)
+2026-09-26 15:48:09,132 P19132 INFO Dumped score components -> D:/ClaudeWork/e2/comp_A_F02_s2.npz
+2026-09-26 15:48:09,132 P19132 INFO *** (reference) raw fusion_loss sum: F1 0.0000 P 0.0000 R 0.0000 AUROC 0.6874 AUPRC 0.1826
+2026-09-26 15:48:13,594 P19132 INFO *** Test F1 0.1072 P 0.1802 R 0.0763 AUROC 0.6457 AUPRC 0.1622 (norm_sum, val threshold; terms=['log_kpi_loss', 'trace_dis'], val-median={'log_kpi_loss': 0.0376, 'trace_dis': 0.941}, val-p95.0-minus-median={'log_kpi_loss': 0.2825, 'trace_dis': 0.0122})
+2026-09-26 15:48:13,634 P19132 INFO Current hash id b22c5064

@@ -1,0 +1,89 @@
+2026-09-19 19:10:30,608 P23084 INFO ^^^^^^^^^^ Current Model:hades, 5658878b ^^^^^^^^^^
+2026-09-19 19:10:30,608 P23084 INFO Load from D:\UAM-AD\data\sn
+2026-09-19 19:10:32,366 P23084 INFO 451 unique log templates found.
+2026-09-19 19:10:32,371 P23084 INFO Transforming unlabel train data.
+2026-09-19 19:10:32,428 P23084 INFO Transforming test data.
+2026-09-19 19:10:32,614 P23084 INFO 5333 new templates show.
+2026-09-19 19:10:32,812 P23084 INFO Transforming val data.
+2026-09-19 19:10:32,819 P23084 INFO 1257 new templates show.
+2026-09-19 19:10:32,843 P23084 INFO Data loaded done!
+2026-09-19 19:10:32,961 P23084 INFO Known word number: 451
+2026-09-19 19:10:33,967 P23084 INFO Activity baseline (train): mean=93.1636 std=12.1861
+2026-09-19 19:10:38,688 P23084 INFO Epoch 0/50, train generator loss: 1.35565
+2026-09-19 19:10:38,847 P23084 INFO Epoch 0/50, train discriminator loss: 2.67177
+2026-09-19 19:10:38,941 P23084 INFO Epoch 0/50, val score: 2.16714. [1.97s]
+2026-09-19 19:10:39,158 P23084 INFO Epoch 1/50, train generator loss: 1.27735
+2026-09-19 19:10:39,298 P23084 INFO Epoch 1/50, train discriminator loss: 2.12680
+2026-09-19 19:10:39,362 P23084 INFO Epoch 1/50, val score: 2.09036. [0.33s]
+2026-09-19 19:10:39,570 P23084 INFO Epoch 2/50, train generator loss: 1.22471
+2026-09-19 19:10:39,711 P23084 INFO Epoch 2/50, train discriminator loss: 1.76168
+2026-09-19 19:10:39,776 P23084 INFO Epoch 2/50, val score: 2.09335. [0.33s]
+2026-09-19 19:10:39,776 P23084 INFO early stopping epoch 1/15
+2026-09-19 19:10:39,968 P23084 INFO Epoch 3/50, train generator loss: 1.23819
+2026-09-19 19:10:40,115 P23084 INFO Epoch 3/50, train discriminator loss: 1.47782
+2026-09-19 19:10:40,172 P23084 INFO Epoch 3/50, val score: 2.08811. [0.34s]
+2026-09-19 19:10:40,367 P23084 INFO Epoch 4/50, train generator loss: 1.25322
+2026-09-19 19:10:40,495 P23084 INFO Epoch 4/50, train discriminator loss: 1.29506
+2026-09-19 19:10:40,545 P23084 INFO Epoch 4/50, val score: 2.09535. [0.30s]
+2026-09-19 19:10:40,545 P23084 INFO early stopping epoch 1/15
+2026-09-19 19:10:40,726 P23084 INFO Epoch 5/50, train generator loss: 1.28382
+2026-09-19 19:10:40,842 P23084 INFO Epoch 5/50, train discriminator loss: 1.14279
+2026-09-19 19:10:40,887 P23084 INFO Epoch 5/50, val score: 2.10344. [0.30s]
+2026-09-19 19:10:40,887 P23084 INFO early stopping epoch 2/15
+2026-09-19 19:10:41,065 P23084 INFO Epoch 6/50, train generator loss: 1.32781
+2026-09-19 19:10:41,179 P23084 INFO Epoch 6/50, train discriminator loss: 1.01066
+2026-09-19 19:10:41,237 P23084 INFO Epoch 6/50, val score: 2.10341. [0.29s]
+2026-09-19 19:10:41,237 P23084 INFO early stopping epoch 3/15
+2026-09-19 19:10:41,389 P23084 INFO Epoch 7/50, train generator loss: 1.38044
+2026-09-19 19:10:41,516 P23084 INFO Epoch 7/50, train discriminator loss: 0.90045
+2026-09-19 19:10:41,569 P23084 INFO Epoch 7/50, val score: 2.10144. [0.28s]
+2026-09-19 19:10:41,570 P23084 INFO early stopping epoch 4/15
+2026-09-19 19:10:41,725 P23084 INFO Epoch 8/50, train generator loss: 1.44112
+2026-09-19 19:10:41,843 P23084 INFO Epoch 8/50, train discriminator loss: 0.81286
+2026-09-19 19:10:41,898 P23084 INFO Epoch 8/50, val score: 2.10285. [0.27s]
+2026-09-19 19:10:41,898 P23084 INFO early stopping epoch 5/15
+2026-09-19 19:10:42,036 P23084 INFO Epoch 9/50, train generator loss: 1.50210
+2026-09-19 19:10:42,152 P23084 INFO Epoch 9/50, train discriminator loss: 0.74318
+2026-09-19 19:10:42,198 P23084 INFO Epoch 9/50, val score: 2.10211. [0.25s]
+2026-09-19 19:10:42,198 P23084 INFO early stopping epoch 6/15
+2026-09-19 19:10:42,349 P23084 INFO Epoch 10/50, train generator loss: 1.56136
+2026-09-19 19:10:42,479 P23084 INFO Epoch 10/50, train discriminator loss: 0.68688
+2026-09-19 19:10:42,534 P23084 INFO Epoch 10/50, val score: 2.10166. [0.28s]
+2026-09-19 19:10:42,534 P23084 INFO early stopping epoch 7/15
+2026-09-19 19:10:42,701 P23084 INFO Epoch 11/50, train generator loss: 1.61366
+2026-09-19 19:10:42,812 P23084 INFO Epoch 11/50, train discriminator loss: 0.64266
+2026-09-19 19:10:42,858 P23084 INFO Epoch 11/50, val score: 2.10393. [0.28s]
+2026-09-19 19:10:42,866 P23084 INFO early stopping epoch 8/15
+2026-09-19 19:10:43,016 P23084 INFO Epoch 12/50, train generator loss: 1.65795
+2026-09-19 19:10:43,129 P23084 INFO Epoch 12/50, train discriminator loss: 0.60708
+2026-09-19 19:10:43,182 P23084 INFO Epoch 12/50, val score: 2.10692. [0.26s]
+2026-09-19 19:10:43,182 P23084 INFO early stopping epoch 9/15
+2026-09-19 19:10:43,329 P23084 INFO Epoch 13/50, train generator loss: 1.69519
+2026-09-19 19:10:43,440 P23084 INFO Epoch 13/50, train discriminator loss: 0.57707
+2026-09-19 19:10:43,487 P23084 INFO Epoch 13/50, val score: 2.11652. [0.26s]
+2026-09-19 19:10:43,487 P23084 INFO early stopping epoch 10/15
+2026-09-19 19:10:43,643 P23084 INFO Epoch 14/50, train generator loss: 1.72361
+2026-09-19 19:10:43,748 P23084 INFO Epoch 14/50, train discriminator loss: 0.55428
+2026-09-19 19:10:43,803 P23084 INFO Epoch 14/50, val score: 2.12639. [0.26s]
+2026-09-19 19:10:43,803 P23084 INFO early stopping epoch 11/15
+2026-09-19 19:10:43,951 P23084 INFO Epoch 15/50, train generator loss: 1.73802
+2026-09-19 19:10:44,066 P23084 INFO Epoch 15/50, train discriminator loss: 0.53672
+2026-09-19 19:10:44,118 P23084 INFO Epoch 15/50, val score: 2.13435. [0.26s]
+2026-09-19 19:10:44,118 P23084 INFO early stopping epoch 12/15
+2026-09-19 19:10:44,252 P23084 INFO Epoch 16/50, train generator loss: 1.74489
+2026-09-19 19:10:44,360 P23084 INFO Epoch 16/50, train discriminator loss: 0.55278
+2026-09-19 19:10:44,415 P23084 INFO Epoch 16/50, val score: 2.13786. [0.24s]
+2026-09-19 19:10:44,415 P23084 INFO early stopping epoch 13/15
+2026-09-19 19:10:44,550 P23084 INFO Epoch 17/50, train generator loss: 1.75165
+2026-09-19 19:10:44,656 P23084 INFO Epoch 17/50, train discriminator loss: 0.60393
+2026-09-19 19:10:44,710 P23084 INFO Epoch 17/50, val score: 2.13630. [0.24s]
+2026-09-19 19:10:44,710 P23084 INFO early stopping epoch 14/15
+2026-09-19 19:10:44,863 P23084 INFO Epoch 18/50, train generator loss: 1.75636
+2026-09-19 19:10:44,985 P23084 INFO Epoch 18/50, train discriminator loss: 0.67346
+2026-09-19 19:10:45,054 P23084 INFO Epoch 18/50, val score: 2.13249. [0.27s]
+2026-09-19 19:10:45,055 P23084 INFO early stopping epoch 15/15
+2026-09-19 19:10:45,055 P23084 INFO Early stopping
+2026-09-19 19:10:45,265 P23084 INFO Threshold (p=95.0, src=val, n=260): 2.278785
+2026-09-19 19:10:45,588 P23084 INFO *** Test F1 0.6903 P 0.5270 R 1.0000 AUROC 0.9769 AUPRC 0.7796 (val threshold)
+2026-09-19 19:10:45,589 P23084 INFO *** Oracle F1 0.9176 (test-swept threshold, point_adjust)
+2026-09-19 19:10:45,592 P23084 INFO Current hash id 5658878b

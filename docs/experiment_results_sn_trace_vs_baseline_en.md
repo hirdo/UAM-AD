@@ -1,221 +1,159 @@
 # Experiment Results: SocialNetwork — Trace vs Baseline
 
+Evaluated with the standard protocol in [`evaluation_protocol_en.md`](evaluation_protocol_en.md): epoch chosen on val loss, threshold = p95 of val scores, **F1 at the val threshold is the primary metric**, AUROC / AUPRC secondary, oracle F1 reported separately.
+
 ## 1. Experiment Setup
 
 ### Model
+**HADES** — GAN-based unsupervised anomaly detection model trained only on normal data.
 
-**HADES** (Hypersphere-based Anomaly Detection with Encoder-Score) — GAN-based unsupervised anomaly detection model that trains exclusively on normal data.
+### Settings
 
-### Evaluation Protocol
-
-| Setting               | Value                                    |
-|:----------------------|:-----------------------------------------|
-| Dataset               | SocialNetwork (AnoMod)                   |
-| Data type             | `fuse` (KPI + Log + Trace)               |
-| Scenarios             | 12 anomaly scenarios                     |
-| Windows per test file | 46 (40 normal + 6 anomaly)               |
-| Anomaly rate          | ~13% per test file                       |
-| `window_size`         | 5  (5 windows × 30 s = 2.5 min context) |
-| `val_percentile`      | 95  (95th percentile of val losses)      |
-| `epoches`             | 10 10  (generator + discriminator)       |
-| `batch_size`          | 256                                      |
-| `patience`            | 5  (early stopping)                      |
-| `alpha`               | 0.16                                     |
-| `open_gan_sep`        | True                                     |
-| `run_end`             | 1  (single run)                          |
-
-### Threshold Calibration
-
-The anomaly threshold is computed **without using test labels**:
-```
-threshold = np.percentile(val_losses, 95)
-```
-where `val_losses` = reconstruction losses from the 8 unseen normal windows in `val.pkl` (last 20% of Normal_Baseline, held out during training).
+| Setting                               | Value                                                                                                                                                                  |
+| :------------------------------------ | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dataset                               | SocialNetwork (AnoMod), 12 fault scenarios                                                                                                                             |
+| Data type                             | `fuse` (KPI + Log [+ Trace when `open_trace=True`])                                                                                                                    |
+| Train / unlabel                       | 39 windows (all `Normal_Baseline`)                                                                                                                                     |
+| Val                                   | 57 normal windows (20% of every other session's normals) → 260 scores                                                                                                  |
+| Test per scenario                     | Anomaly windows + normals from the 224-window test pool; `Code_Stop_*` 263 = 39 + 224 (14.8%), `Perf_*`/`DB_Redis_*` 80 = 10 + 70 and `Svc_Kill_*` 32 = 4 + 28 (12.5%) |
+| `window_size`                         | 5 (5 windows × 30 s)                                                                                                                                                   |
+| `val_percentile`                      | 95                                                                                                                                                                     |
+| `epoches` / `patience`                | 50 50 / 15 (same for baseline and trace)                                                                                                                               |
+| `batch_size`, `alpha`, `open_gan_sep` | 256, 0.16, True                                                                                                                                                        |
+| `activity_penalty_weight`             | 1.5 (same for baseline and trace)                                                                                                                                      |
+| `gate_delta_lr_mult`                  | 10 (trace only — baseline has no `trace_gate`/`delta_head`)                                                                                                            |
+| `run_end`                             | 1 (single run, one seed)                                                                                                                                               |
 
 ### Result Directories
+| Configuration             | Folder                                       |
+| :------------------------ | :------------------------------------------- |
+| Baseline (KPI + Log)      | `data/sn/result_per_scenario_fuse_baseline/` |
+| Trace (KPI + Log + Trace) | `data/sn/result_per_scenario_fuse_trace/`    |
 
-| Configuration             | Folder                                          |
-|:--------------------------|:------------------------------------------------|
-| Baseline (KPI + Log only) | `data/sn/result_per_scenario_fuse_baseline/`    |
-| Trace (KPI + Log + Trace) | `data/sn/result_per_scenario_fuse_trace/`       |
+## 2. Normal / Anomaly Labels per Fault Type
 
----
+The fault window (`FAULT_WINDOWS` in `codes/common/preprocess_sn.py`) is derived from AnoMod's original collection script (`github.com/EvoTestOps/AnoMod`, `automated_multimodal_collection.sh`: collection starts 15 s after the fault is injected) and from direct measurement. Times are measured from the start of each session's recording:
 
-## 2. Commands
+| Fault type                        | Mechanism (per script)                               | Anomaly window | Rest of the session  |
+| --------------------------------- | ---------------------------------------------------- | -------------- | -------------------- |
+| `Code_Stop_*`                     | `docker stop`, never auto-restarted                  | Whole session  | –                    |
+| `Perf_*`, `DB_Redis_CacheLimit_*` | ChaosBlade `--timeout 300`, auto-reverts after 300 s | 0–300 s        | Normal (recovered)   |
+| `Svc_Kill_*`                      | ChaosBlade process kill + Docker auto-restart        | 90–210 s       | Normal               |
+| `Normal_Baseline`                 | –                                                    | –              | Whole session normal |
 
-> **Architecture note**: As of branch `re-eval-sn`, the trace branch uses **residual-gated fusion** (CHANGE 8) automatically whenever `open_trace=True`. The gate keeps the trace contribution near zero when trace is uninformative, falling back to the log+KPI baseline. Results below are from re-running with this updated architecture.
+The `Svc_Kill_*` window is confirmed by: the `container_label_restartcount` column flipping 0→1 at t=105 s in all 3 scenarios (absent in `Normal_Baseline`), and a ~75 s silent gap (101.8 s → 176.8 s) in `user-timeline-service`'s traces.
 
-### Baseline (`open_trace=False`)
+## 3. Two Normal Pools
+
+- **Train / unlabel**: all 39 `Normal_Baseline` windows. Kept narrow on purpose: adding low-activity windows from other scenarios to training makes the model treat "low activity" as normal, which destroys detection of "went completely silent" faults (§4.1).
+- **Val and test normals**: the normal windows of every other session (281 windows), split 20% / 80% per source session: 57 windows to val, 224 to the test pool. Each test file draws its normals round-robin from the test pool, so it mixes many sessions; val comes from the same mix but is disjoint from test.
+
+Each `test_<scenario>.pkl` contains that scenario's own anomaly windows (at most 39, thinned evenly over time; only `Code_Stop_*` exceeds it) plus normals to reach the target rate (`--target_anomaly_rate 0.125`, limited by the 224-window pool, which gives 14.8% for `Code_Stop_*`).
+
+## 4. Scoring and Training Components
+
+### 4.1 `activity_penalty_weight`
+For faults that make a service go silent (`Code_Stop_*`, `Svc_Kill_*`), the reconstruction loss of anomaly windows is **lower** than that of normal windows — e.g. `Code_Stop_TextService`: mean anomaly loss 0.92 vs mean normal loss 1.29, in both the log and KPI components. A near-empty/flat input is easier to reconstruct than one with real variation. `activity_penalty_weight` adds a reconstruction-independent term to the anomaly score: how many standard deviations the current activity (`kpi_features.sum + log_features.sum`) sits below the normal training level. Default `0.0` (no effect on other datasets).
+
+### 4.2 `gate_delta_lr_mult` (trace only)
+A separate learning-rate multiplier for `trace_gate` and `delta_head`. Both final layers are zero-initialised, so each one's gradient is proportional to the other's near-zero value (a double bottleneck); a factor of 10 lets them move away from zero faster. Default `1.0`.
+
+### 4.3 `latency_dev` clip to ±10
+`latency_dev` (the 6th trace feature) is a z-score against `Normal_Baseline`; `bl_std`, estimated from few samples, can be near zero and push z-scores into the thousands. Values are clipped to [−10, 10]. It binds on 0–1% of test values (mostly the `Code_Stop_*` files) and 0% of train/val values.
+
+### 4.4 `epoches` / `patience`
+50 50 / 15 for both configurations.
+
+## 5. Commands
 
 ```bash
-cd D:/UAM-AD/codes
-python common/eval_per_scenario_sn.py \
-    --data ../data/sn \
-    --dataset sn --data_type fuse \
-    --open_trace False \
-    --epoches 10 10 --batch_size 256 --patience 5 \
-    --window_size 5 --val_percentile 95 \
-    --alpha 0.16 --open_gan_sep True \
+cd D:/UAM-AD
+python codes/common/preprocess_sn.py --sn_data_root D:/AnoMod/SN_data --output_dir data/sn \
+    --window_sec 30 --target_anomaly_rate 0.125 --seed 42
+
+cd codes
+# Baseline
+python common/eval_per_scenario_sn.py --data ../data/sn --dataset sn --data_type fuse \
+    --open_trace False --activity_penalty_weight 1.5 \
+    --epoches 50 50 --batch_size 256 --patience 15 \
+    --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
+    --run_start 0 --run_end 1
+# Trace
+python common/eval_per_scenario_sn.py --data ../data/sn --dataset sn --data_type fuse \
+    --open_trace True --activity_penalty_weight 1.5 --gate_delta_lr_mult 10 \
+    --epoches 50 50 --batch_size 256 --patience 15 \
+    --window_size 5 --val_percentile 95 --alpha 0.16 --open_gan_sep True \
     --run_start 0 --run_end 1
 ```
 
-### Trace (`open_trace=True`)
+## 6. Results
 
-```bash
-cd D:/UAM-AD/codes
-python common/eval_per_scenario_sn.py \
-    --data ../data/sn \
-    --dataset sn --data_type fuse \
-    --open_trace True --trace_c 6 --gate_lambda 0.01 \
-    --epoches 10 10 --batch_size 256 --patience 5 \
-    --window_size 5 --val_percentile 95 \
-    --alpha 0.16 --open_gan_sep True \
-    --run_start 0 --run_end 1
-```
+### 6.1 Primary: F1 at the val threshold (p95 of val scores)
 
----
+| Scenario                         | Baseline F1 |     P |     R |  Trace F1 |     P |     R |    Δ F1    |
+| :------------------------------- | ----------: | ----: | ----: | --------: | ----: | ----: | :--------: |
+| Code_Stop_MediaService           |       0.690 | 0.527 | 1.000 | **0.772** | 0.629 | 1.000 |   +0.082   |
+| Code_Stop_TextService            |       0.709 | 0.549 | 1.000 | **0.796** | 0.661 | 1.000 |   +0.087   |
+| Code_Stop_UserService            |       0.731 | 0.576 | 1.000 | **0.817** | 0.691 | 1.000 |   +0.086   |
+| DB_Redis_CacheLimit_HomeTimeline |       0.364 | 0.333 | 0.400 | **0.800** | 0.667 | 1.000 |   +0.436   |
+| DB_Redis_CacheLimit_SocialGraph  |       0.720 | 0.562 | 1.000 | **0.857** | 0.750 | 1.000 |   +0.137   |
+| DB_Redis_CacheLimit_UserTimeline |       0.476 | 0.385 | 0.625 | **0.706** | 0.667 | 0.750 |   +0.230   |
+| Perf_CPU_Contention              |       0.522 | 0.462 | 0.600 | **0.800** | 0.667 | 1.000 |   +0.278   |
+| Perf_Disk_IO_Stress              |       0.552 | 0.400 | 0.889 | **0.615** | 0.471 | 0.889 |   +0.064   |
+| Perf_Network_Loss                |       0.400 | 0.400 | 0.400 | **0.857** | 0.818 | 0.900 |   +0.457   |
+| Svc_Kill_Media                   |       0.667 | 0.500 | 1.000 | **0.889** | 0.800 | 1.000 |   +0.222   |
+| Svc_Kill_SocialGraph             |       0.600 | 0.429 | 1.000 | **0.750** | 0.600 | 1.000 |   +0.150   |
+| Svc_Kill_UserTimeline            |       0.727 | 0.571 | 1.000 |     0.727 | 0.571 | 1.000 |   +0.000   |
+| **Mean**                         |   **0.596** | 0.475 | 0.826 | **0.782** | 0.666 | 0.962 | **+0.186** |
+| Std of F1                        |       0.126 |       |       |     0.072 |       |       |            |
 
-## 3. Per-Scenario Results
+Trace F1 is higher in 11/12 scenarios, equal in 1/12 (`Svc_Kill_UserTimeline`) and lower in none. Recall is 1.000 for both in all `Code_Stop_*` files and most `Svc_Kill_*` files, so precision (false alarms at the p95 threshold) decides F1 there.
 
-### 3.1 Baseline (KPI + Log, `open_trace=False`)
+### 6.2 Secondary: AUROC, AUPRC and oracle F1 (baseline / trace)
 
-| Scenario                         |     F1 | Precision | Recall |
-|:---------------------------------|-------:|----------:|-------:|
-| Code_Stop_MediaService           | 0.8889 |    1.0000 | 0.8000 |
-| Code_Stop_TextService            | 0.6667 |    0.6667 | 0.6667 |
-| Code_Stop_UserService            | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_HomeTimeline | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_SocialGraph  | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_UserTimeline | 1.0000 |    1.0000 | 1.0000 |
-| Perf_CPU_Contention              | 0.8333 |    0.8333 | 0.8333 |
-| Perf_Disk_IO_Stress              | 0.8333 |    0.7143 | 1.0000 |
-| Perf_Network_Loss                | 0.9231 |    0.8571 | 1.0000 |
-| Svc_Kill_Media                   | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_SocialGraph             | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_UserTimeline            | 0.9091 |    0.8333 | 1.0000 |
-| **Mean**                         | **0.9212** | **0.9087** | **0.9417** |
-| **Std**                          | **0.0994** | **0.1186** | **0.1073** |
+| Scenario                         |     AUROC     |     AUPRC     |   Oracle F1   |
+| :------------------------------- | :-----------: | :-----------: | :-----------: |
+| Code_Stop_MediaService           | 0.977 / 0.977 | 0.780 / 0.786 | 0.918 / 0.918 |
+| Code_Stop_TextService            | 0.974 / 0.978 | 0.713 / 0.773 | 0.907 / 0.929 |
+| Code_Stop_UserService            | 0.964 / 0.968 | 0.664 / 0.715 | 0.894 / 0.894 |
+| DB_Redis_CacheLimit_HomeTimeline | 0.637 / 0.949 | 0.373 / 0.603 | 0.444 / 0.833 |
+| DB_Redis_CacheLimit_SocialGraph  | 0.973 / 0.973 | 0.736 / 0.736 | 0.900 / 0.900 |
+| DB_Redis_CacheLimit_UserTimeline | 0.692 / 0.923 | 0.544 / 0.696 | 0.667 / 0.778 |
+| Perf_CPU_Contention              | 0.903 / 0.966 | 0.642 / 0.768 | 0.667 / 0.833 |
+| Perf_Disk_IO_Stress              | 0.901 / 0.939 | 0.579 / 0.641 | 0.667 / 0.727 |
+| Perf_Network_Loss                | 0.625 / 0.977 | 0.508 / 0.906 | 0.571 / 0.909 |
+| Svc_Kill_Media                   | 0.962 / 0.962 | 0.679 / 0.679 | 0.889 / 0.889 |
+| Svc_Kill_SocialGraph             | 0.926 / 0.926 | 0.478 / 0.478 | 0.750 / 0.750 |
+| Svc_Kill_UserTimeline            | 0.962 / 0.962 | 0.679 / 0.679 | 0.889 / 0.889 |
+| **Mean**                         | 0.874 / 0.958 | 0.615 / 0.705 | 0.764 / 0.854 |
 
-### 3.2 Trace (KPI + Log + Trace, `open_trace=True`)
+Oracle F1 (threshold swept on test labels, with `point_adjust`) is optimistic and only for comparison with papers that use a sweep; it is not the headline. AUROC/AUPRC are threshold-free, so they show the quality of the score itself.
 
-| Scenario                         |     F1 | Precision | Recall |
-|:---------------------------------|-------:|----------:|-------:|
-| Code_Stop_MediaService           | 1.0000 |    1.0000 | 1.0000 |
-| Code_Stop_TextService            | 0.9091 |    1.0000 | 0.8333 |
-| Code_Stop_UserService            | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_HomeTimeline | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_SocialGraph  | 1.0000 |    1.0000 | 1.0000 |
-| DB_Redis_CacheLimit_UserTimeline | 1.0000 |    1.0000 | 1.0000 |
-| Perf_CPU_Contention              | 0.7692 |    0.7143 | 0.8333 |
-| Perf_Disk_IO_Stress              | 1.0000 |    1.0000 | 1.0000 |
-| Perf_Network_Loss                | 0.8571 |    0.7500 | 1.0000 |
-| Svc_Kill_Media                   | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_SocialGraph             | 1.0000 |    1.0000 | 1.0000 |
-| Svc_Kill_UserTimeline            | 1.0000 |    1.0000 | 1.0000 |
-| **Mean**                         | **0.9613** | **0.9554** | **0.9722** |
-| **Std**                          | **0.0730** | **0.1001** | **0.0621** |
+### 6.3 How to read these results
 
----
+- **Where trace helps most**: AUROC rises from 0.637 to 0.949 (`DB_Redis_CacheLimit_HomeTimeline`), 0.692 to 0.923 (`DB_Redis_CacheLimit_UserTimeline`), 0.625 to 0.977 (`Perf_Network_Loss`) and 0.903 to 0.966 (`Perf_CPU_Contention`): the scenarios where baseline is weak. In `Code_Stop_*` baseline AUROC is already 0.96–0.98 and trace adds at most 0.004; the F1 gain there (+0.09 on average) comes from higher precision at the same threshold.
+- **Identical scores**: on `Svc_Kill_*`, `DB_Redis_CacheLimit_SocialGraph` and `Code_Stop_MediaService` baseline and trace have (nearly) the same AUROC, so the trace branch changed little in the ranking there; F1 differs where the threshold falls.
+- **Small files**: `Svc_Kill_*` has 4 anomaly windows and 32 windows in total, so a single window moves F1 by more than 0.1; treat those rows as anecdotal.
+- **Single seed**: small differences (`Perf_Disk_IO_Stress` 0.552 → 0.615, the `Code_Stop_*` gains) are within run-to-run noise (§7). The protocol asks for 3–5 seeds before any claim; this table is a 1-seed verification.
+- Per-feature signal analysis and ablations (epochs, `gate_delta_lr_mult`, `activity_penalty_weight`) were not repeated on this split, so they are not reported.
 
-## 4. Comparison
+## 7. Limitations
 
-### 4.1 Summary Table
+- **Small test files**: 9 of 12 scenarios have only 32–80 windows; `Svc_Kill_*` has just 4 anomaly windows. F1 also depends on the number of normal windows and the anomaly rate of the test file, so it is comparable only within this setup.
+- **One seed** (`run_end 1`); small differences are within noise.
+- **Not exactly reproducible**: with the same code, data and seed, runs can still differ, so each number is one sample.
+- **p95 caps precision**: the threshold flags about 5% of val normal scores by design, which lowers precision when the anomaly rate is low.
+- **System KPIs carry fault-unspecific traces**: `load1` is high at the start of every session (stack start-up) and `disk_usage_percent` grows across sessions, separating anomaly from normal with AUC 0.99–1.00 in some scenarios. Baseline and trace both receive these KPIs, so the comparison is like-for-like, but absolute F1 may be lifted by time/session traces rather than the fault alone. No ablation dropping these KPIs has been run.
+- **Session shift**: train (`Normal_Baseline`) and val/test normals come from different recording times; val is drawn from the same sessions as test normals by design.
+- With one real `Normal_Baseline` session, the training set stays small (39 windows).
+- `gate_delta_lr_mult` has no counterpart on the baseline side; this remains one asymmetry between the two configurations.
 
-| Metric               | Baseline |      Trace | Δ (Trace − Baseline)       |
-|:---------------------|:--------:|:----------:|:---------------------------|
-| Mean F1              |   0.9212 | **0.9613** | **+0.0401**                |
-| Mean Precision       |   0.9087 | **0.9554** | **+0.0467**                |
-| Mean Recall          |   0.9417 | **0.9722** | **+0.0306**                |
-| Std F1               |   0.0994 | **0.0730** | **−0.0264**  (more stable) |
-| Scenarios at F1=1.0  |     6/12 |   **9/12** | **+3**                     |
+## 8. Related Files
 
-### 4.2 Per-Scenario F1 Change
-
-| Scenario                         | Baseline |    Trace | Δ          |
-|:---------------------------------|---------:|---------:|:----------:|
-| Code_Stop_MediaService           |   0.8889 | **1.000** | +0.111 ↑   |
-| Code_Stop_TextService            |   0.6667 | **0.909** | +0.242 ↑   |
-| Code_Stop_UserService            |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_HomeTimeline |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_SocialGraph  |   1.0000 |    1.000 | ±0         |
-| DB_Redis_CacheLimit_UserTimeline |   1.0000 |    1.000 | ±0         |
-| Perf_CPU_Contention              |   0.8333 |    0.769 | −0.064 ↓   |
-| Perf_Disk_IO_Stress              |   0.8333 | **1.000** | +0.167 ↑   |
-| Perf_Network_Loss                |   0.9231 |    0.857 | −0.066 ↓   |
-| Svc_Kill_Media                   |   1.0000 |    1.000 | ±0         |
-| Svc_Kill_SocialGraph             |   1.0000 |    1.000 | ±0         |
-| Svc_Kill_UserTimeline            |   0.9091 | **1.000** | +0.091 ↑   |
-
-**2 scenarios degraded with trace** (Perf_CPU_Contention, Perf_Network_Loss). 4 scenarios improved, 6 remained the same.
-
----
-
-## 5. Why Trace Data Improves Detection
-
-### 5.1 Trace captures structural anomalies invisible to KPI/Log
-
-Each trace window encodes 6 features per service: `[call_count, avg_dur_us, max_dur_us, error_rate, root_rate, latency_dev]`. When a service is killed or stopped:
-
-- `call_count` drops to **0** (no spans issued)
-- `error_rate` spikes to **1.0** (all remaining spans fail)
-- Adjacent services show elevated `avg_dur_us` (waiting on a dead dependency)
-
-These signals are **complementary** to KPI metrics: even if CPU and memory look normal (the host is fine, just the process died), trace immediately reveals the absence of the service in the call graph.
-
-### 5.2 Scenario-specific analysis
-
-#### Code_Stop_MediaService (0.89 → 1.0)
-The media service was stopped via code (not container kill). Its KPI metrics show **gradual** degradation rather than a hard drop, making it harder for the baseline to distinguish from normal. Trace, however, shows MediaService disappearing from the distributed call graph — an unambiguous structural signal.
-
-#### Code_Stop_TextService (0.67 → 0.91)
-Previously the hardest scenario for both configurations. TextService's stop causes a subtle degradation: other services retry and partially compensate. With `latency_dev` added as a 6th trace feature, the z-score deviation from baseline latency provides a cleaner signal — dependent services show elevated `latency_dev` even when retries keep `error_rate` below 1.0. Trace raises F1 from 0.67 to 0.91.
-
-#### Perf_Disk_IO_Stress (0.83 → 1.0)
-Disk I/O stress causes high `max_dur_us` across services that access persistent storage. This latency spike in traces is a clear signal — KPI-only sees disk metrics elevated but log patterns don't change significantly (the application runs, just slowly).
-
-#### Svc_Kill_UserTimeline (0.91 → 1.0)
-Container-level kill. KPI shows CPU/memory dropping, but the early windows of the anomaly period (when the container is being killed) have ambiguous KPI patterns. Trace shows the service vanishing from call graphs at exactly the right timestamps.
-
-#### Perf_CPU_Contention (0.83 → 0.77, degraded)
-CPU contention at the host level: all services remain running. Baseline (KPI+Log) achieves F1=0.83 by detecting elevated CPU and load metrics. Trace actually hurts here — `latency_dev` introduces noise because services slow down uniformly, pushing the model toward false negatives on some windows. The structural call graph is unchanged (no service disappears), so trace features add ambiguity rather than signal.
-
-#### Perf_Network_Loss (0.92 → 0.86, degraded)
-Network packet loss anomaly: baseline captures this well via `spans_rate` KPI and log error templates. Trace `error_rate` does increase, but its variance overlaps with normal fluctuations — the residual gate does not fully suppress the noisy trace contribution, pulling the threshold slightly off for some windows.
-
-### 5.3 Static adjacency graph provides structural context
-
-The static adjacency matrix (built from Normal_Baseline traces) encodes the **expected call topology** of the 12-service system. When a service disappears (Svc_Kill, Code_Stop), the model's graph-aware components (multi-modal self-attention over the adjacency structure) detect the break in expected call patterns. This structural context is not available from KPI or log features alone.
-
----
-
-## 6. Analysis of Non-Perfect Scenarios
-
-### Code_Stop_TextService (Baseline F1 = 0.67, Trace F1 = 0.91)
-- **Root cause**: TextService stop triggers retry mechanisms in other services (HomeTimeline, SocialGraph). These retries cause unusual but non-zero traffic patterns that partially resemble normal load spikes.
-- **Why baseline struggles**: KPI metrics show high CPU on dependent services (retries), log patterns show new error templates, but the combination doesn't cross the 95th-percentile threshold consistently for all 6 anomaly windows.
-- **Why trace helps significantly**: `latency_dev` z-scores capture the latency elevation relative to Normal_Baseline — dependent services show clearly positive `latency_dev` even when retries keep `error_rate` below 1.0. This pushes the reconstruction loss above the threshold for more anomaly windows, raising F1 from 0.67 to 0.91.
-
-### Perf_CPU_Contention (Baseline F1 = 0.83, Trace F1 = 0.77)
-- **Root cause**: Host-level CPU stress. All 12 services remain running; the application handles requests slowly but does not fail.
-- **Why baseline underperforms**: No service disappears from the call graph. KPI shows CPU increase but HADES, trained on 30-second window aggregates, sees this as a "high but plausible" CPU pattern.
-- **Why trace hurts**: Uniform latency elevation across all services produces a `latency_dev` signal that is ambiguous — the residual gate does not fully close, adding reconstruction noise that shifts some windows across the threshold in the wrong direction. Net result: F1 drops from 0.83 to 0.77.
-- **Implication**: Gradual performance degradation at host level is fundamentally harder to detect than structural failures. For this anomaly type, baseline (KPI+Log) is preferable.
-
-### Perf_Network_Loss (Baseline F1 = 0.92, Trace F1 = 0.86)
-- **Root cause**: Network packet loss injected at host level. Services remain running but drop requests intermittently.
-- **Why baseline performs well**: `spans_rate` KPI and log error templates together capture the loss pattern cleanly.
-- **Why trace slightly hurts**: `error_rate` increases but with high variance (intermittent loss ≠ consistent failure), and `latency_dev` fluctuates around zero. The added trace noise marginally degrades the threshold calibration for this scenario.
-
----
-
-## 7. Conclusion
-
-| Metric              | Baseline |                  Trace |
-|:--------------------|:--------:|:----------------------:|
-| Mean F1             |   0.9212 |     **0.9613** (+4.0%) |
-| Std F1              |   0.0994 |      **0.0730** (−27%) |
-| Scenarios at F1=1.0 |     6/12 |               **9/12** |
-
-**Trace data improves detection for structural anomalies** (service-kill and code-stop) by capturing structural absence signals (`call_count=0`, `error_rate=1.0`, elevated `latency_dev`) that KPI and log features miss. 4 scenarios improved, 6 remained the same, and 2 degraded slightly (Perf_CPU_Contention, Perf_Network_Loss) — both performance-injection anomalies where trace features introduce noise rather than signal.
-
-**Recommendation**: Use `open_trace=True` for production deployment where service-kill type anomalies are the primary concern. For environments dominated by performance-degradation anomalies (CPU stress, network loss), the baseline configuration may be preferable as trace features can slightly hurt detection in those cases.
+| What                                                                                                             | File                                                 |
+| ---------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Standard protocol                                                                                                | `docs/evaluation_protocol_en.md`                     |
+| `FAULT_WINDOWS`, val/test split, `target_anomaly_rate`, `max_anomalies`, `latency_dev` clip                      | `codes/common/preprocess_sn.py`                      |
+| Val-loss model selection, val threshold, AUROC/AUPRC, oracle F1, `activity_penalty_weight`, `gate_delta_lr_mult` | `codes/models/basev3.py`, `codes/run.py`             |
+| Wrapper and summary table                                                                                        | `codes/common/eval_per_scenario_sn.py`               |
+| Results                                                                                                          | `data/sn/result_per_scenario_fuse_{baseline,trace}/` |

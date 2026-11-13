@@ -23,7 +23,8 @@ UAM-AD/
 │       ├── fuse_v3.py                  ← Multi-modal model (log+metric+trace)
 │       ├── log_model_v3.py             ← Log encoder (Transformer)
 │       ├── kpi_model_v3.py             ← Metric encoder (Transformer)
-│       ├── trace_model_v3.py           ← Trace encoder (GAT) + TraceModel
+│       ├── trace_model_v3.py           ← Sync trace encoder (GAT) + TraceModel
+│       ├── async_trace_model_v3.py     ← Async trace branch (CHANGE 9, §10) — additive, sync branch untouched
 │       └── utils.py                    ← Shared modules (Attention, ...)
 └── data/
     └── XX/
@@ -214,17 +215,46 @@ UAM-AD/
 
 > **Guarantee**: at initialization `Δ ≈ 0` and `g ≈ 0.12`; gradient only opens the gate if
 > `Δ` reduces log+KPI reconstruction loss by more than `gate_lambda` (default 0.01).
-> On trace-noisy datasets the gate stays closed and the model is *exactly* equivalent to baseline.
+> On trace-noisy datasets the gate stays closed and the **decoder** path is *exactly* equivalent to baseline.
+> This holds for the decoder and for the raw score rule `raw_sum` only: with `score_rule=norm_sum` (the frozen
+> configuration) the final score also adds the z-score of `trace_dis`, **not multiplied by the gate** (see 3.6.1).
 >
 > **CLI**: `--gate_lambda 0.01` (auto-applied when `--open_trace True`).
 >
 > **Validation**: On RE3-OB (5 code-defect fault types) the residual-gated variant recovers
 > baseline F1 within 0.015 on every fault type.
-> See `experiment_results_re3_ob_trace_vs_baseline_en.md`.
+> See `experiment_results_re3_ob_trace_vs_baseline_en.md`. Those numbers use the raw score rule `raw_sum`; under the
+> frozen `norm_sum`, UAM-AD is below UAC-AD on RE3-OB (see 3.6.1).
+
+### 3.6.1 Where the gate acts (read from the code)
+
+The gate `g` (per sample, from 6 trace-quality features) appears in four places:
+
+1. **Decoder**: `fused_out = y_base + g·Δ` (`fuse_v3.py`). This is the only place where the gate still acts on the
+   `norm_sum` score, indirectly: it changes `log_out`/`kpi_out`, hence the `log_kpi_loss` term.
+2. **Training loss**: `loss = log_dis + kpi_dis + (g·trace_dis).mean() + gate_lambda·g.mean()`. The last two terms
+   only push `g` down; only the decoder path (when `Δ` lowers the log+KPI loss) pushes `g` up.
+3. **Epoch selection**: the validation score used for early stopping is the mean `fusion_loss`
+   (`BaseModel._score_loader`), i.e. it contains `g·trace_d + gate_lambda·g`.
+4. **The `raw_sum` score**: `fusion_loss = log_kpi_loss + g·trace_d + gate_lambda·g`; with `score_rule=norm_sum` it is
+   only kept as the reference numbers `raw_sum_*`.
+
+**Not in the `norm_sum` score:** `evaluate_norm_sum` adds the z-scores of `log_kpi_loss`, `trace_dis`, the async terms
+and `trace_err`, computed from the raw values, not multiplied by `g`. At the score level the trace therefore always
+contributes with its normalised weight; "gate closed ⇒ equal to baseline" holds for the decoder path only.
+
+The gate is trained on normal data, so it learns "does the trace help reconstruct normal log/KPI", not "does the
+trace help detect anomalies".
 
 ---
 
 ## 4. Discriminator — `MultiDiscriminator.get_loss()`
+
+> **Note (checked by gradient on a dummy batch, real classes)**: every stored run uses `open_gan_sep=True`, so the
+> generator step uses `get_loss_sep` and does not use the structural (CHANGE 5), attribute (CHANGE 7) and async
+> (CHANGE 10) heads below. These heads are only trained in the discriminator step (`get_loss`) and reach the generator
+> only when `open_gan_sep=False`. Even then `adj_hat` gets no gradient (the GAT uses the adjacency only as a mask),
+> while `feats_hat` does.
 
 ### 4.1 Structural Trace Discrimination — [CHANGE 5] (unchanged)
 
@@ -300,7 +330,47 @@ UAM-AD/
 
 ---
 
+### 4.3 Discriminator heads of the async branch — [CHANGE 10] (only when `open_async_trace=True`)
+
+Three heads: two with exactly the roles of CHANGE 5 and CHANGE 7, for the async branch (§10), and a third for the order relation. They are built **last** in
+`MultiDiscriminator.__init__`, so every weight that exists without the async branch keeps its initial value (checked).
+Without the async branch no parameter is added.
+
+- **Structural head** (counterpart of CHANGE 5): `async_trace_encoder` (`TraceEncoder_low`, one GAT layer; input, mask
+  and pooling over the present services as in `MultiModel.forward`) encodes the real async graph
+  `(async_trace_node_features, async_msg_count_adj, async_temporal_order_adj)` into `az_real`, and the same graph with
+  `adj_hat_async` (the message-count adjacency reconstructed by `AsyncTraceModel`) into `az_fake`.
+  `decoder5_async = Linear(W·H, 2)`.
+  `disc_loss += CE(decoder5_async(az_real), 1) + CE(decoder5_async(az_fake), 0)`; `deceive_loss += MSE(az_real, az_fake)`.
+- **Attribute head** (counterpart of CHANGE 7): REAL = `async_trace_node_features` averaged over N → `[B·W, async_c]`;
+  FAKE = `feats_hat_async` averaged over N. `attr_classifier_async = Linear(async_c,H) → ReLU → Linear(H,1)`, BCE as in
+  CHANGE 7. It differs from the sync head in using all `async_c = 3` columns, because the async attribute decoder is
+  trained with MSE on all 3.
+- **Order head** (structural head for the second relation of the async graph, only when `async_order=True`): `order_trace_encoder`
+  (`TraceEncoder_low`, one GAT layer; same node inputs and pooling as `async_trace_encoder`) whose graph **is** the precedence
+  relation. REAL = `async_temporal_order_adj`; FAKE = `order_hat_async` (the sigmoid of the logits the BCE of `order_decoder` is
+  taken on), kept on the pairs of present services (the pairs the BCE is trained on) with the real diagonal (diagonal = which
+  services are present). `decoder5_order = Linear(W·H, 2)`, `disc_loss += CE(decoder5_order(oz_real), 1) + CE(decoder5_order(oz_fake), 0)`;
+  `deceive_loss += MSE(oz_real, oz_fake)`. It has to be a head of its own: `async_encoder_inputs` deliberately keeps the precedence
+  relation **out** of the encoder mask (it is a target to predict), so `async_trace_encoder` only sees the diagonal of this relation
+  (which services are present), not which service comes before which.
+
+As for sync, with `open_gan_sep=True` the heads are only trained in the discriminator step and do not act on the
+generator (gradient: `get_loss` trains `async_trace_encoder`, `decoder5_async`, `attr_classifier_async`, `order_trace_encoder`, `decoder5_order`;
+`get_loss_sep` does not touch them). A separate experiment (DeepTraLog F01/F02/F13, 2 seeds) in which the attribute
+head was made to act on the generator did not change the results beyond the seed-to-seed spread either. The order head has no such experiment.
+
+The GAT mask is `(graph + I) > 0` (`GATLayer`), so the FAKE graph of the structural heads (CHANGE 5, the message-count head, the order
+head) always has a full mask (sigmoid/softplus is always > 0, unless the logit is extremely negative) while the REAL graph does not.
+This is a property of CHANGE 5 that the async heads copy (checked on a dummy batch; the density of the REAL graphs on the real data was
+not measured). For the same reason, since the GAT only uses the graph as a mask, `adj_hat`, `adj_hat_async` and `order_hat_async` get
+no gradient from these heads.
+
+---
+
 ## 5. Training Loop (per epoch)
+
+> With `open_gan_sep=True` (the frozen configuration) the `deceive_loss` of step ① comes from `get_loss_sep`, not `get_loss`.
 
 ```
   for batch in unlabel_loader:
@@ -348,6 +418,8 @@ UAM-AD/
 |  6  | **trace_dis**               | BCE(A_hat, adj) — structural loss only             | + λ_lat×MSE(latency_dev) + λ_err×BCE(error_rate)                              |
 |  7  | **Attribute Discriminator** | not present — node attributes not discriminated    | separate head: REAL=trace_nodes[:,:,[3,5]], FAKE=feats_hat[:,:,[3,5]] → Linear(2,H)→ReLU→Linear(H,1) |
 |  8  | **Decoder fusion mode**     | always `cat([fm, ZV])` → noise leaks into kpi_out / log_out when trace is non-informative | **Residual-gated**: `y_base(fm) + g · delta_head(cat[fm,ZV])`, `g∈[0,1]` per-sample from 6 trace-quality features, `delta_head` zero-init, L1 reg on g (`gate_lambda`) |
+|  9  | **Async trace branch**      | not present                                        | **Additive, independent branch** (§10): own encoder/decoder/gate for message-count + temporal-order relations between services; its embedding rides in the SAME `delta_head` (widened by one more H block) alongside the sync embedding; off by default (`open_async_trace=False` ⇒ byte-identical to row 1-8 behaviour) |
+| 10  | **Async discriminator heads** | not present                                       | Three heads for the async branch (§4.3): two like CHANGE 5 and 7, and a structural head for the order relation (when `async_order=True`); built only when `open_async_trace=True` |
 
 ---
 
@@ -404,6 +476,11 @@ UAM-AD/
     attr_classifier: Linear(2,H) → ReLU → Linear(H,1)
     disc_loss    += BCE(attr_classifier(attr_real), 1) + BCE(attr_classifier(attr_fake), 0)
     deceive_loss += MSE(attr_classifier(attr_real), attr_classifier(attr_fake))
+
+  Async heads (CHANGE 10 — only when open_async_trace=True, like CHANGE 5 and 7):
+    structural: async_trace_encoder(real async graph) vs (with adj_hat_async) → decoder5_async
+    attribute:  async_trace_node_features.mean(N) vs feats_hat_async.mean(N)  → attr_classifier_async
+    order:      async_temporal_order_adj(real) vs order_hat_async (present pairs) → order_trace_encoder → decoder5_order  (when async_order=True)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   OUTPUT: F1 / Recall / Precision (with point-adjustment)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -427,3 +504,144 @@ UAM-AD/
 | **Database internal** (slow query, deadlock)          | ⚠️ Partial    | Only visible if DB is in the service mesh; latency of the calling service may increase |
 | **Business logic** (wrong calculation, wrong output)  | ❌ No         | Output incorrect but performance characteristics unchanged |
 | **Security** (auth bypass, injection)                 | ❌ No         | No change in call pattern or latency |
+
+---
+
+## 10. Async Trace Branch — [CHANGE 9] (additive, `open_async_trace=True`)
+
+> Validated on DeepTraLog (TrainTicket) — see [`experiment_results_deeptralog_trace_both_sync_async_vs_only_sync_en.md`](experiment_results_deeptralog_trace_both_sync_async_vs_only_sync_en.md) for the full results, [`preprocess_deeptralog_en.md`](preprocess_deeptralog_en.md) for the dataset/label pipeline.
+
+### 10.0 Why a second branch, not a bigger sync branch
+
+The sync trace branch (§3.3) tracks one thing: an undirected, unweighted service-call **edge set** (`trace_adj`, presence/absence). Measured on DeepTraLog's structural fingerprint (§4 of the preprocess doc), the three async fault cases (F01, F02, F13) leave that edge set **100% unchanged** — the fault instead shifts the **message count** between two services (F02, +21%), the **relative temporal order** in which services are called (F01/F13, 100% of traces get a never-seen-before order relation), or makes the request **fail fast with an error span** (part of F13). None of these three quantities has a representation in the sync branch's node features or adjacency, and a symmetric presence/absence decoder is structurally blind to "the same edge, but the count went up" or "the same two services, but now A happens after B instead of before". So instead of overloading `trace_model_v3.py` (used, unmodified, by every other dataset) with new columns/decoders, the async branch is a **second, independent model** (`async_trace_model_v3.py`) reusing the same `TraceEncoder`/`GATLayer` building block, added purely alongside — off by default, and when off the sync branch's tensors and parameter count are byte-identical to before this change (verified: 2,598 / 48,003 / 129 sync-branch parameters, unchanged with `open_async_trace` True or False).
+
+### 10.1 Input (per trace, node = service, same `N` as the sync branch)
+
+```
+  async_trace_node_features [B,W,N,3]   col 0: log1p(# async out-edges, this service as sender)
+                                          col 1: log1p(# async in-edges, this service as receiver)
+                                          col 2: log1p(mean consumer lag in seconds), 0 if col1==0
+
+  async_msg_count_adj  [B,W,N,N]   directed, weighted: log1p(# async messages i→j) — NOT symmetrized
+                                 (who sends to whom is exactly what a message-count fault needs)
+
+  async_temporal_order_adj  [B,W,N,N]   directed, binary: [i,j]=1 iff every span of service i ended
+                                 before service j's first span started (service-level version of
+                                 DeepTraLog's TEG "Sequence" edge); diagonal [i,i]=1 marks service i
+                                 as PRESENT in the trace (this is how "present services" is known
+                                 without a separate mask key)
+```
+`async_msg_count_adj`/`async_temporal_order_adj` come from `preprocess_deeptralog.py`'s `_build_edges`/`_order_adj`; a dataset without them simply has no async branch (`open_async_trace` requires both keys; `async_order` additionally requires `async_temporal_order_adj`, else `async_encoder_inputs` raises `ValueError` rather than silently degrading).
+
+### 10.2 Encoder — `async_encoder_inputs` (shared helper, `async_trace_model_v3.py`)
+
+```
+  x [B,N,3] ──┐
+              ├─ use_order? ──► cat([x, one_hot(present services)]) [B,N,3+N]  ──► TraceEncoder ──► z [B,N,H]
+  order_adj ──┘                  mask = (adj>0) | (present_i AND present_j)     (2-layer GAT, same
+                                  ── the ORDER relation itself is NOT in the      class as sync branch)
+                                     mask: it is the target to predict, not
+                                     something attention may copy from
+```
+Two independent instantiations of this encoder, unshared weights (exactly mirroring how the sync branch has one `TraceEncoder` inside `AsyncTraceModel` for the autoencoder and one inside `MultiEncoder` for the Fused-decoder embedding):
+- `AsyncTraceModel.encoder` — feeds the async autoencoder (§10.3).
+- `MultiEncoder.async_trace_encoder` — feeds the embedding that goes into the shared `delta_head` (§10.4).
+
+Without node identity, most async node features are near-zero (a service with no message activity has all three columns ≈0), so services that exchange no message would be indistinguishable and no head could learn *which pair* is unusual; the one-hot identity fixes that. The mask deliberately excludes the order relation itself — including it let early experiments' attention copy the relation through edge-sharing instead of predicting it, which hid genuinely unseen relations (this was diagnosed and fixed during development, see the `async_encoder_inputs` docstring).
+
+### 10.3 Async Autoencoder — `AsyncTraceModel` (`async_trace_model_v3.py`)
+
+```
+  z [B,N,H] (from TraceEncoder above)
+       │
+       ├─────────────────────────────┬─────────────────────────────┐
+  Structural (count) decoder   Attribute decoder            Order decoder (if async_order)
+  adj_hat = softplus(          feats_hat = Linear(z)        logits = (z·W_order)·zᵀ
+    (z·W_edge)·zᵀ )              [B,N,3]                     (directed)
+  MSE(adj_hat, async_adj)      MSE(feats_hat, x)            BCE(logits, order_adj)
+  × cell_weight [N,N]           [B,N] per-node               only on PRESENT (i,j) pairs, i≠j
+       │                             │                             │
+  loss_struct [B]              loss_attr [B]                loss_order [B]
+       └──────────────┬──────────────┘
+              loss = loss_struct + λ_attr · loss_attr   [B]   (λ_attr = 0.5 default)
+                      (loss_order kept separate, not folded in — see §10.5)
+```
+- **Count decoder is `Linear + bmm`, not `nn.Bilinear` over a flattened batch**: an earlier version's `nn.Bilinear(H,H,1)` on `[B*N*N,H]` rows allocated a `[B*N*N,H,H]` gradient intermediate that overflowed a 3 GB GPU (`B*W=640, N=35` ⇒ ≈3.2 GB) — `Linear+bmm` computes the same bilinear form without ever materialising anything larger than `[B,N,N]`.
+- **Loss target is MSE against a weighted (log1p count), not BCE against a binary edge** — a presence/absence decoder cannot see "the same edge, count went up".
+- **`cell_weight` down-weights the ~1,220/1,225 (service,service) pairs that never carry a real async edge anywhere in the dataset** (`unseen_edge_weight`, default 0.05, from `meta.pkl`'s `async_edge_mask`): averaging uniformly over all N×N cells let one rare cell's misprediction dominate a trace's score, which is what made some normal traces score as *more* anomalous than every real anomaly before this was added (diagnosed 2026-09-23).
+- **Order decoder is a separate bilinear head (`W_order ≠ W_edge`) with its own BCE**, averaged only over pairs of *present* services (excluding the diagonal) — kept as its own scalar (`loss_order`), not summed into `loss_struct`, so it can be standardised on its own scale downstream (§10.5). `order_hat = sigmoid(logits)` is returned too (not used for the score), only for the discriminator's order head (§4.3).
+
+### 10.4 Async branch's own gate — `async_trace_gate`
+
+Mirrors the sync branch's `trace_gate` (§3.6) exactly, but reads **only** async-branch inputs (`_async_trace_quality_feats`: mean out/in-count, coverage, mean lag, adjacency density, count variance — never `trace_node_features`/`trace_adj`), so the two gates cannot cross-talk: `Linear(6→16) → ReLU → Linear(16→1) → sigmoid`, bias init `0.0` (not `−2.0` like the sync gate — see §10.6 for why).
+
+### 10.5 Embedding into the Fused decoder — same `delta_head`, not a second one
+
+> An earlier version gave the async branch its **own** `delta_head_async` reading the same `fused_out`/`log_out`/`kpi_out` that the sync `delta_head` also writes to — two deltas editing one shared output caused F01's F1 to collapse (0.62 → 0.22 in an early full run) purely from that interference, unrelated to whether the async signal itself was useful. Fixed by **widening the existing `delta_head`** instead of adding a parallel one.
+
+```
+  cached_ZV_async [B,W,H] = masked mean, over PRESENT services (diagonal of async_temporal_order_adj,
+                             falling back to "has any async message" if no order relation), of
+                             MultiEncoder.async_trace_encoder's output — a plain mean over all N
+                             services would dilute the few active ones' signal.
+
+  delta_head input:  open_async_trace=False → cat([fm, ZV])          [B,W,3H]   (unchanged from §3.6)
+                      open_async_trace=True  → cat([fm, ZV, ZV_async]) [B,W,4H]  (+H·(3H+2H) ≈ 2,048 params)
+                      (ZV_async is zeros, not omitted, when a batch/step has no async messages at
+                       all — keeps the tensor shape fixed and the delta exactly 0 there)
+
+  fused_out = fuse_decoder(fm) + gate_g · delta_head(cat([fm, ZV, ZV_async]))
+              (gate_g is the SYNC gate, §3.6 — one shared gate for the whole delta,
+               same as before this change; the async branch's OWN gate, §10.4, only
+               weights its autoencoder loss below, not this decoder path)
+```
+At initialisation `delta_head`'s last layer is zero-init (unchanged), so `fused_out` starts identical whether or not the async branch is present; verified as a no-op at init and confirmed that gradient reaches `async_trace_encoder` through this path.
+
+### 10.6 Score assembly — two rules
+
+**Raw fusion loss** (`--score_rule raw_sum`, the default for every other dataset): the async branch adds one more gated term, following the exact pattern of the sync branch's CHANGE 8:
+```
+  trace_dis_async_all = trace_dis_async_count + trace_dis_async_order      # one branch, one term for raw-sum purposes
+  fusion_loss += gate_g_async · trace_dis_async_all · expand_anomaly_gap(...) + gate_lambda · gate_g_async
+  loss        += (gate_g_async · trace_dis_async_all).mean()   + gate_lambda · gate_g_async.mean()
+```
+
+**`--score_rule norm_sum`** (used for DeepTraLog — see the experiment-results doc): rather than one raw sum where the noisiest term dominates the ranking, each term is standardised against **val-normal-only statistics** before adding:
+```
+  S = Σ_k z_k,   z_k = max(0, (T_k − median_k) / (p95_k − median_k))
+  k ∈ {log_kpi_loss, trace_dis, trace_dis_async_count, trace_dis_async_order, trace_err}   (whichever are present)
+  threshold = val p95 of S
+```
+- `trace_dis_async_count` (the count+attribute term) is **context-normalised**: only the message-bearing subset of val traces (≈8.7% on DeepTraLog) gets a nonzero `z`; those are standardised against each other with a robust scale, not against the whole (mostly message-free) val set — otherwise that small subset's own outliers would set a much higher threshold than the majority of anomalies (which have no async messages at all) can clear.
+- `trace_err` = `log1p(Σ_service call_count·error_rate)`, i.e. log1p of the trace's total error-span evidence — added for the DeepTraLog F13 `trips/left` sub-case, which fails fast with an error span but exchanges no async messages, so neither `trace_dis_async_count` nor `trace_dis_async_order` sees it. Rare-event term: val normals almost never have an error span, so `p95 − median` is floored at a fixed scale (`BaseModel.ERR_Z_ONE = 4.0`, i.e. one error span in an otherwise clean trace scores `z=4`) rather than left at ≈0.
+- This is computed in `BaseModel._score_components`/`evaluate_norm_sum` (`codes/models/basev3.py`), reusing the fused-model's per-window component outputs (`log_kpi_loss`, `trace_dis`, `trace_dis_async_count`, `trace_dis_async_order` from the `forward()` dict) — no separate model pass.
+
+### 10.7 Guarantees checked
+
+- `open_async_trace=False`: no async tensors are built, `delta_head` keeps its original 3H input, `fusion_loss`/`loss` are exactly the pre-CHANGE-9 expressions — verified byte-identical scoring on a regression run (sync-only checkpoint re-scored with the cleaned-up code).
+- `open_async_trace=True` at initialisation: `delta_head`'s zero-init last layer makes the async contribution to `fused_out` exactly 0 regardless of `ZV_async`; a synthetic zero/shuffle probe on a trained checkpoint confirmed `log_dis` barely moves (0.745→0.747/0.743), ruling out an "explain-away" mechanism.
+- Gradient reaches `async_trace_encoder` through the shared `delta_head` path (checked directly on a small batch).
+- Async discriminator heads (CHANGE 10, §4.3): `open_async_trace=False` ⇒ no parameter added; `True` ⇒ every existing weight keeps its initial value, `get_loss` trains the new modules (`async_trace_encoder`, `decoder5_async`, `attr_classifier_async` and, when `async_order=True`, `order_trace_encoder`, `decoder5_order`) and `get_loss_sep` does not touch them (dummy batch, real classes; one batch through the real `MultiModel` and `MultiDiscriminator` runs both steps).
+
+### 10.8 CLI flags
+
+| Flag | Default | Meaning |
+| :--- | :--- | :--- |
+| `--open_async_trace` | `False` | Build the async branch (encoder, autoencoder, gate, delta input) |
+| `--async_order` | `None` (auto-read from `meta["async_order"]`) | Also build/use the order-relation head; `ValueError` if `True` but the data has no `async_temporal_order_adj` |
+| `--async_c` | from `meta["async_c"]` | Number of async node feature columns (3 for DeepTraLog) |
+| `--async_gate_init_bias` | `0.0` | Init bias of `async_trace_gate` (sync's `trace_gate` uses `−2.0`; the async gate starts more open since its own autoencoder loss, not the shared decoder, is what it weights) |
+| `--score_rule` | `raw_sum` | `norm_sum` for the val-normalised sum (§10.6); `raw_sum` elsewhere is unaffected by any of this section |
+| `--dump_components` | off | Dump per-window `_score_components` to an `.npz` instead of running full evaluation — used to re-score a saved checkpoint with a new scoring rule without retraining |
+
+### 10.9 Checking the data for async signs: `--open_async_trace` is only a request
+
+`--open_async_trace True` only **requests** the async branch; it is built only if the data show async signs. `common/data_loads.py`'s `Process.__init__` checks this right after "Data loaded done!" (no labels), on the normal training windows:
+1. the pkl has the two keys `async_trace_node_features`/`async_msg_count_adj`; and
+2. at least `ASYNC_MIN_MSG_ENTRIES = 40` window steps carry async messages (summed out-count ≥ 0.5 — the same test and the same minimum that `evaluate_norm_sum` needs to normalise the count term). Measured: DeepTraLog 2,303 / 29,975 steps (7.7%).
+
+Without labels the check only says "there is enough async interaction to learn from", not whether async faults are detectable. `run.py` reads `Process.async_usable`; if it fails, `open_async_trace` is set to `False` before the model is built and the effective value is written to `params.json`. Log lines:
+- `--open_async_trace True` + both conditions met → `INFO  Async trace branch: ACTIVE -- ... N of M training window steps (x%) carry async messages ...`
+- `--open_async_trace True` + the dataset does **not** have the keys, or has them below the minimum → `WARNING  Async trace branch: --open_async_trace True but ... -- the branch will be switched OFF.` (SN and RCAEval fall in the missing-keys case.)
+- `--open_async_trace False` but the dataset **does** have the keys → an `INFO` note that the branch is available but unused this run.
+- `--open_async_trace False` and the dataset has no async keys → silent (the common case for SN/RE2/RE3).

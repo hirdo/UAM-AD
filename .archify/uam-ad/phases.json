@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "UAM-AD Losses in Training and Inference",
+    "locale": "en",
+    "output": ".archify/uam-ad/phases.html",
+    "quality_profile": "showcase",
+    "repository": { "url": "https://github.com/hirdo/UAM-AD.git", "provider": "github", "link_mode": "web", "revision": "46e9dce4df9be035bd1f52edf277d98eb7da53d8" },
+    "legend": {
+      "entries": {
+        "external": { "label": "Data: log + KPI windows" },
+        "messagebus": { "label": "Generator and the losses that optimize it" },
+        "security": { "label": "Discriminator and its loss" },
+        "backend": { "label": "Score computation" }
+      }
+    }
+  },
+  "components": [
+    { "id": "matched", "type": "external", "label": "Matched pairs", "sublabel": "log + its own KPI", "pos": [40, 140], "size": [150, 56],
+      "sources": [{ "path": "codes/common/data_loads.py", "line": 30 }] },
+    { "id": "unmatched", "type": "external", "label": "Unmatched pairs", "sublabel": "log + other KPI", "pos": [40, 280], "size": [150, 56],
+      "sources": [{ "path": "codes/common/data_loads.py", "line": 225, "end_line": 248 }] },
+    { "id": "gen", "type": "messagebus", "label": "Generator module", "sublabel": "encode, fuse, decode", "pos": [250, 140], "size": [150, 196],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 399 }, { "path": "codes/models/fuse_v3.py", "line": 587, "end_line": 593 }] },
+    { "id": "rec", "type": "external", "label": "Reconstructed pairs", "sublabel": "log_out, kpi_out", "pos": [460, 140], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 624, "end_line": 630 }] },
+    { "id": "recu", "type": "external", "label": "Recon. unmatched", "sublabel": "from unmatched KPI", "pos": [460, 280], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 625, "end_line": 630 }] },
+    { "id": "recloss", "type": "messagebus", "label": "Recon loss", "sublabel": "L1 + gated trace", "pos": [460, 40], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 638, "end_line": 645 }, { "path": "codes/models/fuse_v3.py", "line": 666, "end_line": 672 }] },
+    { "id": "disc", "type": "security", "label": "Discriminator", "sublabel": "real vs recon", "pos": [670, 140], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 245 }, { "path": "codes/models/fuse_v3.py", "line": 323, "end_line": 345 }] },
+    { "id": "contrast", "type": "messagebus", "label": "Contrastive loss", "sublabel": "margin, unmatch_k", "pos": [670, 230], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 711, "end_line": 714 }] },
+    { "id": "discloss", "type": "security", "label": "Discriminator loss", "sublabel": "cross-entropy", "pos": [880, 140], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 347, "end_line": 358 }, { "path": "codes/models/fuse_v3.py", "line": 381, "end_line": 388 }] },
+    { "id": "genadv", "type": "messagebus", "label": "Adversarial loss", "sublabel": "deceive, MSE", "pos": [880, 230], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 356, "end_line": 358 }, { "path": "codes/models/basev3.py", "line": 782, "end_line": 793 }] },
+
+    { "id": "imatched", "type": "external", "label": "Matched pairs", "sublabel": "test windows", "pos": [40, 480], "size": [150, 56],
+      "sources": [{ "path": "codes/common/data_loads.py", "line": 250, "end_line": 283 }] },
+    { "id": "igen", "type": "messagebus", "label": "Generator module", "sublabel": "best checkpoint", "pos": [250, 480], "size": [150, 56],
+      "sources": [{ "path": "codes/models/basev3.py", "line": 844, "end_line": 845 }] },
+    { "id": "irec", "type": "external", "label": "Reconstructed pairs", "sublabel": "log_out, kpi_out", "pos": [460, 480], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 624, "end_line": 630 }] },
+    { "id": "score", "type": "backend", "label": "Anomaly score", "sublabel": "fusion_loss", "pos": [670, 480], "size": [150, 56],
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 641, "end_line": 645 }, { "path": "codes/models/basev3.py", "line": 268, "end_line": 282 }] },
+    { "id": "thr", "type": "backend", "label": "Threshold", "sublabel": "val percentile", "pos": [880, 480], "size": [150, 56],
+      "sources": [{ "path": "codes/models/basev3.py", "line": 847, "end_line": 854 }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Training phase", "wraps": ["matched", "unmatched", "gen", "rec", "recu", "recloss", "disc", "contrast", "discloss", "genadv"] },
+    { "kind": "security-group", "label": "Inference phase", "wraps": ["imatched", "igen", "irec", "score", "thr"] }
+  ],
+  "connections": [
+    { "id": "m-gen", "from": "matched", "to": "gen", "variant": "emphasis" },
+    { "id": "u-gen", "from": "unmatched", "to": "gen", "variant": "emphasis" },
+    { "id": "gen-rec", "from": "gen", "to": "rec", "variant": "emphasis" },
+    { "id": "gen-recu", "from": "gen", "to": "recu", "variant": "emphasis" },
+    { "id": "rec-disc", "from": "rec", "to": "disc", "variant": "security" },
+    { "id": "m-disc", "from": "matched", "to": "disc", "variant": "security", "fromSide": "top", "toSide": "top", "via": [[115, 20], [745, 20]] },
+    { "id": "rec-recloss", "from": "rec", "to": "recloss", "variant": "dashed" },
+    { "id": "m-recloss", "from": "matched", "to": "recloss", "variant": "dashed", "fromSide": "top", "toSide": "left", "via": [[115, 68]] },
+    { "id": "rec-contrast", "from": "rec", "to": "contrast", "variant": "dashed", "fromSide": "bottom", "toSide": "left", "via": [[535, 258]] },
+    { "id": "recu-contrast", "from": "recu", "to": "contrast", "variant": "dashed", "fromSide": "right", "toSide": "bottom", "via": [[745, 308]] },
+    { "id": "disc-discloss", "from": "disc", "to": "discloss", "variant": "security" },
+    { "id": "disc-genadv", "from": "disc", "to": "genadv", "variant": "dashed" },
+    { "id": "gen-igen", "from": "gen", "to": "igen", "label": "best ckpt", "variant": "emphasis" },
+
+    { "id": "im-igen", "from": "imatched", "to": "igen", "variant": "emphasis" },
+    { "id": "igen-irec", "from": "igen", "to": "irec", "variant": "emphasis" },
+    { "id": "irec-score", "from": "irec", "to": "score", "variant": "emphasis" },
+    { "id": "im-score", "from": "imatched", "to": "score", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "via": [[115, 570], [745, 570]] },
+    { "id": "score-thr", "from": "score", "to": "thr", "variant": "emphasis" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Generator loss", "items": ["Recon loss + contrastive + adversarial (deceive)", "Recon adds gate-weighted trace and async terms plus an L1 gate penalty", "Contrastive: max(0, own-KPI error + margin - unmatched-KPI error)"] },
+    { "dot": "rose", "title": "Discriminator loss", "items": ["Cross-entropy: real windows vs reconstructed, per modality", "Trained in a separate step after the generator step"] },
+    { "dot": "cyan", "title": "Inference", "items": ["Only matched test windows, no discriminator, no contrastive", "Score is reconstruction error with gate-weighted trace and async terms", "Threshold: percentile of normal validation scores"] }
+  ]
+}

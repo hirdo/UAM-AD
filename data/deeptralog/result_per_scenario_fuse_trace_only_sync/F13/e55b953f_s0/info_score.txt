@@ -1,0 +1,4 @@
+Experiment e55b953f: 2026/09/26-21:38:58
+Train time/epoch 20.4704
+* Test -- f1:0.8494	rc:0.9989	pc:0.7389	threshold:1.1729	auroc:0.9863	auprc:0.8762	oracle_f1:0.5081	oracle_rc:0.4739	oracle_pc:0.5478	oracle_threshold:0.2288	raw_sum_f1:0.3788	raw_sum_pc:0.4946	raw_sum_rc:0.3069	raw_sum_auroc:0.7561	raw_sum_auprc:0.4246	raw_sum_threshold:0.3380
+

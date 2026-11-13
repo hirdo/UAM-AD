@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "UAM-AD Data Flow",
+    "locale": "en",
+    "output": ".archify/uam-ad/data-workflow.html",
+    "quality_profile": "showcase",
+    "repository": { "url": "https://github.com/hirdo/UAM-AD.git", "provider": "github", "link_mode": "web", "revision": "46e9dce4df9be035bd1f52edf277d98eb7da53d8" }
+  },
+  "stages": [
+    { "label": "Sources" },
+    { "label": "Dataset" },
+    { "label": "Encode" },
+    { "label": "Decode" },
+    { "label": "Judge" }
+  ],
+  "nodes": [
+    { "id": "logs", "type": "external", "label": "Logs", "sublabel": "log templates", "stage": 0, "row": 0,
+      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 158, "end_line": 212 }] },
+    { "id": "metrics", "type": "external", "label": "Metrics", "sublabel": "KPI series", "stage": 0, "row": 1,
+      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 137, "end_line": 148 }] },
+    { "id": "traces", "type": "external", "label": "Traces", "sublabel": "service calls", "stage": 0, "row": 2,
+      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 214, "end_line": 343 }] },
+    { "id": "async", "type": "external", "label": "Async messages", "sublabel": "queue traffic", "stage": 0, "row": 3,
+      "sources": [{ "path": "codes/common/preprocess_deeptralog.py", "line": 326, "end_line": 372 }] },
+    { "id": "pkl", "type": "database", "label": "Pickles", "sublabel": "train val test, meta", "stage": 1, "row": 1, "height": 150, "yOffset": 40,
+      "sources": [{ "path": "codes/common/data_loads.py", "line": 15, "end_line": 28 }, { "path": "codes/common/data_loads.py", "line": 250, "end_line": 283 }] },
+    { "id": "enc", "type": "backend", "label": "Log + KPI encoders", "sublabel": "self-attention", "stage": 2, "row": 0,
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 101, "end_line": 114 }, { "path": "codes/models/fuse_v3.py", "line": 130, "end_line": 135 }] },
+    { "id": "tae", "type": "messagebus", "label": "Trace GAT + AE", "sublabel": "ZV, trace_dis", "stage": 2, "row": 2,
+      "sources": [{ "path": "codes/models/trace_model_v3.py", "line": 108 }, { "path": "codes/models/fuse_v3.py", "line": 654, "end_line": 672 }] },
+    { "id": "aae", "type": "messagebus", "label": "Async GAT + AE", "sublabel": "ZV async, dis", "stage": 2, "row": 3,
+      "sources": [{ "path": "codes/models/async_trace_model_v3.py", "line": 65 }, { "path": "codes/models/fuse_v3.py", "line": 687, "end_line": 708 }] },
+    { "id": "fdec", "type": "backend", "label": "Fused decoder", "sublabel": "log + KPI recon", "stage": 3, "row": 0,
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 612, "end_line": 645 }] },
+    { "id": "disc", "type": "security", "label": "Discriminator", "sublabel": "real vs recon", "stage": 4, "row": 0,
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 245 }, { "path": "codes/models/fuse_v3.py", "line": 323, "end_line": 345 }] },
+    { "id": "score", "type": "backend", "label": "Anomaly score", "sublabel": "val-percentile cut", "stage": 4, "row": 1,
+      "sources": [{ "path": "codes/models/basev3.py", "line": 268, "end_line": 282 }, { "path": "codes/models/basev3.py", "line": 847, "end_line": 854 }] },
+    { "id": "rca", "type": "backend", "label": "Top-k root cause", "sublabel": "per-service rank", "stage": 4, "row": 2,
+      "sources": [{ "path": "codes/models/basev3.py", "line": 497 }, { "path": "codes/models/rca.py", "line": 37 }] }
+  ],
+  "flows": [
+    { "id": "f1", "from": "logs", "to": "pkl", "label": "log windows", "variant": "emphasis" },
+    { "id": "f2", "from": "metrics", "to": "pkl", "label": "KPI windows", "variant": "emphasis" },
+    { "id": "f3", "from": "traces", "to": "pkl", "label": "service graphs", "variant": "dashed" },
+    { "id": "f4", "from": "async", "to": "pkl", "label": "async graphs", "variant": "dashed" },
+    { "id": "f5", "from": "pkl", "to": "enc", "label": "log + KPI tensors", "variant": "emphasis" },
+    { "id": "f6", "from": "pkl", "to": "tae", "label": "trace graph", "variant": "dashed" },
+    { "id": "f7", "from": "pkl", "to": "aae", "label": "async graph", "variant": "dashed" },
+    { "id": "f8", "from": "enc", "to": "fdec", "label": "fused modal", "variant": "emphasis" },
+    { "id": "f9", "from": "tae", "to": "fdec", "label": "ZV x gate", "variant": "dashed" },
+    { "id": "f10", "from": "aae", "to": "fdec", "label": "ZV async", "variant": "dashed" },
+    { "id": "f11", "from": "fdec", "to": "disc", "label": "reconstruction", "variant": "security" },
+    { "id": "f12", "from": "fdec", "to": "score", "label": "recon error", "variant": "emphasis" },
+    { "id": "f13", "from": "tae", "to": "score", "label": "trace_dis", "variant": "dashed" },
+    { "id": "f14", "from": "aae", "to": "score", "label": "async dis", "variant": "dashed" },
+    { "id": "f15", "from": "tae", "to": "rca", "label": "node scores", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "amber", "title": "Main path", "items": ["Log and KPI windows are the baseline signal", "Reconstruction error becomes the score"] },
+    { "dot": "cyan", "title": "Opt-in", "items": ["Dashed flows exist only with trace or async flags", "RCA uses sync trace node scores only"] }
+  ]
+}

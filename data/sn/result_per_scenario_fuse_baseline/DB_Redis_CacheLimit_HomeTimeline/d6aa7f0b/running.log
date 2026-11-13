@@ -1,0 +1,85 @@
+2026-09-19 19:11:50,744 P24664 INFO ^^^^^^^^^^ Current Model:hades, d6aa7f0b ^^^^^^^^^^
+2026-09-19 19:11:50,745 P24664 INFO Load from D:\UAM-AD\data\sn
+2026-09-19 19:11:51,198 P24664 INFO 451 unique log templates found.
+2026-09-19 19:11:51,203 P24664 INFO Transforming unlabel train data.
+2026-09-19 19:11:51,230 P24664 INFO Transforming test data.
+2026-09-19 19:11:51,289 P24664 INFO 1620 new templates show.
+2026-09-19 19:11:51,352 P24664 INFO Transforming val data.
+2026-09-19 19:11:51,355 P24664 INFO 1257 new templates show.
+2026-09-19 19:11:51,369 P24664 INFO Data loaded done!
+2026-09-19 19:11:51,424 P24664 INFO Known word number: 451
+2026-09-19 19:11:52,023 P24664 INFO Activity baseline (train): mean=93.1636 std=12.1861
+2026-09-19 19:11:54,810 P24664 INFO Epoch 0/50, train generator loss: 1.35531
+2026-09-19 19:11:54,948 P24664 INFO Epoch 0/50, train discriminator loss: 2.68663
+2026-09-19 19:11:55,016 P24664 INFO Epoch 0/50, val score: 2.11813. [0.91s]
+2026-09-19 19:11:55,222 P24664 INFO Epoch 1/50, train generator loss: 1.22528
+2026-09-19 19:11:55,364 P24664 INFO Epoch 1/50, train discriminator loss: 2.12795
+2026-09-19 19:11:55,418 P24664 INFO Epoch 1/50, val score: 2.07751. [0.32s]
+2026-09-19 19:11:55,582 P24664 INFO Epoch 2/50, train generator loss: 1.21064
+2026-09-19 19:11:55,690 P24664 INFO Epoch 2/50, train discriminator loss: 1.77959
+2026-09-19 19:11:55,729 P24664 INFO Epoch 2/50, val score: 2.06487. [0.25s]
+2026-09-19 19:11:55,858 P24664 INFO Epoch 3/50, train generator loss: 1.22088
+2026-09-19 19:11:55,949 P24664 INFO Epoch 3/50, train discriminator loss: 1.50277
+2026-09-19 19:11:55,979 P24664 INFO Epoch 3/50, val score: 2.06890. [0.20s]
+2026-09-19 19:11:55,980 P24664 INFO early stopping epoch 1/15
+2026-09-19 19:11:56,083 P24664 INFO Epoch 4/50, train generator loss: 1.26111
+2026-09-19 19:11:56,168 P24664 INFO Epoch 4/50, train discriminator loss: 1.27763
+2026-09-19 19:11:56,216 P24664 INFO Epoch 4/50, val score: 2.07358. [0.19s]
+2026-09-19 19:11:56,216 P24664 INFO early stopping epoch 2/15
+2026-09-19 19:11:56,326 P24664 INFO Epoch 5/50, train generator loss: 1.31187
+2026-09-19 19:11:56,416 P24664 INFO Epoch 5/50, train discriminator loss: 1.11451
+2026-09-19 19:11:56,447 P24664 INFO Epoch 5/50, val score: 2.08438. [0.20s]
+2026-09-19 19:11:56,447 P24664 INFO early stopping epoch 3/15
+2026-09-19 19:11:56,556 P24664 INFO Epoch 6/50, train generator loss: 1.36792
+2026-09-19 19:11:56,639 P24664 INFO Epoch 6/50, train discriminator loss: 0.98770
+2026-09-19 19:11:56,666 P24664 INFO Epoch 6/50, val score: 2.08945. [0.19s]
+2026-09-19 19:11:56,666 P24664 INFO early stopping epoch 4/15
+2026-09-19 19:11:56,770 P24664 INFO Epoch 7/50, train generator loss: 1.42812
+2026-09-19 19:11:56,860 P24664 INFO Epoch 7/50, train discriminator loss: 0.89120
+2026-09-19 19:11:56,909 P24664 INFO Epoch 7/50, val score: 2.09088. [0.19s]
+2026-09-19 19:11:56,909 P24664 INFO early stopping epoch 5/15
+2026-09-19 19:11:57,027 P24664 INFO Epoch 8/50, train generator loss: 1.49238
+2026-09-19 19:11:57,120 P24664 INFO Epoch 8/50, train discriminator loss: 0.81939
+2026-09-19 19:11:57,149 P24664 INFO Epoch 8/50, val score: 2.09479. [0.21s]
+2026-09-19 19:11:57,149 P24664 INFO early stopping epoch 6/15
+2026-09-19 19:11:57,255 P24664 INFO Epoch 9/50, train generator loss: 1.55250
+2026-09-19 19:11:57,362 P24664 INFO Epoch 9/50, train discriminator loss: 0.76338
+2026-09-19 19:11:57,394 P24664 INFO Epoch 9/50, val score: 2.09958. [0.21s]
+2026-09-19 19:11:57,394 P24664 INFO early stopping epoch 7/15
+2026-09-19 19:11:57,499 P24664 INFO Epoch 10/50, train generator loss: 1.60482
+2026-09-19 19:11:57,579 P24664 INFO Epoch 10/50, train discriminator loss: 0.71733
+2026-09-19 19:11:57,610 P24664 INFO Epoch 10/50, val score: 2.10159. [0.18s]
+2026-09-19 19:11:57,610 P24664 INFO early stopping epoch 8/15
+2026-09-19 19:11:57,728 P24664 INFO Epoch 11/50, train generator loss: 1.64317
+2026-09-19 19:11:57,805 P24664 INFO Epoch 11/50, train discriminator loss: 0.67824
+2026-09-19 19:11:57,837 P24664 INFO Epoch 11/50, val score: 2.10360. [0.20s]
+2026-09-19 19:11:57,838 P24664 INFO early stopping epoch 9/15
+2026-09-19 19:11:57,950 P24664 INFO Epoch 12/50, train generator loss: 1.67120
+2026-09-19 19:11:58,046 P24664 INFO Epoch 12/50, train discriminator loss: 0.65434
+2026-09-19 19:11:58,083 P24664 INFO Epoch 12/50, val score: 2.10706. [0.21s]
+2026-09-19 19:11:58,083 P24664 INFO early stopping epoch 10/15
+2026-09-19 19:11:58,182 P24664 INFO Epoch 13/50, train generator loss: 1.68740
+2026-09-19 19:11:58,277 P24664 INFO Epoch 13/50, train discriminator loss: 0.64601
+2026-09-19 19:11:58,326 P24664 INFO Epoch 13/50, val score: 2.10912. [0.19s]
+2026-09-19 19:11:58,326 P24664 INFO early stopping epoch 11/15
+2026-09-19 19:11:58,498 P24664 INFO Epoch 14/50, train generator loss: 1.69677
+2026-09-19 19:11:58,606 P24664 INFO Epoch 14/50, train discriminator loss: 0.65361
+2026-09-19 19:11:58,647 P24664 INFO Epoch 14/50, val score: 2.11218. [0.28s]
+2026-09-19 19:11:58,648 P24664 INFO early stopping epoch 12/15
+2026-09-19 19:11:58,812 P24664 INFO Epoch 15/50, train generator loss: 1.69435
+2026-09-19 19:11:58,914 P24664 INFO Epoch 15/50, train discriminator loss: 0.68334
+2026-09-19 19:11:58,957 P24664 INFO Epoch 15/50, val score: 2.11224. [0.27s]
+2026-09-19 19:11:58,957 P24664 INFO early stopping epoch 13/15
+2026-09-19 19:11:59,136 P24664 INFO Epoch 16/50, train generator loss: 1.68830
+2026-09-19 19:11:59,246 P24664 INFO Epoch 16/50, train discriminator loss: 0.74512
+2026-09-19 19:11:59,298 P24664 INFO Epoch 16/50, val score: 2.10437. [0.29s]
+2026-09-19 19:11:59,298 P24664 INFO early stopping epoch 14/15
+2026-09-19 19:11:59,444 P24664 INFO Epoch 17/50, train generator loss: 1.68096
+2026-09-19 19:11:59,553 P24664 INFO Epoch 17/50, train discriminator loss: 0.79761
+2026-09-19 19:11:59,603 P24664 INFO Epoch 17/50, val score: 2.09271. [0.25s]
+2026-09-19 19:11:59,603 P24664 INFO early stopping epoch 15/15
+2026-09-19 19:11:59,603 P24664 INFO Early stopping
+2026-09-19 19:11:59,755 P24664 INFO Threshold (p=95.0, src=val, n=260): 2.255225
+2026-09-19 19:12:00,058 P24664 INFO *** Test F1 0.3636 P 0.3333 R 0.4000 AUROC 0.6369 AUPRC 0.3732 (val threshold)
+2026-09-19 19:12:00,058 P24664 INFO *** Oracle F1 0.4444 (test-swept threshold, point_adjust)
+2026-09-19 19:12:00,063 P24664 INFO Current hash id d6aa7f0b

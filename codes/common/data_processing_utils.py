@@ -3,7 +3,6 @@ import pickle
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 import matplotlib.pyplot as plt
-import json
 import pandas as pd
 
 def find_positive_segment(data):
@@ -281,46 +280,3 @@ def isInAnomalyAround2(cnt,index_list2,around,k):
         if cnt< i + around*k and cnt >= i-around*k:
             return True
     return False
-    
-def patching_kpi():
-    data_dir = "../../data/zte/"
-    # save_dir = "../../data/zte2/"
-    
-    # q: node 指标是不是覆盖了？
-    # q: 需要加上disk partition的指标
-    # 需要打标
-    # 需要平衡分布
-    # 
-    
-    with open(data_dir+"metric_data.json") as f:
-        metrics = json.load(f)
-    
-    stamp_length = 0
-    complete_m = ""
-    for k,v in metrics.items():
-        if stamp_length < len(v):
-            stamp_length = len(v)
-            complete_m = k
-    
-    uncomplete_ms = []
-    complete_ms = []
-    for k,v in metrics.items():
-        if len(v) < stamp_length:
-            uncomplete_ms.append(k)
-        else:
-            complete_ms.append(k)
-            
-    stamps = [] 
-    for k,v in metrics[complete_m].items():
-        stamps.append(k)      
-    
-    for k in stamps:
-        for name in uncomplete_ms:
-            if k not in metrics[name].keys():
-                metrics[name][k] = "0"
-        
-    with open(data_dir+"metric_data_.json","w") as f:
-        json.dump(metrics,f)
-# if __name__ == "__main__":
-    
-    
