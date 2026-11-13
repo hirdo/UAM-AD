@@ -46,7 +46,7 @@
 ## Architecture Overview
 
 <p align="center">
-  <img src="./result/main_architecture.jpg" alt="UAM-AD Architecture" width="85%">
+  <img src="./result/main_architecture.png" alt="UAM-AD Architecture" width="85%">
 </p>
 
 The model encodes each modality independently, fuses them via multi-modal self-attention, and reconstructs the input using an adversarial autoencoder. Windows with high reconstruction error are flagged as anomalies.
