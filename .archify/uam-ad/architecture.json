@@ -1,138 +1,1680 @@
 {
-  "schema_version": 1,
-  "diagram_type": "architecture",
-  "meta": {
-    "title": "UAM-AD Generator and Discriminator Architecture",
-    "locale": "en",
-    "output": ".archify/uam-ad/architecture.html",
-    "quality_profile": "showcase",
-    "repository": { "url": "https://github.com/hirdo/UAM-AD.git", "provider": "github", "link_mode": "local-only", "revision": "0567d2cdf754916758084d0d08ce381b4455806f" },
-    "legend": {
-      "entries": {
-        "external": { "label": "Input data and real/fake verdict" },
-        "backend": { "label": "Preprocess, encode, fuse, RCA" },
-        "messagebus": { "label": "Trace branch: GAT, embeddings, decoders" },
-        "security": { "label": "Discriminator classifier" }
-      }
-    }
+ "schema_version": 1,
+ "diagram_type": "architecture",
+ "meta": {
+  "title": "UAM-AD Generator and Discriminator Architecture",
+  "locale": "en",
+  "output": ".archify/uam-ad/architecture.html",
+  "quality_profile": "standard",
+  "repository": {
+   "url": "https://github.com/hirdo/UAM-AD.git",
+   "provider": "github",
+   "link_mode": "local-only",
+   "revision": "adb67e96ef5a54773d6a77cf5aec306cfee1a4ab"
   },
-  "components": [
-    { "id": "aext", "type": "external", "label": "Async messages", "sublabel": "trace queues", "pos": [40, 110], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_deeptralog.py", "line": 326, "end_line": 372 }] },
-    { "id": "aprep", "type": "backend", "label": "Async preprocess", "sublabel": "count, order, lag", "pos": [210, 110], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_deeptralog.py", "line": 326, "end_line": 372 }] },
-    { "id": "logs", "type": "external", "label": "Logs", "sublabel": "log templates", "pos": [40, 270], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 158, "end_line": 212 }] },
-    { "id": "lprep", "type": "backend", "label": "Log preprocess", "sublabel": "template features", "pos": [210, 270], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 158, "end_line": 212 }] },
-    { "id": "metrics", "type": "external", "label": "Metrics", "sublabel": "KPI series", "pos": [40, 360], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 137, "end_line": 148 }] },
-    { "id": "mprep", "type": "backend", "label": "Metric preprocess", "sublabel": "KPI features", "pos": [210, 360], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 137, "end_line": 148 }] },
-    { "id": "traces", "type": "external", "label": "Traces", "sublabel": "service calls", "pos": [40, 530], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 214, "end_line": 343 }] },
-    { "id": "tprep", "type": "backend", "label": "Trace preprocess", "sublabel": "graph features", "pos": [210, 530], "size": [110, 56],
-      "sources": [{ "path": "codes/common/preprocess_rcaeval_re2_ob.py", "line": 214, "end_line": 343 }] },
-
-    { "id": "agat", "type": "messagebus", "label": "Async GAT encoder", "sublabel": "2 GAT layers", "pos": [380, 110], "size": [110, 56],
-      "sources": [{ "path": "codes/models/async_trace_model_v3.py", "line": 110, "end_line": 113 }] },
-    { "id": "aemb", "type": "messagebus", "label": "Async embeddings", "sublabel": "pooled ZV async", "pos": [550, 110], "size": [110, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 664, "end_line": 665 }] },
-    { "id": "acnt", "type": "messagebus", "label": "Count decoder", "sublabel": "softplus(ZWZ^T)", "pos": [720, 40], "size": [110, 56],
-      "sources": [{ "path": "codes/models/async_trace_model_v3.py", "line": 117 }, { "path": "codes/models/async_trace_model_v3.py", "line": 165, "end_line": 169 }] },
-    { "id": "aord", "type": "messagebus", "label": "Order decoder", "sublabel": "sigmoid(ZWZ^T)", "pos": [720, 110], "size": [110, 56],
-      "sources": [{ "path": "codes/models/async_trace_model_v3.py", "line": 126 }, { "path": "codes/models/async_trace_model_v3.py", "line": 180, "end_line": 188 }] },
-    { "id": "aattr", "type": "messagebus", "label": "Attribute decoder", "sublabel": "out, in, avg_lag", "pos": [720, 180], "size": [110, 56],
-      "sources": [{ "path": "codes/models/async_trace_model_v3.py", "line": 118 }, { "path": "codes/models/async_trace_model_v3.py", "line": 171, "end_line": 175 }] },
-    { "id": "lcnn", "type": "backend", "label": "1D CNN", "sublabel": "log token embed", "pos": [380, 270], "size": [110, 56],
-      "sources": [{ "path": "codes/models/log_model_v3.py", "line": 42 }] },
-    { "id": "ltrans", "type": "backend", "label": "Trans_encoder", "sublabel": "4 layers", "pos": [550, 270], "size": [110, 56],
-      "sources": [{ "path": "codes/models/log_model_v3.py", "line": 40, "end_line": 41 }] },
-    { "id": "kcnn", "type": "backend", "label": "1D CNN", "sublabel": "KPI token embed", "pos": [380, 360], "size": [110, 56],
-      "sources": [{ "path": "codes/models/kpi_model_v3.py", "line": 169 }] },
-    { "id": "ktrans", "type": "backend", "label": "Trans_encoder", "sublabel": "KPI layers", "pos": [550, 360], "size": [110, 56],
-      "sources": [{ "path": "codes/models/kpi_model_v3.py", "line": 167, "end_line": 168 }] },
-    { "id": "attn", "type": "backend", "label": "Self-attention", "sublabel": "multi-modal", "pos": [720, 270], "size": [110, 146],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 130, "end_line": 135 }] },
-    { "id": "fdec", "type": "backend", "label": "Fused decoder", "sublabel": "base + gate * delta", "pos": [890, 270], "size": [110, 146],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 692, "end_line": 702 }] },
-    { "id": "gat", "type": "messagebus", "label": "GAT encoder", "sublabel": "2 GAT layers", "pos": [380, 530], "size": [110, 56],
-      "sources": [{ "path": "codes/models/trace_model_v3.py", "line": 54, "end_line": 83 }] },
-    { "id": "nodeemb", "type": "messagebus", "label": "Node embeddings", "sublabel": "ZV, gated", "pos": [550, 530], "size": [110, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 632, "end_line": 639 }] },
-    { "id": "sdec", "type": "messagebus", "label": "Structure decoder", "sublabel": "sigmoid(Z Z^T)", "pos": [720, 490], "size": [110, 56],
-      "sources": [{ "path": "codes/models/trace_model_v3.py", "line": 164, "end_line": 168 }] },
-    { "id": "adec", "type": "messagebus", "label": "Attribute decoder", "sublabel": "error, latency", "pos": [720, 565], "size": [110, 56],
-      "sources": [{ "path": "codes/models/trace_model_v3.py", "line": 171, "end_line": 188 }] },
-
-    { "id": "ccls", "type": "security", "label": "Async count cls", "sublabel": "adjacency, linear", "pos": [1090, 40], "size": [130, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 282, "end_line": 283 }, { "path": "codes/models/fuse_v3.py", "line": 444, "end_line": 448 }] },
-    { "id": "ocls", "type": "security", "label": "Async order cls", "sublabel": "precedence, linear", "pos": [1090, 110], "size": [130, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 289, "end_line": 293 }, { "path": "codes/models/fuse_v3.py", "line": 459, "end_line": 468 }] },
-    { "id": "acls", "type": "security", "label": "Async attr cls", "sublabel": "out, in, avg_lag", "pos": [1090, 180], "size": [130, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 284, "end_line": 288 }, { "path": "codes/models/fuse_v3.py", "line": 450, "end_line": 456 }] },
-    { "id": "logcls", "type": "security", "label": "Log classifier", "sublabel": "1D CNN + linear", "pos": [1090, 275], "size": [130, 56],
-      "sources": [{ "path": "codes/models/log_model_v3.py", "line": 54 }, { "path": "codes/models/fuse_v3.py", "line": 258 }] },
-    { "id": "kpicls", "type": "security", "label": "KPI classifier", "sublabel": "1D CNN + linear", "pos": [1090, 360], "size": [130, 56],
-      "sources": [{ "path": "codes/models/kpi_model_v3.py", "line": 119 }, { "path": "codes/models/fuse_v3.py", "line": 259 }] },
-    { "id": "strcls", "type": "security", "label": "Struct classifier", "sublabel": "adjacency, linear", "pos": [1090, 490], "size": [130, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 261 }] },
-    { "id": "attrcls", "type": "security", "label": "Attr classifier", "sublabel": "error, latency", "pos": [1090, 565], "size": [130, 56],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 264, "end_line": 268 }] },
-    { "id": "real", "type": "external", "label": "Real / fake", "sublabel": "real or reconstructed", "pos": [1320, 40], "size": [130, 581],
-      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 369, "end_line": 391 }] },
-    { "id": "rca", "type": "backend", "label": "Top-k root cause", "sublabel": "per-service scores", "pos": [720, 700], "size": [110, 56],
-      "sources": [{ "path": "codes/models/basev3.py", "line": 498 }, { "path": "codes/models/basev3.py", "line": 521, "end_line": 536 }, { "path": "codes/models/rca.py", "line": 37 }] }
-  ],
-  "boundaries": [
-    { "kind": "region", "label": "Generator module", "wraps": ["agat", "aemb", "acnt", "aord", "aattr", "lcnn", "ltrans", "kcnn", "ktrans", "attn", "fdec", "gat", "nodeemb", "sdec", "adec"] },
-    { "kind": "security-group", "label": "Discriminator module", "wraps": ["ccls", "ocls", "acls", "logcls", "kpicls", "strcls", "attrcls"] }
-  ],
-  "connections": [
-    { "id": "aext-aprep", "from": "aext", "to": "aprep", "variant": "dashed" },
-    { "id": "aprep-agat", "from": "aprep", "to": "agat", "variant": "dashed" },
-    { "id": "agat-aemb", "from": "agat", "to": "aemb", "variant": "dashed" },
-    { "id": "aemb-acnt", "from": "aemb", "to": "acnt", "variant": "dashed" },
-    { "id": "aemb-aord", "from": "aemb", "to": "aord", "variant": "dashed" },
-    { "id": "aemb-aattr", "from": "aemb", "to": "aattr", "variant": "dashed" },
-    { "id": "aemb-fdec", "from": "aemb", "to": "fdec", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "via": [[605, 253], [945, 253]] },
-
-    { "id": "logs-lprep", "from": "logs", "to": "lprep" },
-    { "id": "lprep-lcnn", "from": "lprep", "to": "lcnn", "variant": "emphasis" },
-    { "id": "lcnn-ltrans", "from": "lcnn", "to": "ltrans", "variant": "emphasis" },
-    { "id": "ltrans-attn", "from": "ltrans", "to": "attn", "variant": "emphasis" },
-    { "id": "metrics-mprep", "from": "metrics", "to": "mprep" },
-    { "id": "mprep-kcnn", "from": "mprep", "to": "kcnn", "variant": "emphasis" },
-    { "id": "kcnn-ktrans", "from": "kcnn", "to": "ktrans", "variant": "emphasis" },
-    { "id": "ktrans-attn", "from": "ktrans", "to": "attn", "variant": "emphasis" },
-    { "id": "attn-fdec", "from": "attn", "to": "fdec", "variant": "emphasis" },
-
-    { "id": "traces-tprep", "from": "traces", "to": "tprep", "variant": "dashed" },
-    { "id": "tprep-gat", "from": "tprep", "to": "gat", "variant": "dashed" },
-    { "id": "gat-nodeemb", "from": "gat", "to": "nodeemb", "variant": "dashed" },
-    { "id": "nodeemb-sdec", "from": "nodeemb", "to": "sdec", "variant": "dashed" },
-    { "id": "nodeemb-adec", "from": "nodeemb", "to": "adec", "variant": "dashed" },
-    { "id": "nodeemb-fdec", "from": "nodeemb", "to": "fdec", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "via": [[605, 453], [945, 453]] },
-
-    { "id": "acnt-ccls", "from": "acnt", "to": "ccls", "variant": "security" },
-    { "id": "aord-ocls", "from": "aord", "to": "ocls", "variant": "security" },
-    { "id": "aattr-acls", "from": "aattr", "to": "acls", "variant": "security" },
-    { "id": "fdec-logcls", "from": "fdec", "to": "logcls", "variant": "security" },
-    { "id": "fdec-kpicls", "from": "fdec", "to": "kpicls", "variant": "security" },
-    { "id": "sdec-strcls", "from": "sdec", "to": "strcls", "variant": "security" },
-    { "id": "adec-attrcls", "from": "adec", "to": "attrcls", "variant": "security" },
-    { "id": "ccls-real", "from": "ccls", "to": "real", "variant": "security" },
-    { "id": "ocls-real", "from": "ocls", "to": "real", "variant": "security" },
-    { "id": "acls-real", "from": "acls", "to": "real", "variant": "security" },
-    { "id": "logcls-real", "from": "logcls", "to": "real", "variant": "security" },
-    { "id": "kpicls-real", "from": "kpicls", "to": "real", "variant": "security" },
-    { "id": "strcls-real", "from": "strcls", "to": "real", "variant": "security" },
-    { "id": "attrcls-real", "from": "attrcls", "to": "real", "variant": "security" },
-    { "id": "adec-rca", "from": "adec", "to": "rca", "variant": "dashed" }
-  ],
-  "cards": [
-    { "dot": "amber", "title": "Generator", "items": ["Log + KPI encode, fuse by self-attention, decode", "Trace and async embeddings join the Fused decoder through one gated delta head"] },
-    { "dot": "rose", "title": "Discriminator", "items": ["Scores real vs reconstructed windows per modality", "Sync trace: structure and attribute classifiers", "Async trace: count, order and attribute classifiers, one per decoder"] },
-    { "dot": "cyan", "title": "Opt-in branches", "items": ["Dashed = trace, async, RCA, enabled by flags", "Order decoder and classifier need async_order", "Async count, attribute and order errors add to the fused score; RCA uses sync node scores"] }
-  ]
+  "legend": {
+   "entries": {
+    "external": {
+     "label": "Raw input data"
+    },
+    "backend": {
+     "label": "Pre/post-processing, no weights"
+    },
+    "database": {
+     "label": "Feature tensors: real and reconstructed"
+    },
+    "messagebus": {
+     "label": "Optimized by generator loss"
+    },
+    "frontend": {
+     "label": "Optimized by discriminator loss"
+    },
+    "security": {
+     "label": "Discriminator verdict"
+    }
+   }
+  }
+ },
+ "components": [
+  {
+   "id": "aext",
+   "type": "external",
+   "label": "Async messages",
+   "sublabel": "trace queues",
+   "pos": [
+    14,
+    192
+   ],
+   "size": [
+    96,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_deeptralog.py",
+     "line": 326,
+     "end_line": 372
+    }
+   ]
+  },
+  {
+   "id": "aprep",
+   "type": "backend",
+   "label": "Async preprocess",
+   "sublabel": "count, order, lag",
+   "pos": [
+    134,
+    192
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_deeptralog.py",
+     "line": 326,
+     "end_line": 372
+    }
+   ]
+  },
+  {
+   "id": "afeat",
+   "type": "database",
+   "label": "Async features",
+   "sublabel": "msg/order adj, attrs",
+   "pos": [
+    268,
+    192
+   ],
+   "size": [
+    120,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/data_loads.py",
+     "line": 117,
+     "end_line": 121
+    }
+   ]
+  },
+  {
+   "id": "logs",
+   "type": "external",
+   "label": "Logs",
+   "sublabel": "log templates",
+   "pos": [
+    14,
+    422
+   ],
+   "size": [
+    96,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 158,
+     "end_line": 212
+    }
+   ]
+  },
+  {
+   "id": "lprep",
+   "type": "backend",
+   "label": "Log preprocess",
+   "sublabel": "template counts",
+   "pos": [
+    134,
+    422
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 158,
+     "end_line": 212
+    }
+   ]
+  },
+  {
+   "id": "lfeat",
+   "type": "database",
+   "label": "Log features",
+   "sublabel": "template window",
+   "pos": [
+    268,
+    422
+   ],
+   "size": [
+    120,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/data_loads.py",
+     "line": 108
+    }
+   ]
+  },
+  {
+   "id": "metrics",
+   "type": "external",
+   "label": "Metrics",
+   "sublabel": "metric series",
+   "pos": [
+    14,
+    552
+   ],
+   "size": [
+    96,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 137,
+     "end_line": 148
+    }
+   ]
+  },
+  {
+   "id": "mprep",
+   "type": "backend",
+   "label": "Metric preprocess",
+   "sublabel": "metric features",
+   "pos": [
+    134,
+    552
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 137,
+     "end_line": 148
+    }
+   ]
+  },
+  {
+   "id": "mfeat",
+   "type": "database",
+   "label": "Metric features",
+   "sublabel": "metric window",
+   "pos": [
+    268,
+    552
+   ],
+   "size": [
+    120,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/data_loads.py",
+     "line": 107
+    }
+   ]
+  },
+  {
+   "id": "traces",
+   "type": "external",
+   "label": "Traces",
+   "sublabel": "service calls",
+   "pos": [
+    14,
+    750
+   ],
+   "size": [
+    96,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 214,
+     "end_line": 343
+    }
+   ]
+  },
+  {
+   "id": "tprep",
+   "type": "backend",
+   "label": "Trace preprocess",
+   "sublabel": "graph features",
+   "pos": [
+    134,
+    750
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/preprocess_rcaeval_re2_ob.py",
+     "line": 214,
+     "end_line": 343
+    }
+   ]
+  },
+  {
+   "id": "tfeat",
+   "type": "database",
+   "label": "Trace features",
+   "sublabel": "call adj, node attrs",
+   "pos": [
+    268,
+    750
+   ],
+   "size": [
+    120,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/common/data_loads.py",
+     "line": 112,
+     "end_line": 116
+    }
+   ]
+  },
+  {
+   "id": "agat",
+   "type": "messagebus",
+   "label": "GAT encoder",
+   "sublabel": "2 GAT layers",
+   "pos": [
+    480,
+    192
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 110,
+     "end_line": 113
+    }
+   ]
+  },
+  {
+   "id": "aemb",
+   "type": "messagebus",
+   "label": "Async embeddings",
+   "sublabel": "pooled ZV",
+   "pos": [
+    620,
+    192
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 664,
+     "end_line": 665
+    }
+   ]
+  },
+  {
+   "id": "acnt",
+   "type": "messagebus",
+   "label": "Count decoder",
+   "sublabel": "softplus(ZWZ^T)",
+   "pos": [
+    770,
+    128
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 117
+    },
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 165,
+     "end_line": 169
+    }
+   ]
+  },
+  {
+   "id": "aord",
+   "type": "messagebus",
+   "label": "Order decoder",
+   "sublabel": "sigmoid(ZWZ^T)",
+   "pos": [
+    770,
+    192
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 126
+    },
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 180,
+     "end_line": 189
+    }
+   ]
+  },
+  {
+   "id": "aattr",
+   "type": "messagebus",
+   "label": "Attribute decoder",
+   "sublabel": "out, in, avg_lag",
+   "pos": [
+    770,
+    256
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 118
+    },
+    {
+     "path": "codes/models/async_trace_model_v3.py",
+     "line": 171,
+     "end_line": 175
+    }
+   ]
+  },
+  {
+   "id": "lcnn",
+   "type": "messagebus",
+   "label": "1D CNN",
+   "sublabel": "log token embed",
+   "pos": [
+    480,
+    422
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/log_model_v3.py",
+     "line": 42
+    }
+   ]
+  },
+  {
+   "id": "ltrans",
+   "type": "messagebus",
+   "label": "Trans_encoder",
+   "sublabel": "4 layers",
+   "pos": [
+    620,
+    422
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/log_model_v3.py",
+     "line": 40,
+     "end_line": 41
+    }
+   ]
+  },
+  {
+   "id": "kcnn",
+   "type": "messagebus",
+   "label": "1D CNN",
+   "sublabel": "metric token embed",
+   "pos": [
+    480,
+    552
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/kpi_model_v3.py",
+     "line": 169
+    }
+   ]
+  },
+  {
+   "id": "ktrans",
+   "type": "messagebus",
+   "label": "Trans_encoder",
+   "sublabel": "metric layers",
+   "pos": [
+    620,
+    552
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/kpi_model_v3.py",
+     "line": 167,
+     "end_line": 168
+    }
+   ]
+  },
+  {
+   "id": "attn",
+   "type": "messagebus",
+   "label": "Self-attention",
+   "sublabel": "multi-modal",
+   "pos": [
+    790,
+    422
+   ],
+   "size": [
+    96,
+    184
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 130,
+     "end_line": 135
+    }
+   ]
+  },
+  {
+   "id": "fdec",
+   "type": "messagebus",
+   "label": "Fused decoder",
+   "sublabel": "base + gate * delta",
+   "pos": [
+    910,
+    422
+   ],
+   "size": [
+    110,
+    184
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 692,
+     "end_line": 702
+    }
+   ]
+  },
+  {
+   "id": "gat",
+   "type": "messagebus",
+   "label": "GAT encoder",
+   "sublabel": "2 GAT layers",
+   "pos": [
+    480,
+    750
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/trace_model_v3.py",
+     "line": 54,
+     "end_line": 83
+    }
+   ]
+  },
+  {
+   "id": "nodeemb",
+   "type": "messagebus",
+   "label": "Node embeddings",
+   "sublabel": "ZV, gated",
+   "pos": [
+    620,
+    750
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 632,
+     "end_line": 639
+    }
+   ]
+  },
+  {
+   "id": "sdec",
+   "type": "messagebus",
+   "label": "Structure decoder",
+   "sublabel": "sigmoid(Z Z^T)",
+   "pos": [
+    770,
+    718
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/trace_model_v3.py",
+     "line": 164,
+     "end_line": 168
+    }
+   ]
+  },
+  {
+   "id": "adec",
+   "type": "messagebus",
+   "label": "Attribute decoder",
+   "sublabel": "error, latency",
+   "pos": [
+    770,
+    782
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/trace_model_v3.py",
+     "line": 171,
+     "end_line": 188
+    }
+   ]
+  },
+  {
+   "id": "rcnt",
+   "type": "database",
+   "label": "Recon. count adj",
+   "sublabel": "log1p msg count",
+   "pos": [
+    1112,
+    128
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 821
+    }
+   ]
+  },
+  {
+   "id": "rord",
+   "type": "database",
+   "label": "Recon. order adj",
+   "sublabel": "precedence",
+   "pos": [
+    1112,
+    192
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 823
+    }
+   ]
+  },
+  {
+   "id": "rattr",
+   "type": "database",
+   "label": "Recon. async attrs",
+   "sublabel": "out, in, avg_lag",
+   "pos": [
+    1112,
+    256
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 822
+    }
+   ]
+  },
+  {
+   "id": "rlog",
+   "type": "database",
+   "label": "Recon. log features",
+   "sublabel": "template window",
+   "pos": [
+    1112,
+    422
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 815
+    }
+   ]
+  },
+  {
+   "id": "rkpi",
+   "type": "database",
+   "label": "Recon. metric features",
+   "sublabel": "metric window",
+   "pos": [
+    1112,
+    552
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 815
+    }
+   ]
+  },
+  {
+   "id": "rstr",
+   "type": "database",
+   "label": "Recon. trace adj",
+   "sublabel": "structure",
+   "pos": [
+    1112,
+    718
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 816
+    }
+   ]
+  },
+  {
+   "id": "ratr",
+   "type": "database",
+   "label": "Recon. trace attrs",
+   "sublabel": "error, latency",
+   "pos": [
+    1112,
+    782
+   ],
+   "size": [
+    144,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 817
+    }
+   ]
+  },
+  {
+   "id": "dcntenc",
+   "type": "frontend",
+   "label": "GAT",
+   "sublabel": "1 layer",
+   "pos": [
+    1336,
+    128
+   ],
+   "size": [
+    100,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 282
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 295,
+     "end_line": 306
+    },
+    {
+     "path": "codes/models/trace_model_v3.py",
+     "line": 86,
+     "end_line": 93
+    }
+   ]
+  },
+  {
+   "id": "dcntlin",
+   "type": "frontend",
+   "label": "Linear",
+   "sublabel": "count head",
+   "pos": [
+    1460,
+    128
+   ],
+   "size": [
+    90,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 283
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 444,
+     "end_line": 448
+    }
+   ]
+  },
+  {
+   "id": "dordenc",
+   "type": "frontend",
+   "label": "GAT",
+   "sublabel": "1 layer",
+   "pos": [
+    1336,
+    192
+   ],
+   "size": [
+    100,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 292
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 308,
+     "end_line": 316
+    }
+   ]
+  },
+  {
+   "id": "dordlin",
+   "type": "frontend",
+   "label": "Linear",
+   "sublabel": "order head",
+   "pos": [
+    1460,
+    192
+   ],
+   "size": [
+    90,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 293
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 459,
+     "end_line": 468
+    }
+   ]
+  },
+  {
+   "id": "dattr",
+   "type": "frontend",
+   "label": "MLP classifier",
+   "sublabel": "mean over services",
+   "pos": [
+    1336,
+    256
+   ],
+   "size": [
+    214,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 284,
+     "end_line": 288
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 450,
+     "end_line": 456
+    }
+   ]
+  },
+  {
+   "id": "dlogenc",
+   "type": "frontend",
+   "label": "1D CNN",
+   "sublabel": "log",
+   "pos": [
+    1336,
+    422
+   ],
+   "size": [
+    100,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/log_model_v3.py",
+     "line": 50,
+     "end_line": 59
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 206
+    }
+   ]
+  },
+  {
+   "id": "dloglin",
+   "type": "frontend",
+   "label": "Linear",
+   "sublabel": "log head",
+   "pos": [
+    1460,
+    422
+   ],
+   "size": [
+    90,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 258
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 379,
+     "end_line": 388
+    }
+   ]
+  },
+  {
+   "id": "dkpienc",
+   "type": "frontend",
+   "label": "1D CNN",
+   "sublabel": "metric",
+   "pos": [
+    1336,
+    552
+   ],
+   "size": [
+    100,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/kpi_model_v3.py",
+     "line": 119,
+     "end_line": 128
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 207
+    }
+   ]
+  },
+  {
+   "id": "dkpilin",
+   "type": "frontend",
+   "label": "Linear",
+   "sublabel": "metric head",
+   "pos": [
+    1460,
+    552
+   ],
+   "size": [
+    90,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 259
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 380,
+     "end_line": 388
+    }
+   ]
+  },
+  {
+   "id": "dstrenc",
+   "type": "frontend",
+   "label": "GAT",
+   "sublabel": "1 layer",
+   "pos": [
+    1336,
+    718
+   ],
+   "size": [
+    100,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 213,
+     "end_line": 214
+    },
+    {
+     "path": "codes/models/trace_model_v3.py",
+     "line": 86,
+     "end_line": 93
+    }
+   ]
+  },
+  {
+   "id": "dstrlin",
+   "type": "frontend",
+   "label": "Linear",
+   "sublabel": "structure head",
+   "pos": [
+    1460,
+    718
+   ],
+   "size": [
+    90,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 261
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 396,
+     "end_line": 399
+    }
+   ]
+  },
+  {
+   "id": "dtattr",
+   "type": "frontend",
+   "label": "MLP classifier",
+   "sublabel": "mean over services",
+   "pos": [
+    1336,
+    782
+   ],
+   "size": [
+    214,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 264,
+     "end_line": 268
+    },
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 405,
+     "end_line": 430
+    }
+   ]
+  },
+  {
+   "id": "verdict",
+   "type": "security",
+   "label": "Real or reconstructed",
+   "sublabel": "one verdict per head",
+   "pos": [
+    1606,
+    128
+   ],
+   "size": [
+    142,
+    728
+   ],
+   "sources": [
+    {
+     "path": "codes/models/fuse_v3.py",
+     "line": 369,
+     "end_line": 391
+    }
+   ]
+  },
+  {
+   "id": "rca",
+   "type": "backend",
+   "label": "Top-k root cause",
+   "sublabel": "sync node scores",
+   "pos": [
+    770,
+    902
+   ],
+   "size": [
+    110,
+    54
+   ],
+   "sources": [
+    {
+     "path": "codes/models/basev3.py",
+     "line": 498
+    },
+    {
+     "path": "codes/models/basev3.py",
+     "line": 521,
+     "end_line": 536
+    },
+    {
+     "path": "codes/models/rca.py",
+     "line": 37
+    }
+   ]
+  }
+ ],
+ "boundaries": [
+  {
+   "kind": "region",
+   "label": "Async modeling",
+   "pad": 36,
+   "wraps": [
+    "agat",
+    "aemb",
+    "acnt",
+    "aord",
+    "aattr"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Log modeling",
+   "pad": 36,
+   "wraps": [
+    "lcnn",
+    "ltrans"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Metric modeling",
+   "pad": 36,
+   "wraps": [
+    "kcnn",
+    "ktrans"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Trace modeling",
+   "pad": 36,
+   "wraps": [
+    "gat",
+    "nodeemb",
+    "sdec",
+    "adec"
+   ]
+  },
+  {
+   "kind": "region",
+   "label": "Generator module",
+   "wraps": [
+    "agat",
+    "aemb",
+    "acnt",
+    "aord",
+    "aattr",
+    "lcnn",
+    "ltrans",
+    "kcnn",
+    "ktrans",
+    "attn",
+    "fdec",
+    "gat",
+    "nodeemb",
+    "sdec",
+    "adec"
+   ],
+   "pad": 68
+  },
+  {
+   "kind": "security-group",
+   "label": "Discriminator module",
+   "wraps": [
+    "dcntenc",
+    "dcntlin",
+    "dordenc",
+    "dordlin",
+    "dattr",
+    "dlogenc",
+    "dloglin",
+    "dkpienc",
+    "dkpilin",
+    "dstrenc",
+    "dstrlin",
+    "dtattr"
+   ],
+   "pad": 32
+  }
+ ],
+ "connections": [
+  {
+   "id": "aext-aprep",
+   "from": "aext",
+   "to": "aprep"
+  },
+  {
+   "id": "aprep-afeat",
+   "from": "aprep",
+   "to": "afeat"
+  },
+  {
+   "id": "afeat-agat",
+   "from": "afeat",
+   "to": "agat"
+  },
+  {
+   "id": "agat-aemb",
+   "from": "agat",
+   "to": "aemb"
+  },
+  {
+   "id": "aemb-acnt",
+   "from": "aemb",
+   "to": "acnt"
+  },
+  {
+   "id": "aemb-aord",
+   "from": "aemb",
+   "to": "aord"
+  },
+  {
+   "id": "aemb-aattr",
+   "from": "aemb",
+   "to": "aattr"
+  },
+  {
+   "id": "aemb-fdec",
+   "from": "aemb",
+   "to": "fdec",
+   "fromSide": "bottom",
+   "toSide": "top",
+   "via": [
+    [
+     675,
+     346
+    ],
+    [
+     965,
+     346
+    ]
+   ]
+  },
+  {
+   "id": "acnt-rcnt",
+   "from": "acnt",
+   "to": "rcnt"
+  },
+  {
+   "id": "aord-rord",
+   "from": "aord",
+   "to": "rord"
+  },
+  {
+   "id": "aattr-rattr",
+   "from": "aattr",
+   "to": "rattr"
+  },
+  {
+   "id": "logs-lprep",
+   "from": "logs",
+   "to": "lprep"
+  },
+  {
+   "id": "lprep-lfeat",
+   "from": "lprep",
+   "to": "lfeat"
+  },
+  {
+   "id": "lfeat-lcnn",
+   "from": "lfeat",
+   "to": "lcnn"
+  },
+  {
+   "id": "lcnn-ltrans",
+   "from": "lcnn",
+   "to": "ltrans"
+  },
+  {
+   "id": "ltrans-attn",
+   "from": "ltrans",
+   "to": "attn"
+  },
+  {
+   "id": "metrics-mprep",
+   "from": "metrics",
+   "to": "mprep"
+  },
+  {
+   "id": "mprep-mfeat",
+   "from": "mprep",
+   "to": "mfeat"
+  },
+  {
+   "id": "mfeat-kcnn",
+   "from": "mfeat",
+   "to": "kcnn"
+  },
+  {
+   "id": "kcnn-ktrans",
+   "from": "kcnn",
+   "to": "ktrans"
+  },
+  {
+   "id": "ktrans-attn",
+   "from": "ktrans",
+   "to": "attn"
+  },
+  {
+   "id": "attn-fdec",
+   "from": "attn",
+   "to": "fdec"
+  },
+  {
+   "id": "fdec-rlog",
+   "from": "fdec",
+   "to": "rlog"
+  },
+  {
+   "id": "fdec-rkpi",
+   "from": "fdec",
+   "to": "rkpi"
+  },
+  {
+   "id": "traces-tprep",
+   "from": "traces",
+   "to": "tprep"
+  },
+  {
+   "id": "tprep-tfeat",
+   "from": "tprep",
+   "to": "tfeat"
+  },
+  {
+   "id": "tfeat-gat",
+   "from": "tfeat",
+   "to": "gat"
+  },
+  {
+   "id": "gat-nodeemb",
+   "from": "gat",
+   "to": "nodeemb"
+  },
+  {
+   "id": "nodeemb-sdec",
+   "from": "nodeemb",
+   "to": "sdec"
+  },
+  {
+   "id": "nodeemb-adec",
+   "from": "nodeemb",
+   "to": "adec"
+  },
+  {
+   "id": "nodeemb-fdec",
+   "from": "nodeemb",
+   "to": "fdec",
+   "fromSide": "top",
+   "toSide": "bottom",
+   "via": [
+    [
+     675,
+     698
+    ],
+    [
+     965,
+     698
+    ]
+   ]
+  },
+  {
+   "id": "sdec-rstr",
+   "from": "sdec",
+   "to": "rstr"
+  },
+  {
+   "id": "adec-ratr",
+   "from": "adec",
+   "to": "ratr"
+  },
+  {
+   "id": "adec-rca",
+   "from": "adec",
+   "to": "rca",
+   "label": "node scores",
+   "labelAt": [
+    825,
+    896
+   ]
+  },
+  {
+   "id": "rcnt-dcntenc",
+   "from": "rcnt",
+   "to": "dcntenc"
+  },
+  {
+   "id": "rord-dordenc",
+   "from": "rord",
+   "to": "dordenc"
+  },
+  {
+   "id": "rattr-dattr",
+   "from": "rattr",
+   "to": "dattr"
+  },
+  {
+   "id": "rlog-dlogenc",
+   "from": "rlog",
+   "to": "dlogenc"
+  },
+  {
+   "id": "rkpi-dkpienc",
+   "from": "rkpi",
+   "to": "dkpienc"
+  },
+  {
+   "id": "rstr-dstrenc",
+   "from": "rstr",
+   "to": "dstrenc"
+  },
+  {
+   "id": "ratr-dtattr",
+   "from": "ratr",
+   "to": "dtattr"
+  },
+  {
+   "id": "afeat-dcntenc",
+   "from": "afeat",
+   "to": "dcntenc",
+   "variant": "dashed",
+   "label": "real",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     28
+    ],
+    [
+     1280,
+     28
+    ],
+    [
+     1280,
+     155
+    ]
+   ]
+  },
+  {
+   "id": "afeat-dordenc",
+   "from": "afeat",
+   "to": "dordenc",
+   "variant": "dashed",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     28
+    ],
+    [
+     1280,
+     28
+    ],
+    [
+     1280,
+     219
+    ]
+   ]
+  },
+  {
+   "id": "afeat-dattr",
+   "from": "afeat",
+   "to": "dattr",
+   "variant": "dashed",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     28
+    ],
+    [
+     1280,
+     28
+    ],
+    [
+     1280,
+     283
+    ]
+   ]
+  },
+  {
+   "id": "lfeat-dlogenc",
+   "from": "lfeat",
+   "to": "dlogenc",
+   "variant": "dashed",
+   "label": "real",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     366
+    ],
+    [
+     1280,
+     366
+    ],
+    [
+     1280,
+     449
+    ]
+   ]
+  },
+  {
+   "id": "mfeat-dkpienc",
+   "from": "mfeat",
+   "to": "dkpienc",
+   "variant": "dashed",
+   "label": "real",
+   "fromSide": "bottom",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     644
+    ],
+    [
+     1280,
+     644
+    ],
+    [
+     1280,
+     579
+    ]
+   ]
+  },
+  {
+   "id": "tfeat-dstrenc",
+   "from": "tfeat",
+   "to": "dstrenc",
+   "variant": "dashed",
+   "label": "real",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     664
+    ],
+    [
+     1280,
+     664
+    ],
+    [
+     1280,
+     745
+    ]
+   ]
+  },
+  {
+   "id": "tfeat-dtattr",
+   "from": "tfeat",
+   "to": "dtattr",
+   "variant": "dashed",
+   "fromSide": "top",
+   "toSide": "left",
+   "via": [
+    [
+     328,
+     664
+    ],
+    [
+     1280,
+     664
+    ],
+    [
+     1280,
+     809
+    ]
+   ]
+  },
+  {
+   "id": "dcntenc-dcntlin",
+   "from": "dcntenc",
+   "to": "dcntlin"
+  },
+  {
+   "id": "dordenc-dordlin",
+   "from": "dordenc",
+   "to": "dordlin"
+  },
+  {
+   "id": "dlogenc-dloglin",
+   "from": "dlogenc",
+   "to": "dloglin"
+  },
+  {
+   "id": "dkpienc-dkpilin",
+   "from": "dkpienc",
+   "to": "dkpilin"
+  },
+  {
+   "id": "dstrenc-dstrlin",
+   "from": "dstrenc",
+   "to": "dstrlin"
+  },
+  {
+   "id": "dcntlin-verdict",
+   "from": "dcntlin",
+   "to": "verdict"
+  },
+  {
+   "id": "dordlin-verdict",
+   "from": "dordlin",
+   "to": "verdict"
+  },
+  {
+   "id": "dattr-verdict",
+   "from": "dattr",
+   "to": "verdict"
+  },
+  {
+   "id": "dloglin-verdict",
+   "from": "dloglin",
+   "to": "verdict"
+  },
+  {
+   "id": "dkpilin-verdict",
+   "from": "dkpilin",
+   "to": "verdict"
+  },
+  {
+   "id": "dstrlin-verdict",
+   "from": "dstrlin",
+   "to": "verdict"
+  },
+  {
+   "id": "dtattr-verdict",
+   "from": "dtattr",
+   "to": "verdict"
+  }
+ ],
+ "cards": [
+  {
+   "dot": "amber",
+   "title": "How to read",
+   "items": [
+    "Solid arrows: forward pass and reconstructed features (FAKE pass)",
+    "Dashed arrows: real features sent straight to the discriminator (REAL pass)",
+    "Each head classifies its input as real or reconstructed"
+   ]
+  },
+  {
+   "dot": "cyan",
+   "title": "Discriminator heads",
+   "items": [
+    "Log and metric: 1D CNN, then linear",
+    "Async count, async order, trace structure: 1-layer GAT, then linear",
+    "Both attribute heads: MLP over the service mean"
+   ]
+  },
+  {
+   "dot": "rose",
+   "title": "Opt-in branches",
+   "items": [
+    "open_trace adds the trace band, open_async_trace the async band",
+    "Order decoder and its head need async_order",
+    "Async errors add to the fused score; RCA uses sync node scores"
+   ]
+  }
+ ]
 }

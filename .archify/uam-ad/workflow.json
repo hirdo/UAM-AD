@@ -1,0 +1,148 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "How UAM-AD Catches Incidents",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": ".archify/uam-ad/workflow.html",
+    "repository": {
+      "url": "https://github.com/hirdo/UAM-AD.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "8add0edb98dfd46f12520fd5aa082451a5d526c7"
+    },
+    "legend": {
+      "entries": {
+        "external": { "label": "Your running system" },
+        "backend": { "label": "Plain processing step" },
+        "database": { "label": "Stored history" },
+        "messagebus": { "label": "Model that learns" },
+        "security": { "label": "Alarm rule" },
+        "frontend": { "label": "What on-call sees" }
+      }
+    }
+  },
+  "lanes": [
+    { "id": "learn", "label": "Learn what normal looks like (offline)" },
+    { "id": "system", "label": "Your system" },
+    { "id": "watch", "label": "Watch live traffic (online)" },
+    { "id": "oncall", "label": "What on-call gets" }
+  ],
+  "phases": [
+    { "id": "collect", "label": "Collect", "fromCol": 0, "toCol": 1 },
+    { "id": "practice", "label": "Learn normal", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "score", "label": "Score", "fromCol": 4, "toCol": 4 },
+    { "id": "decide", "label": "Decide", "fromCol": 5, "toCol": 5, "variant": "security" }
+  ],
+  "groups": [
+    { "id": "practice_loop", "label": "Practice loop", "lane": "learn", "fromCol": 2, "toCol": 3, "variant": "emphasis" }
+  ],
+  "mainPath": ["app", "snapshots", "history", "redraw", "judge", "trained", "compare", "decision", "alert"],
+  "nodes": [
+    {
+      "id": "app", "lane": "system", "col": 0, "type": "external",
+      "label": "Microservices app", "sublabel": "services call each other"
+    },
+    {
+      "id": "snapshots", "lane": "system", "col": 1, "type": "backend",
+      "label": "Snapshot builder", "sublabel": "logs, metrics, traces, queue msgs", "tag": "one per time window",
+      "sources": [{ "path": "codes/common/data_loads.py", "line": 106, "end_line": 122, "label": "signal tensors" }]
+    },
+    {
+      "id": "history", "lane": "learn", "col": 1, "type": "database",
+      "label": "Healthy history", "sublabel": "normal snapshots only"
+    },
+    {
+      "id": "redraw", "lane": "learn", "col": 2, "type": "messagebus",
+      "label": "Redraw model", "sublabel": "rebuilds each snapshot",
+      "sources": [{ "path": "codes/models/fuse_v3.py", "line": 479, "label": "MultiModel" }]
+    },
+    {
+      "id": "judge", "lane": "learn", "col": 3, "type": "messagebus",
+      "label": "Judge", "sublabel": "real or redrawn?", "tag": "training only",
+      "sources": [
+        { "path": "codes/models/fuse_v3.py", "line": 245, "label": "MultiDiscriminator" },
+        { "path": "codes/models/basev3.py", "line": 788, "end_line": 793, "label": "fool-the-judge loss" }
+      ]
+    },
+    {
+      "id": "trained", "lane": "learn", "col": 4, "type": "messagebus",
+      "label": "Trained model", "sublabel": "redraws normal well"
+    },
+    {
+      "id": "line", "lane": "learn", "col": 5, "type": "security",
+      "label": "Alarm line", "sublabel": "95% of normal mismatch",
+      "sources": [{ "path": "codes/models/basev3.py", "line": 391, "label": "val p95 threshold" }]
+    },
+    {
+      "id": "fresh", "lane": "watch", "col": 1, "type": "backend",
+      "label": "New snapshot", "sublabel": "every time window"
+    },
+    {
+      "id": "compare", "lane": "watch", "col": 4, "type": "backend",
+      "label": "Redraw and compare", "sublabel": "gives a mismatch score"
+    },
+    {
+      "id": "decision", "lane": "watch", "col": 5, "type": "security", "icon": "decision",
+      "label": "Above alarm line?"
+    },
+    {
+      "id": "quiet", "lane": "oncall", "col": 4, "type": "frontend", "icon": "success",
+      "label": "No alert", "sublabel": "keep watching"
+    },
+    {
+      "id": "alert", "lane": "oncall", "col": 5, "type": "frontend", "icon": "flag",
+      "label": "Alert", "sublabel": "top-3 suspect services",
+      "sources": [
+        { "path": "codes/models/basev3.py", "line": 498, "label": "localize_root_causes" },
+        { "path": "codes/models/rca.py", "line": 37, "label": "rank_top_k_services" }
+      ]
+    }
+  ],
+  "edges": [
+    { "id": "app-snapshots", "from": "app", "to": "snapshots", "label": "telemetry" },
+    { "id": "snapshots-history", "from": "snapshots", "to": "history", "label": "past, healthy" },
+    { "id": "snapshots-fresh", "from": "snapshots", "to": "fresh", "label": "live" },
+    { "id": "history-redraw", "from": "history", "to": "redraw", "variant": "emphasis" },
+    { "id": "redraw-judge", "from": "redraw", "to": "judge", "label": "redrawn copy", "variant": "emphasis" },
+    { "id": "judge-redraw", "from": "judge", "to": "redraw", "label": "feedback", "role": "return", "variant": "dashed" },
+    { "id": "judge-trained", "from": "judge", "to": "trained", "label": "after training" },
+    { "id": "trained-line", "from": "trained", "to": "line", "label": "score healthy data" },
+    { "id": "trained-compare", "from": "trained", "to": "compare", "label": "deploy", "variant": "dashed" },
+    { "id": "line-decision", "from": "line", "to": "decision", "label": "threshold", "variant": "security" },
+    { "id": "fresh-compare", "from": "fresh", "to": "compare", "label": "snapshot" },
+    { "id": "compare-decision", "from": "compare", "to": "decision", "label": "score" },
+    { "id": "decision-alert", "from": "decision", "to": "alert", "label": "yes", "variant": "security", "role": "error" },
+    { "id": "decision-quiet", "from": "decision", "to": "quiet", "label": "no", "role": "branch" }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "What it achieves",
+      "items": [
+        "No labeled incidents needed: it learns from healthy runs only",
+        "Reads all four signals together, including async queue messages",
+        "Answers both \"is something wrong?\" and \"which services first?\""
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "The core idea",
+      "items": [
+        "A model that has only seen healthy traffic redraws healthy snapshots well",
+        "When something breaks, the redraw no longer matches reality",
+        "The bigger the mismatch, the more likely an incident"
+      ]
+    },
+    {
+      "dot": "slate",
+      "title": "If an ML person asks",
+      "items": [
+        "Redraw model = generator (reconstruction model)",
+        "Judge = discriminator, used only while training",
+        "Mismatch score = reconstruction error; alarm line = p95 on normal validation data"
+      ]
+    }
+  ]
+}
