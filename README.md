@@ -64,6 +64,8 @@ Each modality is encoded separately. Logs and metrics are fused by multi-modal s
 | **Anomaly score** | `norm_sum`: each term (log/metric loss, trace structure, trace error) is normalised by its median and p95 on val, then summed |
 | **RCA** | Service ranking from per-node trace score + per-service metric error (`rca.py`) |
 
+**Interactive diagrams** (workflow, architecture, data flow, losses): [hirdo.github.io/UAM-AD/diagrams](https://hirdo.github.io/UAM-AD/diagrams/)
+
 ---
 
 ## Getting Started

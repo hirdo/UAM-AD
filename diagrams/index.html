@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UAM-AD Diagrams</title>
+  <meta name="description" content="Interactive diagrams of UAM-AD: workflow, architecture, data flow, and training/inference losses.">
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --panel: #ffffff;
+      --border: #e2e8f0;
+      --border-hover: #94a3b8;
+      --text: #0f172a;
+      --text-dim: #475569;
+      --accent: #0369a1;
+      --accent-soft: #e0f2fe;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #020617;
+        --panel: rgba(15, 23, 42, 0.6);
+        --border: #1e293b;
+        --border-hover: #475569;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --accent: #38bdf8;
+        --accent-soft: rgba(56, 189, 248, 0.12);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.6);
+      --border: #1e293b;
+      --border-hover: #475569;
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.5;
+    }
+    main { max-width: 960px; margin: 0 auto; padding: 56px 16px 48px; }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 8px;
+    }
+    h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+    .lede { color: var(--text-dim); max-width: 62ch; margin: 0 0 40px; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    a.card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 22px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    a.card:hover, a.card:focus-visible { border-color: var(--border-hover); transform: translateY(-2px); }
+    a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; }
+    .icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: grid; place-items: center;
+      background: var(--accent-soft); color: var(--accent);
+    }
+    .num { font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+    .card h2 { font-size: 18px; margin: 0; line-height: 1.3; }
+    .card p { margin: 0; color: var(--text-dim); font-size: 14px; flex: 1; }
+    .open { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+    footer {
+      margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 8px 24px;
+      font-size: 14px; color: var(--text-dim);
+    }
+    footer a { color: var(--accent); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">UAM-AD · Diagrams</p>
+    <h1>Explore how UAM-AD works</h1>
+    <p class="lede">Interactive diagrams of the unsupervised multi-modal anomaly detector: from the big picture down to every module and loss. Each diagram supports zoom, dark/light themes and export.</p>
+
+    <div class="grid">
+      <a class="card" href="../.archify/uam-ad/workflow.html">
+        <div class="card-head">
+          <span class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="6" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M7.5 12h4l5-5.2M11.5 12l5 5.2"/></svg>
+          </span>
+          <span class="num">01</span>
+        </div>
+        <h2>How UAM-AD Catches Incidents</h2>
+        <p>The end-to-end story: learn what normal looks like offline, watch live traffic, and alert on-call with the top suspect services.</p>
+        <span class="open">Open diagram →</span>
+      </a>
+
+      <a class="card" href="../.archify/uam-ad/architecture.html">
+        <div class="card-head">
+          <span class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+          </span>
+          <span class="num">02</span>
+        </div>
+        <h2>Generator and Discriminator Architecture</h2>
+        <p>Every module: log, metric, sync-trace and async-trace encoders, the fused decoder with its gate, and the discriminator heads.</p>
+        <span class="open">Open diagram →</span>
+      </a>
+
+      <a class="card" href="../.archify/uam-ad/data-workflow.html">
+        <div class="card-head">
+          <span class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h18M3 18h8"/><path d="M15 3l3 3-3 3M18 9l3 3-3 3"/></svg>
+          </span>
+          <span class="num">03</span>
+        </div>
+        <h2>Data Flow</h2>
+        <p>Logs, metrics, traces and async messages through the dataset, encoders, decoder and judge, to the anomaly score and root cause.</p>
+        <span class="open">Open diagram →</span>
+      </a>
+
+      <a class="card" href="../.archify/uam-ad/phases.html">
+        <div class="card-head">
+          <span class="icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18"/><path d="M6 16V9M11 16V5M16 16v-4M21 16V8"/></svg>
+          </span>
+          <span class="num">04</span>
+        </div>
+        <h2>Losses in Training and Inference</h2>
+        <p>Reconstruction, contrastive, discriminator and adversarial losses during training, then scoring and thresholding at inference.</p>
+        <span class="open">Open diagram →</span>
+      </a>
+    </div>
+
+    <footer>
+      <a href="../">← Project home</a>
+      <a href="https://github.com/hirdo/UAM-AD">Source on GitHub</a>
+    </footer>
+  </main>
+</body>
+</html>
